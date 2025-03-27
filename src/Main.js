@@ -4,6 +4,7 @@ import LandingPage from './pages/LandingPage'
 import TrainingStylePage from './pages/TrainingStyle'
 import StrengthPage from './pages/StrengthPage'
 import HypertrophyPage from './pages/HypertrophyPage'
+import ColorDesignPage from './pages/ColorDesignPage'
 
 function Main(){
     return(
@@ -13,6 +14,7 @@ function Main(){
                 <Route exact path="/TrainingStylePage" element={<TrainingStylePage />} />
                 <Route exact path="/StrengthPage" element={<StrengthPage />} />
                 <Route exact path="/HypertrophyPage" element={<HypertrophyPage />} />
+                <Route exact path="ColorDesign" element={<ColorDesignPage />} />
             </Routes>
         </BrowserRouter>
     )
