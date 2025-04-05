@@ -1,65 +1,121 @@
+import { useState } from "react"
+import TableHead from "./TableHead"
+import TableRow from "./TableRow"
 
+function ChestWorkout({ target, reps }){
+// incline chest 
+    const [inclineChestExercise, setInclineChestExercise] = useState(null)
 
-function ChestWorkout({ target, reps}){
+    const handleSelectInclineExercise = (option) => {
+        setInclineChestExercise(option)
+    }
+
+    const inclineExerciseOptions = [
+        {label: "Dumbbell Incline Press", value: "dip"},
+        {label: "Machine Incline Press", value: "mip" },
+        {label: "Smith Machine Incline Press", value: "smip"},
+        {label: "Barbell Incline Press", value: "bip"}
+    ]
+// regular chest press
+    const [chestPressExercise, setChestPressExercise] = useState(null)
+
+    const handleSelectChestPressExercise = (option) => {
+        setChestPressExercise(option)
+    }
+
+    const chestPressExerciseOptions = [
+        {label: "Dumbbell Press", value: "dp"},
+        {label: "Machine Press", value: "mp"},
+        {label: "Smith Machine Press", value: "smp"},
+        {label: "Barbell Press", value: "dp"},
+    ]
+// pec deck
+    const [chestFlyExercise, setChestFlyExercise] = useState(null)
+
+    const handleSelectChestFlyExercise = (option) => {
+        setChestFlyExercise(option)
+    }
+
+    const chestFlyExerciseOptions = [
+        {label: "Chest Fly Machine", value: "cfm"},
+        {label: "Cable Flys", value: "cf"},
+        {label: "Dumbbell Flys", value: "df"},
+    ]
+// Tri Pulldowns
+    const [tricepExercise, setTricepExercise] = useState(null)
+
+    const handleSelectTricepExercise = (option) => {
+        setTricepExercise(option)
+    }
+
+    const tricepExerciseOptions = [
+        {label: "Straight Bar Cable Push Downs", value: "sbcpd"},
+        {label: "Rope Pull Downs", value: "rpd"},
+        {label: "1 Arm Cable Pull Downs", value: "1acpd"},
+        {label: "Overhead Bar Cable Extensions", value: "obce"},
+        {label: "Overhead Dumbbell Extensions", value: "ode"},
+        {label: "Dips", value: "d"},
+    ]
+
+    const [tricepExerciseTwo, setTricepExerciseTwo] = useState(null)
+
+    const handleSelectTricepExerciseTwo = (option) => {
+        setTricepExerciseTwo(option)
+    }
+
+    const tricepExerciseOptionsTwo = [
+        {label: "Straight Bar Cable Push Downs", value: "sbcpd"},
+        {label: "Rope Pull Downs", value: "rpd"},
+        {label: "1 Arm Cable Pull Downs", value: "1acpd"},
+        {label: "Overhead Bar Cable Extensions", value: "obce"},
+        {label: "Overhead Dumbbell Extensions", value: "ode"},
+        {label: "Dips", value: "d"},
+    ]
+
    return (
     <div className="flex justify-center font-serif bg-white">
-
         <table className="border w-full">
-        <caption className="text-xl font-bold mb-4 border-t"> {target?.label} x {reps?.label} </caption>
-        <thead>
-            <tr>
-                <th className="border px-4 py-2">Exercise</th>
-                <th className="border px-4 py-2">Set 1</th>
-                <th className="border px-4 py-2">Set 2</th>
-                <th className="border px-4 py-2">Set 3</th>
-                {target?.value === "chest" && reps?.value === "4" && <th className="border px-4 py-2">Set 4</th>}
-                {target?.value === "chest" && reps?.value === "5" && ( <> <th className="border px-4 py-2">Set 4</th> <th className="border px-4 py-2">Set 5</th> </> )}
-            </tr>
-        </thead>
+            <caption className="text-xl font-bold mb-4 border-t"> {target?.label} - {reps?.label} </caption>
+            <TableHead target={target} reps={reps} muscle="chest" />
+                        
+            <tbody className="border px-4 py-2">
+                <TableRow 
+                    onChange={handleSelectInclineExercise}
+                    value={inclineChestExercise}
+                    options={inclineExerciseOptions}
+                    target={target} reps={reps}
+                    muscle="chest"
+                />
+                <TableRow
+                    onChange={handleSelectChestPressExercise}
+                    value={chestPressExercise}
+                    options={chestPressExerciseOptions}
+                    target={target}
+                    reps={reps}
+                    muscle="chest" />
+                <TableRow
+                    onChange={handleSelectChestFlyExercise}
+                    value={chestFlyExercise}
+                    options={chestFlyExerciseOptions}
+                    target={target}
+                    reps={reps}
+                    muscle="chest" />
+                <TableRow
+                    onChange={handleSelectTricepExercise}
+                    value={tricepExercise}
+                    options={tricepExerciseOptions}
+                    target={target}
+                    reps={reps}
+                    muscle="chest" />
+                <TableRow
+                    onChange={handleSelectTricepExerciseTwo}
+                    value={tricepExerciseTwo}
+                    options={tricepExerciseOptionsTwo}
+                    target={target}
+                    reps={reps}
+                    muscle="chest" />
+            </tbody>
         
-        <tbody className="border px-4 py-2">
-            <tr className="border px-4 py-2">
-                <td className="border px-4 py-2">Incline Bench Press</td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                {target?.value === "chest" && reps?.value === "4" && <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>}
-                {target?.value === "chest" && reps?.value === "5" && (<> <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td> <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td> </> )}
-            </tr>
-            <tr className="border px-4 py-2">
-                <td className="border px-4 py-2">Chest Press</td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                {target?.value === "chest" && reps?.value === "4" && <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>}
-                {target?.value === "chest" && reps?.value === "5" && (<> <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td> <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td> </> )}
-            </tr>
-            <tr className="border px-4 py-2">
-                <td className="border px-4 py-2">Peck Deck Machine</td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                {target?.value === "chest" && reps?.value === "4" && <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>}
-                {target?.value === "chest" && reps?.value === "5" && (<> <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td> <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td> </> )}
-            </tr>
-            <tr className="border px-4 py-2">
-                <td className="border px-4 py-2">Tricep Pull Downs</td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                {target?.value === "chest" && reps?.value === "4" && <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>}
-                {target?.value === "chest" && reps?.value === "5" && (<> <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td> <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td> </> )}
-            </tr>
-            <tr className="border px-4 py-2">
-                <td className="border px-4 py-2">Tricep Pull Downs</td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>
-                {target?.value === "chest" && reps?.value === "4" && <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td>}
-                {target?.value === "chest" && reps?.value === "5" && (<> <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td> <td className="border px-4 py-2"> <form> <input className="px-2 py-1 w-full" type="text" placeholder=" Weight x Reps "></input></form> </td> </> )}
-            </tr>
-
-        </tbody>
         </table>
     </div>)
 }

@@ -1,6 +1,5 @@
 import { useState } from "react"
 import DropDown from "../DropDown"
-import Plan from "../Plan"
 import ChestWorkout from "../ChestWorkout"
 import BackWorkout from "../BackWorkout"
 import LegsWorkout from "../LegsWorkout"
@@ -61,10 +60,10 @@ function HypertophyPage() {
                     </div>
                 </div>
 
-                {selection?.value === "chest" && showPlan && <ChestWorkout target={selection} reps={repSelection}/>}
-                {selection?.value === "back" && showPlan && <BackWorkout target={selection} reps={repSelection}/>}
-                {selection?.value === "legs" && showPlan && <LegsWorkout target={selection} reps={repSelection}/>}
-                {selection?.value === "shoulders" && showPlan && <ShouldersWorkout target={selection} reps={repSelection}/>}
+                {selection?.value === "chest" && showPlan && <ChestWorkout target={selection} reps={repSelection} />}
+                {selection?.value === "back" && showPlan && <BackWorkout target={selection} reps={repSelection} />}
+                {selection?.value === "legs" && showPlan && <LegsWorkout target={selection} reps={repSelection} />}
+                {selection?.value === "shoulders" && showPlan && <ShouldersWorkout target={selection} reps={repSelection} />}
 
 
             </div>

@@ -33,9 +33,9 @@
             onChange(option)
         }
         
-        const renderedOptions = options.map((option) => {
+        const renderedOptions = options?.map((option) => {
             return <div 
-                        className="hover:bg-sky-100 rounded cursor-pointer p-1 italic font-serif active:bg-sky-200"
+                        className="hover:bg-sky-100 rounded cursor-pointer p-2 italic font-serif active:bg-sky-200"
                         onClick={() => handleOptionClick(option)}
                         key={option.value}
                     >
@@ -44,15 +44,15 @@
         })
 
       return (
-        <div ref={dropdownRef} className="w-48 relative">
+        <div ref={dropdownRef} className="relative">
             <Panel 
-                className="flex justify-between items-center cursor-pointer italic font-serif active:bg-stone-200 hover:bg-stone-100"
+                className="flex justify-between items-center cursor-pointer italic font-serif active:bg-stone-200 hover:bg-stone-100 p-2"
                 onClick={handleClick}
             >
                 {value?.label || 'Select ...'}
             </Panel>
             {isOpen && (
-            <Panel className="absolute top-full">
+            <Panel className="absolute top-full left-0 w-full bg-white shadow-lg z-10 mt-2 rounded-lg max-h-60 overflow-y-auto">
                 {renderedOptions}
             </Panel>)}
         </div>
