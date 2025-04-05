@@ -11,9 +11,9 @@ function Main(){
         <BrowserRouter>
             <Routes>
                 <Route exact path="/" element={<LandingPage />} />
-                <Route exact path="/TrainingStylePage" element={<TrainingStylePage />} />
-                <Route exact path="/StrengthPage" element={<StrengthPage />} />
-                <Route exact path="/HypertrophyPage" element={<HypertrophyPage />} />
+                <Route exact path="/TrainingStyle" element={<TrainingStylePage />} />
+                <Route exact path="/Strength" element={<StrengthPage />} />
+                <Route exact path="/Hypertrophy" element={<HypertrophyPage />} />
                 <Route exact path="ColorDesign" element={<ColorDesignPage />} />
             </Routes>
         </BrowserRouter>

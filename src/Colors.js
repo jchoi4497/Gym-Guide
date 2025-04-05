@@ -50,6 +50,11 @@ function Colors({ color }) {
       "bg-emerald-500", "bg-emerald-600", "bg-emerald-700", "bg-emerald-800", "bg-emerald-900"
     ];
 
+    const pastelPurple = [
+      "bg-pastelPurple-100", "bg-pastelPurple-200", "bg-pastelPurple-300", "bg-pastelPurple-400", 
+      "bg-pastelPurple-500", "bg-pastelPurple-600", "bg-pastelPurple-700", "bg-pastelPurple-800", "bg-pastelPurple-900" 
+    ]
+
 
     const colors = {
       sky,
@@ -61,7 +66,8 @@ function Colors({ color }) {
       yellow,
       amber,
       green,
-      emerald
+      emerald,
+      pastelPurple,
     }
 
     const colorProp = colors[color]
