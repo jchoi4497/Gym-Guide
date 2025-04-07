@@ -27,7 +27,7 @@ function ChestWorkout({ target, reps }){
         {label: "Dumbbell Press", value: "dp"},
         {label: "Machine Press", value: "mp"},
         {label: "Smith Machine Press", value: "smp"},
-        {label: "Barbell Press", value: "dp"},
+        {label: "Barbell Press", value: "bp"},
     ]
 // pec deck
     const [chestFlyExercise, setChestFlyExercise] = useState(null)
