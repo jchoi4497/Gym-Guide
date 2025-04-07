@@ -52,7 +52,7 @@
                 {value?.label || 'Select ...'}
             </Panel>
             {isOpen && (
-            <Panel className="absolute top-full left-0 w-full bg-white shadow-lg z-10 mt-2 rounded-lg max-h-60 overflow-y-auto">
+            <Panel className="absolute top-full left-0 w-full bg-white shadow-lg z-10 rounded max-h-60 overflow-y-auto">
                 {renderedOptions}
             </Panel>)}
         </div>
