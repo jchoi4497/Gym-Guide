@@ -46,7 +46,7 @@
       return (
         <div ref={dropdownRef} className="relative">
             <Panel 
-                className="flex justify-between items-center cursor-pointer italic font-serif active:bg-stone-200 hover:bg-stone-100 p-2"
+                className="flex justify-between items-center cursor-pointer italic font-serif active:bg-stone-200 hover:bg-stone-100 p-2 min-w-60"
                 onClick={handleClick}
             >
                 {value?.label || 'Select ...'}

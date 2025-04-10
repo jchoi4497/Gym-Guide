@@ -36,7 +36,7 @@ function HypertophyPage() {
     ]
 
 
-    return <div className="bg-sky-100 min-h-screen pt-10 font-serif">
+    return <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80">
                 <div className="text-6xl mb-6 ml-10">Hypertophy Training</div>
                 <div className="italic ml-10">Training program designed to increase muscle size and mass.</div>
 
