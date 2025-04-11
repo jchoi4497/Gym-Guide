@@ -50,9 +50,14 @@ function Colors({ color }) {
       "bg-emerald-500", "bg-emerald-600", "bg-emerald-700", "bg-emerald-800", "bg-emerald-900"
     ];
 
-    const pastelPurple = [
-      "bg-pastelPurple-100", "bg-pastelPurple-200", "bg-pastelPurple-300", "bg-pastelPurple-400", 
-      "bg-pastelPurple-500", "bg-pastelPurple-600", "bg-pastelPurple-700", "bg-pastelPurple-800", "bg-pastelPurple-900" 
+    const pastelp = [
+      "bg-pastelp-100", "bg-pastelp-200", "bg-pastelp-300", "bg-pastelp-400", 
+      "bg-pastelp-500", "bg-pastelp-600", "bg-pastelp-700", "bg-pastelp-800", "bg-pastelp-900" 
+    ]
+
+    const myColor = [
+      "bg-myColor-100", "bg-myColor-200", "bg-myColor-300", "bg-myColor-400", 
+      "bg-myColor-500", "bg-myColor-600", "bg-myColor-700", "bg-myColor-800", "bg-myColor-900" 
     ]
 
 
@@ -67,7 +72,8 @@ function Colors({ color }) {
       amber,
       green,
       emerald,
-      pastelPurple,
+      pastelp,
+      myColor
     }
 
     const colorProp = colors[color]

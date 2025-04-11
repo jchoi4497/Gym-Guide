@@ -87,44 +87,44 @@ const bicepTwoOptions = [
  
          <table className="border w-full">
             <caption className="text-xl font-bold mb-4 border-t"> {target?.label} - {reps?.label} </caption>
-            <TableHead target={target} reps={reps} muscle="back" />
+            <TableHead reps={reps} />
             
             <tbody className="border px-4 py-2">
                 <TableRow
                     onChange={handleSelectPullUpExercise}
                     value={pullUpExercise}
                     options={pullUpOptions}
-                    target={target}
                     reps={reps}
-                    muscle="back"/>
+                    rowId='pullup'
+                />
                 <TableRow
                     onChange={handleSelectRowsExercise}
                     value={rowsExercise}
                     options={rowsOptions}
-                    target={target}
                     reps={reps}
-                    muscle="back"/>
+                    rowId='rows'
+                />
                 <TableRow
                     onChange={handleSelectLatsExercise}
                     value={latsExercise}
                     options={latsOptions}
-                    target={target}
                     reps={reps}
-                    muscle="back"/>
+                    rowId='lats'
+                />
                 <TableRow
                     onChange={handleSelectBicepExercise}
                     value={bicepExercise}
                     options={bicepOptions}
-                    target={target}
                     reps={reps}
-                    muscle="back"/>
+                    rowId='bicep1'
+                />
                 <TableRow
                     onChange={handleSelectBicepTwoExercise}
                     value={bicepTwoExercise}
                     options={bicepTwoOptions}
-                    target={target}
                     reps={reps}
-                    muscle="back"/> 
+                    rowId='bicep2'
+                /> 
             </tbody>
 
          </table>

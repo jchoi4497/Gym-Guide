@@ -1,20 +1,20 @@
 
+function TableHead ({ reps }) {
+    const headerCell = function () {
+        const headerElement = []
+        for(let i = 1; i <= Number(reps.value); i++){
+            headerElement.push(
+                <th key={`set-${i}`} className="border px-4 py-2"> Set {i} </th>
+            )
+        }
+        return headerElement
+    }
 
-function TableHead ({ target, reps, muscle}) {
     return (
         <thead>
             <tr>
-                <th className="border px-4 py-2">Exercise</th>
-                <th className="border px-4 py-2">Set 1</th>
-                <th className="border px-4 py-2">Set 2</th>
-                <th className="border px-4 py-2">Set 3</th>
-                {target?.value === muscle && reps?.value === "4" && <th className="border px-4 py-2">Set 4</th>}
-                {target?.value === muscle && reps?.value === "5" &&
-                (<>
-                    <th className="border px-4 py-2">Set 4</th>
-                    <th className="border px-4 py-2">Set 5</th>
-                </>
-                )}
+                <th className="border px-4 py-2"> Exercise </th>
+                {headerCell()}
             </tr>
         </thead>
     )

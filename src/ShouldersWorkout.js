@@ -93,51 +93,51 @@ function ShouldersWorkout({ target, reps}){
  
          <table className="border w-full">
             <caption className="text-xl font-bold mb-4 border-t"> {target?.label} - {reps?.label} </caption>
-            <TableHead target={target} reps={reps} muscle="shoulders" />
+            <TableHead reps={reps} />
             
             <tbody className="border px-4 py-2">
                 <TableRow
                 onChange={handleSelectRearDeltExercise}
                 value={rearDeltExercise}
                 options={rearDeltExerciseOptions}
-                target={target}
                 reps={reps}
-                muscle="shoulders"/>
+                rowId='reardelt1'
+                />
                 <TableRow
                 onChange={handleSelectLatRaisesExercise}
                 value={LatRaisesExercise}
                 options={LatRaisesExerciseOptions}
-                target={target}
                 reps={reps}
-                muscle="shoulders"/>
+                rowId='latraise1'
+                />
                 <TableRow
                 onChange={handleSelectRearDeltTwoExercise}
                 value={rearDeltTwoExercise}
                 options={rearDeltTwoExerciseOptions}
-                target={target}
                 reps={reps}
-                muscle="shoulders"/>
+                rowId='reardelt2'
+                />
                 <TableRow
                 onChange={handleSelectLatRaisesTwoExercise}
                 value={LatRaisesTwoExercise}
                 options={LatRaisesTwoExerciseOptions}
-                target={target}
                 reps={reps}
-                muscle="shoulders"/>
+                rowId='latraise2'
+                />
                 <TableRow
                 onChange={handleSelectWristCurlsExercise}
                 value={wristCurlsExercise}
                 options={wristCurlOptions}
-                target={target}
                 reps={reps}
-                muscle="shoulders"/>
+                rowId='wristcurl'
+                />
                 <TableRow 
                 onChange={handleSelectReverseWristCurlsExercise}
                 value={reverseWristCurlsExercise}
                 options={reverseWristCurlOptions}
-                target={target}
-                reps={reps}s
-                muscle="shoulders"/>
+                reps={reps}
+                rowId='reversewrist'
+                />
             </tbody>
             
          </table>

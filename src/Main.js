@@ -5,6 +5,7 @@ import TrainingStylePage from './pages/TrainingStyle'
 import StrengthPage from './pages/StrengthPage'
 import HypertrophyPage from './pages/HypertrophyPage'
 import ColorDesignPage from './pages/ColorDesignPage'
+import './index.css'
 
 function Main(){
     return(
