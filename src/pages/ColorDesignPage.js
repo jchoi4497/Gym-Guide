@@ -14,7 +14,8 @@ function ColorDesign() {
         <Colors color="blue"/>
         <Colors color="slate"/>
         <Colors color="stone"/>
-        <Colors color="pastelPurple"/>
+        <Colors color="pastelp"/>
+        <Colors color="myColor"/>
 
 
       </div>

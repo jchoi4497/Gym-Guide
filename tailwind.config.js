@@ -1,11 +1,11 @@
-const colors = require('tailwindcss/colors')
+/** @type {import('tailwindcss').Config} */
 
-module.exports = {
+export default {
     content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
     theme: {
         extend: {
             colors:{
-                pastelPurple: {
+                pastelp: {
                     50: "#f9f6ff",
                     100: "#f4edff",
                     200: "#e9dbff",
@@ -15,8 +15,20 @@ module.exports = {
                     600: "#9f84cc",
                     700: "#776399",
                     800: "#504266",
-                    900: "#282133"
+                    900: "#282133",
                 },
+                myColor: {
+                    "50": "#f0fef8",
+                    "100": "#e1fcf1",
+                    "200": "#c3f9e4",
+                    "300": "#a6f7d6",
+                    "400": "#88f4c9",
+                    "500": "#6af1bb",
+                    "600": "#55c196",
+                    "700": "#409170",
+                    "800": "#2a604b",
+                    "900": "#153025"
+                }
             },
         },
     },

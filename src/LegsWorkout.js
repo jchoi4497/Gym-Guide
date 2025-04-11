@@ -65,37 +65,37 @@ const calfRaisesOptions = [
      <div className="flex justify-center font-serif bg-white">
          <table className="border w-full">
             <caption className="text-xl font-bold mb-4 border-t"> {target?.label} - {reps?.label} </caption>
-            <TableHead target={target} reps={reps} muscle="legs" />
+            <TableHead reps={reps} />
             
             <tbody className="border px-4 py-2">
                 <TableRow
                 onChange={handleSelectSquatExercise}
                 value={squatExercise}
                 options={squatOptions}
-                target={target}
                 reps={reps}
-                muscle="legs"/>
+                rowId='squats'
+                />
                 <TableRow 
                 onChange={handleSelectSplitSquatsExercise}
                 value={splitSquatsExercise}
                 options={splitSquatsOptions}
-                target={target}
                 reps={reps}
-                muscle="legs"/>
+                rowId='splits'
+                />
                 <TableRow
                 onChange={handleSelectBackExtensionExercise}
                 value={backExtensionExercise}
                 options={backExtensionOptions}
-                target={target}
                 reps={reps}
-                muscle="legs"/>
+                rowId='backextension'
+                />
                 <TableRow
                 onChange={handleSelectCalfRaisesExercise}
                 value={calfRaisesExercise}
                 options={calfRaisesOptions}
-                target={target}
                 reps={reps}
-                muscle="legs"/>
+                rowId='calf'
+                />
             </tbody>
          </table>
      </div>)

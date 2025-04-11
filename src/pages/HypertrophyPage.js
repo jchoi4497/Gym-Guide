@@ -29,6 +29,7 @@ function HypertophyPage() {
         {label: "Shoulders/Forearms", value: "shoulders"}
     ]
 
+    //reps
     const setOptions = [
         {label: "3x15", value: "3"},
         {label: "4x12", value: "4"},
@@ -36,18 +37,18 @@ function HypertophyPage() {
     ]
 
 
-    return <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80">
+    return <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80 px-20">
                 <div className="text-6xl mb-6 ml-10">Hypertophy Training</div>
                 <div className="italic ml-10">Training program designed to increase muscle size and mass.</div>
 
                 <div className="flex m-10 space-x-12">
                     <div className="">
                         STEP 1. Select Muscle Group to Target.
-                        <DropDown className="" options={options} value={selection} onChange={handleSelect}/>
+                        <DropDown options={options} value={selection} onChange={handleSelect}/>
                     </div>
                     <div className="">
                         STEP 2. Select Set x Rep Range
-                        <DropDown className="" options={setOptions} value={repSelection} onChange={repHandleSelect}/>
+                        <DropDown options={setOptions} value={repSelection} onChange={repHandleSelect}/>
                     </div> 
                     <div className="m-6">
                     <button className="px-5 py-2 rounded-3xl shadow-lg text-white
