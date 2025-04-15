@@ -20,7 +20,7 @@ function StrengthPage() {
         setRepSelection(option)
     }
 
-    const createClick = () => {
+    const handleSaveWorkout = () => {
         setShowPlan(!showPlan)
     }
 
@@ -52,16 +52,16 @@ function StrengthPage() {
                     <button className="px-5 py-2 rounded-3xl shadow-lg text-white
                                     transition-all duration-300 bg-blue-700 hover:filter 
                                     hover:bg-blue-800 active:bg-blue-400 cursor-pointer"
-                            onClick={createClick}
+                            onClick={handleSaveWorkout}
                     >
                         Create Plan
                     </button>
                     </div>
                 </div>
-                {selection?.value === "chest" && showPlan && <ChestWorkout target={selection} reps={repSelection}/>}
-                {selection?.value === "back" && showPlan && <BackWorkout target={selection} reps={repSelection}/>}
-                {selection?.value === "legs" && showPlan && <LegsWorkout target={selection} reps={repSelection}/>}
-                {selection?.value === "shoulders" && showPlan && <ShouldersWorkout target={selection} reps={repSelection}/>}
+                {selection?.value === "chest" && repSelection?.value && <ChestWorkout target={selection} reps={repSelection}/>}
+                {selection?.value === "back" && repSelection?.value && <BackWorkout target={selection} reps={repSelection}/>}
+                {selection?.value === "legs" && repSelection?.value && <LegsWorkout target={selection} reps={repSelection}/>}
+                {selection?.value === "shoulders" && repSelection?.value && <ShouldersWorkout target={selection} reps={repSelection}/>}
 
 
             </div>
