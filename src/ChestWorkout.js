@@ -1,8 +1,21 @@
 import { useState } from "react"
 import TableHead from "./TableHead"
 import TableRow from "./TableRow"
+import { useEffect } from "react"
 
-function ChestWorkout({ target, reps }){
+function ChestWorkout({ target, reps, onWorkoutDataChange }){
+
+
+    const [inputData, setInputData] = useState ({})
+
+    const handleInputChange = (rowId, index, value) => {
+        setInputData(prev => {
+            const updatedRow = prev[rowId] ? [...prev[rowId]] : []
+            updatedRow[index] = value
+            return { ...prev, [rowId]: updatedRow }
+        })
+    }
+
 // incline chest 
     const [inclineChestExercise, setInclineChestExercise] = useState(null)
 
@@ -64,9 +77,9 @@ function ChestWorkout({ target, reps }){
     }
 
     const tricepExerciseOptionsTwo = [
-        {label: "Straight Bar Cable Push Downs", value: "sbcpd"},
-        {label: "Rope Pull Downs", value: "rpd"},
         {label: "1 Arm Cable Pull Downs", value: "1acpd"},
+        {label: "Rope Pull Downs", value: "rpd"},
+        {label: "Straight Bar Cable Push Downs", value: "sbcpd"},
         {label: "Overhead Bar Cable Extensions", value: "obce"},
         {label: "Overhead Dumbbell Extensions", value: "ode"},
         {label: "Dips", value: "d"},
