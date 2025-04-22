@@ -1,23 +1,11 @@
 import { useState } from "react"
 import TableHead from "./TableHead"
 import TableRow from "./TableRow"
-import { useEffect } from "react"
 
-function ChestWorkout({ target, reps, onWorkoutDataChange }){
-
-
-    const [inputData, setInputData] = useState ({})
-
-    const handleInputChange = (rowId, index, value) => {
-        setInputData(prev => {
-            const updatedRow = prev[rowId] ? [...prev[rowId]] : []
-            updatedRow[index] = value
-            return { ...prev, [rowId]: updatedRow }
-        })
-    }
+function ChestWorkout({ target, reps, label }){
 
 // incline chest 
-    const [inclineChestExercise, setInclineChestExercise] = useState(null)
+    const [inclineChestExercise, setInclineChestExercise] = useState("dip")
 
     const handleSelectInclineExercise = (option) => {
         setInclineChestExercise(option)
@@ -30,7 +18,7 @@ function ChestWorkout({ target, reps, onWorkoutDataChange }){
         {label: "Barbell Incline Press", value: "bip"}
     ]
 // regular chest press
-    const [chestPressExercise, setChestPressExercise] = useState(null)
+    const [chestPressExercise, setChestPressExercise] = useState("mp")
 
     const handleSelectChestPressExercise = (option) => {
         setChestPressExercise(option)
@@ -43,7 +31,7 @@ function ChestWorkout({ target, reps, onWorkoutDataChange }){
         {label: "Barbell Press", value: "bp"},
     ]
 // pec deck
-    const [chestFlyExercise, setChestFlyExercise] = useState(null)
+    const [chestFlyExercise, setChestFlyExercise] = useState("cfm")
 
     const handleSelectChestFlyExercise = (option) => {
         setChestFlyExercise(option)
@@ -55,7 +43,7 @@ function ChestWorkout({ target, reps, onWorkoutDataChange }){
         {label: "Dumbbell Flys", value: "df"},
     ]
 // Tri Pulldowns
-    const [tricepExercise, setTricepExercise] = useState(null)
+    const [tricepExercise, setTricepExercise] = useState("sbcpd")
 
     const handleSelectTricepExercise = (option) => {
         setTricepExercise(option)
@@ -70,7 +58,7 @@ function ChestWorkout({ target, reps, onWorkoutDataChange }){
         {label: "Dips", value: "d"},
     ]
 
-    const [tricepExerciseTwo, setTricepExerciseTwo] = useState(null)
+    const [tricepExerciseTwo, setTricepExerciseTwo] = useState("1acpd")
 
     const handleSelectTricepExerciseTwo = (option) => {
         setTricepExerciseTwo(option)
@@ -88,7 +76,7 @@ function ChestWorkout({ target, reps, onWorkoutDataChange }){
    return (
     <div className="flex justify-center font-serif bg-white">
         <table className="border w-full">
-            <caption className="text-xl font-bold mb-4 border-t"> {target?.label} - {reps?.label} </caption>
+            <caption className="text-xl font-bold mb-4 border-t"> {label} - {target} </caption>
             <TableHead reps={reps} />
                         
             <tbody className="border px-4 py-2">

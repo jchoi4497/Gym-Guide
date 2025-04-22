@@ -1,4 +1,4 @@
- import React, { useState, useEffect, useRef} from "react"
+ import React, { useState, useEffect, useRef, useMemo} from "react"
  import Panel from "./Panel";
  
  
@@ -36,11 +36,16 @@
         const renderedOptions = options?.map((option) => {
             return <div 
                         className="hover:bg-sky-100 rounded cursor-pointer p-2 italic font-serif active:bg-sky-200"
-                        onClick={() => handleOptionClick(option)}
+                        onClick={() => handleOptionClick(option.value)}
                         key={option.value}
                     >
                 {option.label}
                 </div>
+        })
+        const label = useMemo(() => {
+            return options.find(option => {
+                return option.value === value
+            })?.label
         })
 
       return (
@@ -49,7 +54,7 @@
                 className="flex justify-between items-center cursor-pointer italic font-serif active:bg-stone-200 hover:bg-stone-100 p-2 min-w-60"
                 onClick={handleClick}
             >
-                {value?.label || 'Select ...'}
+                {label || 'Select ...' }
             </Panel>
             {isOpen && (
             <Panel className="absolute top-full left-0 w-full bg-white shadow-lg z-10 rounded max-h-60 overflow-y-auto">
@@ -57,7 +62,6 @@
             </Panel>)}
         </div>
       )
-
  }
 
  export default DropDown

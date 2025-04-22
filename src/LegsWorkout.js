@@ -4,7 +4,7 @@ import TableRow from "./TableRow"
 
 function LegsWorkout({ target, reps }){
 // Squats
-    const [squatExercise, setSquatExercise] = useState(null)
+    const [squatExercise, setSquatExercise] = useState("bs")
 
     const handleSelectSquatExercise = (option) => {
         setSquatExercise(option)
@@ -19,7 +19,7 @@ function LegsWorkout({ target, reps }){
     ]
 
 // Split Squats
-const [splitSquatsExercise, setSplitSquatsExercise] = useState(null)
+const [splitSquatsExercise, setSplitSquatsExercise] = useState("dbss")
 
 const handleSelectSplitSquatsExercise = (option) => {
     setSplitSquatsExercise(option)
@@ -33,7 +33,7 @@ const splitSquatsOptions = [
 ]
 
 // back Extensions
-const [backExtensionExercise, setBackExtensionExercise] = useState(null)
+const [backExtensionExercise, setBackExtensionExercise] = useState("be")
 
 const handleSelectBackExtensionExercise = (option) => {
     setBackExtensionExercise(option)
@@ -48,7 +48,7 @@ const backExtensionOptions = [
 ]
 
 // calf raises
-const [calfRaisesExercise, setCalfRaisesExercise] = useState(null)
+const [calfRaisesExercise, setCalfRaisesExercise] = useState("crm")
 
 const handleSelectCalfRaisesExercise = (option) => {
     setCalfRaisesExercise(option)

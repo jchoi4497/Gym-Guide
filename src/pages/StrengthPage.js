@@ -1,16 +1,16 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import DropDown from "../DropDown"
 import ChestWorkout from "../ChestWorkout"
 import BackWorkout from "../BackWorkout"
 import LegsWorkout from "../LegsWorkout"
 import ShouldersWorkout from "../ShouldersWorkout"
+import db from '../firebase'
+import { collection, addDoc } from "firebase/firestore"
 
 
 function StrengthPage() {
     const [selection, setSelection] = useState(null)
     const [repSelection, setRepSelection] = useState(null)
-    const [showPlan, setShowPlan] = useState(false)
-
 
     const handleSelect = (option) => {
         setSelection(option)
@@ -20,8 +20,13 @@ function StrengthPage() {
         setRepSelection(option)
     }
 
-    const handleSaveWorkout = () => {
-        setShowPlan(!showPlan)
+    const handleSaveWorkout = async () => {
+        const workoutDoc = await addDoc(collection(db, "workoutLogs"), {
+            target: selection,
+            reps: repSelection,
+            timestamp: new Date()
+        })
+        console.log(workoutDoc)
     }
 
     const options = [
@@ -37,7 +42,13 @@ function StrengthPage() {
         {label: "5x5", value: "5"}
     ]
 
-    return <div className="bg-sky-100 min-h-screen pt-10 font-serif">
+    const label = useMemo(() => {
+        return setOptions.find(option => {
+            return option.value === repSelection
+        })?.label
+    })
+
+    return <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80 px-20">
                 <div className="text-6xl mb-6 ml-10">Strength Training</div>
                 <div className="mb-6 italic ml-10">Training program designed to build muscle strength and mass</div>
 
@@ -54,14 +65,14 @@ function StrengthPage() {
                                     hover:bg-blue-800 active:bg-blue-400 cursor-pointer"
                             onClick={handleSaveWorkout}
                     >
-                        Create Plan
+                        Save Plan
                     </button>
                     </div>
                 </div>
-                {selection?.value === "chest" && repSelection?.value && <ChestWorkout target={selection} reps={repSelection}/>}
-                {selection?.value === "back" && repSelection?.value && <BackWorkout target={selection} reps={repSelection}/>}
-                {selection?.value === "legs" && repSelection?.value && <LegsWorkout target={selection} reps={repSelection}/>}
-                {selection?.value === "shoulders" && repSelection?.value && <ShouldersWorkout target={selection} reps={repSelection}/>}
+                {selection === "chest" && repSelection && <ChestWorkout target={selection} reps={repSelection} label={label}/>}
+                {selection === "back" && repSelection && <BackWorkout target={selection} reps={repSelection} label={label}/>}
+                {selection === "legs" && repSelection && <LegsWorkout target={selection} reps={repSelection} label={label}/>}
+                {selection === "shoulders" && repSelection && <ShouldersWorkout target={selection} reps={repSelection} label={label}/>}
 
 
             </div>

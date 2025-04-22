@@ -5,7 +5,7 @@ import TableRow from "./TableRow"
 function ShouldersWorkout({ target, reps}){
 // Rear Delt 
 
-    const [rearDeltExercise, setRearDeltExercise] = useState(null)
+    const [rearDeltExercise, setRearDeltExercise] = useState("rdm")
 
     const handleSelectRearDeltExercise = (option) => {
         setRearDeltExercise(option)
@@ -20,7 +20,7 @@ function ShouldersWorkout({ target, reps}){
         {label: "Cable Face Pulls", value: "cfp"},
     ]
 
-    const [rearDeltTwoExercise, setRearDeltTwoExercise] = useState(null)
+    const [rearDeltTwoExercise, setRearDeltTwoExercise] = useState("1acrdf2")
 
     const handleSelectRearDeltTwoExercise = (option) => {
         setRearDeltTwoExercise(option)
@@ -37,7 +37,7 @@ function ShouldersWorkout({ target, reps}){
 
 // Lat Raises
 
-    const [LatRaisesExercise, setLatRaisesExercise] = useState(null)
+    const [LatRaisesExercise, setLatRaisesExercise] = useState("dlr")
 
     const handleSelectLatRaisesExercise = (option) => {
         setLatRaisesExercise(option)
@@ -49,7 +49,7 @@ function ShouldersWorkout({ target, reps}){
         {label: "Machine Lat Raises", value: "mlr"},
     ]
 
-    const [LatRaisesTwoExercise, setLatRaisesTwoExercise] = useState(null)
+    const [LatRaisesTwoExercise, setLatRaisesTwoExercise] = useState("1acdlr2")
 
     const handleSelectLatRaisesTwoExercise = (option) => {
         setLatRaisesTwoExercise(option)
@@ -62,7 +62,7 @@ function ShouldersWorkout({ target, reps}){
     ]
 
 // Wrist Curls
-    const [wristCurlsExercise, setWristCurlsExercise] = useState(null)
+    const [wristCurlsExercise, setWristCurlsExercise] = useState("cwc")
 
     const handleSelectWristCurlsExercise = (option) => {
         setWristCurlsExercise(option)
@@ -75,18 +75,16 @@ function ShouldersWorkout({ target, reps}){
     ]
 
 // Reverse Wrist Curls
-    const [reverseWristCurlsExercise, setReverseWristCurlsExercise] = useState(null)
+    const [reverseWristCurlsExercise, setReverseWristCurlsExercise] = useState("rdbwc")
 
     const handleSelectReverseWristCurlsExercise = (option) => {
         setReverseWristCurlsExercise(option)
     }
 
     const reverseWristCurlOptions = [
-        {label: "Reverse Dumbbell Wrist Curls", value: "dbwc" },
+        {label: "Reverse Dumbbell Wrist Curls", value: "rdbwc" },
         {label: "Forearm Curls w/ Easy Bar", value: "fc" },
     ]
-
-
 
     return (
      <div className="flex justify-center font-serif bg-white">
