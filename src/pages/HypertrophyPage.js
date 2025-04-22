@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo} from "react"
 import DropDown from "../DropDown"
 import ChestWorkout from "../ChestWorkout"
 import BackWorkout from "../BackWorkout"
@@ -7,10 +7,16 @@ import ShouldersWorkout from "../ShouldersWorkout"
 import db from '../firebase'
 import { collection, addDoc } from "firebase/firestore"
 
-function HypertophyPage({ target, reps}) {
+function HypertophyPage() {
     const [selection, setSelection] = useState(null)
     const [repSelection, setRepSelection] = useState(null)
-    const [workoutDetails, setWorkoutDetails] = useState(null)
+
+    // useEffect(() => {
+    //     if(selection && repSelection) {
+    //         const 
+    //     }
+    // })
+
 
     const handleSelect = (option) => {
         setSelection(option)
@@ -43,9 +49,14 @@ function HypertophyPage({ target, reps}) {
         {label: "5x8", value: "5"}
     ]
 
+    const label = useMemo(() => {
+                return setOptions.find(option => {
+                    return option.value === repSelection
+                })?.label
+            })
 
     return <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80 px-20">
-                <div className="text-6xl mb-6 ml-10">Hypertophy Training</div>
+                <div className="text-6xl mb-6 ml-10">Hypertrophy Training</div>
                 <div className="italic ml-10">Training program designed to increase muscle size and mass.</div>
 
                 <div className="flex m-10 space-x-12">
@@ -67,11 +78,10 @@ function HypertophyPage({ target, reps}) {
                      </button>
                     </div>
                 </div>
-
-                {selection?.value === "chest" && repSelection?.value && <ChestWorkout target={selection} reps={repSelection} />}
-                {selection?.value === "back" && repSelection?.value && <BackWorkout target={selection} reps={repSelection} />}
-                {selection?.value === "legs" && repSelection?.value && <LegsWorkout target={selection} reps={repSelection} />}
-                {selection?.value === "shoulders" && repSelection?.value && <ShouldersWorkout target={selection} reps={repSelection} />}
+                {selection === "chest" && repSelection && <ChestWorkout target={selection} reps={repSelection} label={label} />}
+                {selection === "back" && repSelection && <BackWorkout target={selection} reps={repSelection} label={label} />}
+                {selection === "legs" && repSelection && <LegsWorkout target={selection} reps={repSelection} label={label} />}
+                {selection === "shoulders" && repSelection && <ShouldersWorkout target={selection} reps={repSelection} label={label} />}
 
 
             </div>

@@ -1,23 +1,17 @@
 import DropDown from "./DropDown"
 
-function TableRow ({ reps, onChange, options, value, rowId, onInputChange, inputs }) {
-
-    const handleChange = (index, newValue) => {
-        onInputChange(rowId, index, newValue)
-        console.log('1234')
-    }
+function TableRow ({ reps, onChange, options, value, rowId }) {
 
     const recordInputCells = function () {
         const cellElements = []
-        for(let i = 0; i < Number(reps.value); i++){
+        for(let i = 0; i < Number(reps); i++){
             cellElements.push(
-                <td key={i + reps.label} className="border px-4 py-2">  
+                <td key={i + rowId} className="border px-4 py-2">  
                     <input
                         id={`${rowId}-cell-${i}`}
                         className="px-2 py-1 w-full"
                         type="text"
                         placeholder=" Weight x Reps "
-                        onChange={(e) => handleChange(i, e.target.value)}
                     />
                 </td> 
             )

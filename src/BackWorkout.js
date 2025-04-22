@@ -4,7 +4,7 @@ import TableRow from "./TableRow"
 
 function BackWorkout({ target, reps}){
 // Pull Ups
-    const [pullUpExercise, setPullUpExercise] = useState(null)
+    const [pullUpExercise, setPullUpExercise] = useState("pu")
 
     const handleSelectPullUpExercise = (option) => {
         setPullUpExercise(option)
@@ -19,7 +19,7 @@ function BackWorkout({ target, reps}){
     ]
 
 // Rows
-    const [rowsExercise, setRowsExercise] = useState(null)
+    const [rowsExercise, setRowsExercise] = useState("mr")
 
     const handleSelectRowsExercise = (option) => {
         setRowsExercise(option)
@@ -36,7 +36,7 @@ function BackWorkout({ target, reps}){
     ]
 
 // Lat exercises
-    const [latsExercise, setLatsExercise] = useState(null)
+    const [latsExercise, setLatsExercise] = useState("lpd2")
 
     const handleSelectLatsExercise = (option) => {
         setLatsExercise(option)
@@ -51,7 +51,7 @@ function BackWorkout({ target, reps}){
     ]
 
 // Bicep exercises
-const [bicepExercise, setBicepExercise] = useState(null)
+const [bicepExercise, setBicepExercise] = useState("dbc")
 
 const handleSelectBicepExercise = (option) => {
     setBicepExercise(option)
@@ -66,7 +66,7 @@ const bicepOptions = [
     {label: "Machine Bicep Curls", value: "mbc"},
 ]
 
-const [bicepTwoExercise, setBicepTwoExercise] = useState(null)
+const [bicepTwoExercise, setBicepTwoExercise] = useState("dbpc2")
 
 const handleSelectBicepTwoExercise = (option) => {
     setBicepTwoExercise(option)
