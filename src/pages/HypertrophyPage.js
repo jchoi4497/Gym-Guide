@@ -10,13 +10,16 @@ import { collection, addDoc } from "firebase/firestore"
 function HypertophyPage() {
     const [selection, setSelection] = useState(null)
     const [repSelection, setRepSelection] = useState(null)
+    const [inputs, setInputs] = useState({})
 
-    // useEffect(() => {
-    //     if(selection && repSelection) {
-    //         const 
-    //     }
-    // })
-
+    const onInput = (exercise, index, input) => {
+        const inputData = {...inputs}
+        if(!inputData[exercise]){
+            inputData[exercise] = new Array(repSelection)
+        }
+        inputData[exercise][index] = input
+        setInputs(inputData)
+    }
 
     const handleSelect = (option) => {
         setSelection(option)
@@ -27,12 +30,12 @@ function HypertophyPage() {
     }
 
     const handleSaveWorkout = async () => {
-        const workoutDoc = await addDoc(collection(db, "workoutLogs"), {
-            target: selection,
-            reps: repSelection,
-            timestamp: new Date()
-        })
-        console.log(workoutDoc)
+        // const workoutDoc = await addDoc(collection(db, "workoutLogs"), {
+        //     target: selection,
+        //     reps: repSelection,
+        //     timestamp: new Date()
+        // })
+        console.log(inputs)
     }
 
     const options = [
@@ -78,10 +81,10 @@ function HypertophyPage() {
                      </button>
                     </div>
                 </div>
-                {selection === "chest" && repSelection && <ChestWorkout target={selection} reps={repSelection} label={label} />}
-                {selection === "back" && repSelection && <BackWorkout target={selection} reps={repSelection} label={label} />}
-                {selection === "legs" && repSelection && <LegsWorkout target={selection} reps={repSelection} label={label} />}
-                {selection === "shoulders" && repSelection && <ShouldersWorkout target={selection} reps={repSelection} label={label} />}
+                {selection === "chest" && repSelection && <ChestWorkout target={selection} reps={repSelection} label={label} inputs={inputs} onInput={onInput}/>}
+                {selection === "back" && repSelection && <BackWorkout target={selection} reps={repSelection} label={label} inputs={inputs} />}
+                {selection === "legs" && repSelection && <LegsWorkout target={selection} reps={repSelection} label={label} inputs={inputs} />}
+                {selection === "shoulders" && repSelection && <ShouldersWorkout target={selection} reps={repSelection} label={label} inputs={inputs} />}
 
 
             </div>

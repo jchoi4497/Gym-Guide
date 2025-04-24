@@ -2,7 +2,7 @@ import { useState } from "react"
 import TableHead from "./TableHead"
 import TableRow from "./TableRow"
 
-function ChestWorkout({ target, reps, label }){
+function ChestWorkout({ target, reps, label, inputs, onInput }){
 
 // incline chest 
     const [inclineChestExercise, setInclineChestExercise] = useState("dip")
@@ -86,6 +86,8 @@ function ChestWorkout({ target, reps, label }){
                     options={inclineExerciseOptions}
                     reps={reps}
                     rowId='incline'
+                    inputs={inputs}
+                    onInput={(index, input) => onInput('incline', index, input)}
                 />
                 <TableRow
                     onChange={handleSelectChestPressExercise}
@@ -93,6 +95,8 @@ function ChestWorkout({ target, reps, label }){
                     options={chestPressExerciseOptions}
                     reps={reps}
                     rowId='chestpress'
+                    inputs={inputs}
+                    onInput={(index, input) => onInput('chestpress', index, input)}
                 />
                 <TableRow
                     onChange={handleSelectChestFlyExercise}
@@ -100,6 +104,8 @@ function ChestWorkout({ target, reps, label }){
                     options={chestFlyExerciseOptions}
                     reps={reps}
                     rowId='chestfly'
+                    inputs={inputs}
+                    onInput={(index, input) => onInput('chestfly', index, input)}
                 />
                 <TableRow
                     onChange={handleSelectTricepExercise}
@@ -107,6 +113,8 @@ function ChestWorkout({ target, reps, label }){
                     options={tricepExerciseOptions}
                     reps={reps}
                     rowId='tricep1'
+                    inputs={inputs}
+                    onInput={(index, input) => onInput('tricep1', index, input)}
                 />
                 <TableRow
                     onChange={handleSelectTricepExerciseTwo}
@@ -114,6 +122,8 @@ function ChestWorkout({ target, reps, label }){
                     options={tricepExerciseOptionsTwo}
                     reps={reps}
                     rowId='tricep2'
+                    inputs={inputs}
+                    onInput={(index, input) => onInput('tricep2', index, input)}
                 />
             </tbody>
         

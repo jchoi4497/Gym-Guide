@@ -1,6 +1,6 @@
 import DropDown from "./DropDown"
 
-function TableRow ({ reps, onChange, options, value, rowId }) {
+function TableRow ({ reps, onChange, options, value, rowId, onInput, inputs }) {
 
     const recordInputCells = function () {
         const cellElements = []
@@ -12,6 +12,8 @@ function TableRow ({ reps, onChange, options, value, rowId }) {
                         className="px-2 py-1 w-full"
                         type="text"
                         placeholder=" Weight x Reps "
+                        value={inputs && inputs[rowId] && inputs[rowId][i] || ''}
+                        onChange={(e) => onInput(i, e.target.value)}
                     />
                 </td> 
             )
