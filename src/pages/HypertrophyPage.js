@@ -13,12 +13,14 @@ function HypertophyPage() {
     const [inputs, setInputs] = useState({})
 
     const onInput = (exercise, index, input) => {
+        console.log(exercise, index, input)
         const inputData = {...inputs}
         if(!inputData[exercise]){
-            inputData[exercise] = new Array(repSelection)
+            inputData[exercise] = new Array(repSelection).fill('')
         }
         inputData[exercise][index] = input
         setInputs(inputData)
+        console.log("input:", inputs)
     }
 
     const handleSelect = (option) => {
@@ -35,7 +37,6 @@ function HypertophyPage() {
         //     reps: repSelection,
         //     timestamp: new Date()
         // })
-        console.log(inputs)
     }
 
     const options = [
@@ -71,7 +72,13 @@ function HypertophyPage() {
                         STEP 2. Select Set x Rep Range
                         <DropDown options={setOptions} value={repSelection} onChange={repHandleSelect}/>
                     </div> 
-                    <div className="m-6">
+                </div>
+                {selection === "chest" && repSelection && <ChestWorkout target={selection} reps={repSelection} label={label} inputs={inputs} onInput={onInput}/>}
+                {selection === "back" && repSelection && <BackWorkout target={selection} reps={repSelection} label={label} inputs={inputs} />}
+                {selection === "legs" && repSelection && <LegsWorkout target={selection} reps={repSelection} label={label} inputs={inputs} />}
+                {selection === "shoulders" && repSelection && <ShouldersWorkout target={selection} reps={repSelection} label={label} inputs={inputs} />}
+               
+                <div className="m-6 flex justify-end">
                     <button className="px-5 py-2 rounded-3xl shadow-lg text-white
                                     transition-all duration-300 bg-blue-700 hover:filter 
                                     hover:bg-blue-800 active:bg-blue-400 cursor-pointer"
@@ -79,13 +86,7 @@ function HypertophyPage() {
                     >
                         Save Plan
                      </button>
-                    </div>
                 </div>
-                {selection === "chest" && repSelection && <ChestWorkout target={selection} reps={repSelection} label={label} inputs={inputs} onInput={onInput}/>}
-                {selection === "back" && repSelection && <BackWorkout target={selection} reps={repSelection} label={label} inputs={inputs} />}
-                {selection === "legs" && repSelection && <LegsWorkout target={selection} reps={repSelection} label={label} inputs={inputs} />}
-                {selection === "shoulders" && repSelection && <ShouldersWorkout target={selection} reps={repSelection} label={label} inputs={inputs} />}
-
 
             </div>
 }
