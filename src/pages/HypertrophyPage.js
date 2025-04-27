@@ -9,7 +9,7 @@ import { collection, addDoc } from "firebase/firestore"
 
 function HypertophyPage() {
     const [selection, setSelection] = useState(null)
-    const [setCountSelection, setsetCountSelection] = useState(null)
+    const [setCountSelection, setSetCountSelection] = useState(null)
     const [inputs, setInputs] = useState({})
 
     const onInput = (row, exercise, index, input) => {
@@ -39,7 +39,7 @@ function HypertophyPage() {
     }
 
     const repHandleSelect = (option) => {
-        setsetCountSelection(option)
+        setSetCountSelection(option)
     }
 
     const handleSaveWorkout = async () => {
@@ -87,9 +87,9 @@ function HypertophyPage() {
                     </div> 
                 </div>
                 {selection === "chest" && setCountSelection && <ChestWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput}/>}
-                {selection === "back" && setCountSelection && <BackWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} />}
-                {selection === "legs" && setCountSelection && <LegsWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} />}
-                {selection === "shoulders" && setCountSelection && <ShouldersWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} />}
+                {selection === "back" && setCountSelection && <BackWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
+                {selection === "legs" && setCountSelection && <LegsWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
+                {selection === "shoulders" && setCountSelection && <ShouldersWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
                
                 <div className="m-6 flex justify-end">
                     <button className="px-5 py-2 rounded-3xl shadow-lg text-white
