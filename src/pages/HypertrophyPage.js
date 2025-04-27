@@ -9,14 +9,15 @@ import { collection, addDoc } from "firebase/firestore"
 
 function HypertophyPage() {
     const [selection, setSelection] = useState(null)
-    const [repSelection, setRepSelection] = useState(null)
+    const [setCountSelection, setsetCountSelection] = useState(null)
     const [inputs, setInputs] = useState({})
 
     const onInput = (row, exercise, index, input) => {
         const inputData = {...inputs}
         if(!inputData[row]){
+            const input = new Array(setCountSelection).fill('')
             inputData[row] = {
-                input: new Array(repSelection).fill('hello'),
+                input,
                 selection: exercise,
             }
         }
@@ -38,14 +39,14 @@ function HypertophyPage() {
     }
 
     const repHandleSelect = (option) => {
-        setRepSelection(option)
+        setsetCountSelection(option)
     }
 
     const handleSaveWorkout = async () => {
         console.log(inputs)
         const workoutDoc = await addDoc(collection(db, "workoutLogs"), {
             // target: selection,
-            // reps: repSelection,
+            // reps: setCountSelection,
             // timestamp: new Date(),
             inputs: inputs
         })
@@ -59,15 +60,15 @@ function HypertophyPage() {
     ]
 
     //reps
-    const setOptions = [
-        {label: "3x15", value: "3"},
-        {label: "4x12", value: "4"},
-        {label: "5x8", value: "5"}
+    const setCountOptions = [
+        {label: "3x15", value: 3},
+        {label: "4x12", value: 4},
+        {label: "5x8", value: 5}
     ]
 
     const label = useMemo(() => {
-                return setOptions.find(option => {
-                    return option.value === repSelection
+                return setCountOptions.find(option => {
+                    return option.value === setCountSelection
                 })?.label
             })
 
@@ -82,13 +83,13 @@ function HypertophyPage() {
                     </div>
                     <div className="">
                         STEP 2. Select Set x Rep Range
-                        <DropDown options={setOptions} value={repSelection} onChange={repHandleSelect}/>
+                        <DropDown options={setCountOptions} value={setCountSelection} onChange={repHandleSelect}/>
                     </div> 
                 </div>
-                {selection === "chest" && repSelection && <ChestWorkout target={selection} reps={repSelection} label={label} inputs={inputs} onInput={onInput}/>}
-                {selection === "back" && repSelection && <BackWorkout target={selection} reps={repSelection} label={label} inputs={inputs} />}
-                {selection === "legs" && repSelection && <LegsWorkout target={selection} reps={repSelection} label={label} inputs={inputs} />}
-                {selection === "shoulders" && repSelection && <ShouldersWorkout target={selection} reps={repSelection} label={label} inputs={inputs} />}
+                {selection === "chest" && setCountSelection && <ChestWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput}/>}
+                {selection === "back" && setCountSelection && <BackWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} />}
+                {selection === "legs" && setCountSelection && <LegsWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} />}
+                {selection === "shoulders" && setCountSelection && <ShouldersWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} />}
                
                 <div className="m-6 flex justify-end">
                     <button className="px-5 py-2 rounded-3xl shadow-lg text-white
