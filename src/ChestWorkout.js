@@ -4,25 +4,12 @@ import TableRow from "./TableRow"
 
 function ChestWorkout({ target, reps, label, inputs, onInput }){
 
-// incline chest 
-    const [inclineChestExercise, setInclineChestExercise] = useState("dip")
-
-    const handleSelectInclineExercise = (option) => {
-        setInclineChestExercise(option)
-    }
-
     const inclineExerciseOptions = [
         {label: "Dumbbell Incline Press", value: "dip"},
         {label: "Machine Incline Press", value: "mip" },
         {label: "Smith Machine Incline Press", value: "smip"},
         {label: "Barbell Incline Press", value: "bip"}
     ]
-// regular chest press
-    const [chestPressExercise, setChestPressExercise] = useState("mp")
-
-    const handleSelectChestPressExercise = (option) => {
-        setChestPressExercise(option)
-    }
 
     const chestPressExerciseOptions = [
         {label: "Dumbbell Press", value: "dp"},
@@ -30,24 +17,12 @@ function ChestWorkout({ target, reps, label, inputs, onInput }){
         {label: "Smith Machine Press", value: "smp"},
         {label: "Barbell Press", value: "bp"},
     ]
-// pec deck
-    const [chestFlyExercise, setChestFlyExercise] = useState("cfm")
-
-    const handleSelectChestFlyExercise = (option) => {
-        setChestFlyExercise(option)
-    }
 
     const chestFlyExerciseOptions = [
         {label: "Chest Fly Machine", value: "cfm"},
         {label: "Cable Flys", value: "cf"},
         {label: "Dumbbell Flys", value: "df"},
     ]
-// Tri Pulldowns
-    const [tricepExercise, setTricepExercise] = useState("sbcpd")
-
-    const handleSelectTricepExercise = (option) => {
-        setTricepExercise(option)
-    }
 
     const tricepExerciseOptions = [
         {label: "Straight Bar Cable Push Downs", value: "sbcpd"},
@@ -58,12 +33,6 @@ function ChestWorkout({ target, reps, label, inputs, onInput }){
         {label: "Dips", value: "d"},
     ]
 
-    const [tricepExerciseTwo, setTricepExerciseTwo] = useState("1acpd")
-
-    const handleSelectTricepExerciseTwo = (option) => {
-        setTricepExerciseTwo(option)
-    }
-
     const tricepExerciseOptionsTwo = [
         {label: "1 Arm Cable Pull Downs", value: "1acpd"},
         {label: "Rope Pull Downs", value: "rpd"},
@@ -73,6 +42,29 @@ function ChestWorkout({ target, reps, label, inputs, onInput }){
         {label: "Dips", value: "d"},
     ]
 
+    const [exercises, setExercises] = useState([
+        {id: "incline", selected: "dip", options: inclineExerciseOptions},
+        {id: "chestpress", selected: "mp", options: chestPressExerciseOptions},
+        {id: "fly", selected: "cfm", options: chestFlyExerciseOptions},
+        {id: "tri", selected: "sbcpd", options: tricepExerciseOptions},
+        {id: "tri2", selected: "1acpd", options: tricepExerciseOptionsTwo},
+    ])
+
+    const handleExerciseChange = (rowId, newExerciseValue) => {
+        const exerciseOptions = exercises.map((exercise) => 
+            exercise.id === rowId
+                ? { ...exercise, selected: newExerciseValue }
+                : exercise)
+            
+        setExercises(exerciseOptions)
+    }
+
+    const handleInputChange = (rowId, index, inputValue) => {
+        onInput(rowId, index, inputValue)
+      }
+
+    
+
    return (
     <div className="flex justify-center font-serif bg-white">
         <table className="border w-full">
@@ -80,51 +72,19 @@ function ChestWorkout({ target, reps, label, inputs, onInput }){
             <TableHead reps={reps} />
                         
             <tbody className="border px-4 py-2">
+            {exercises.map(({ id, selected, options }) => (
                 <TableRow 
-                    onChange={handleSelectInclineExercise}
-                    value={inclineChestExercise}
-                    options={inclineExerciseOptions}
+                    key={id}
+                    value={selected}
+                    options={options}
                     reps={reps}
-                    rowId='incline'
+                    rowId={id}
                     inputs={inputs}
-                    onInput={(index, input) => onInput('incline', index, input)}
+                    onChange={(newOption) => handleExerciseChange(id, newOption)}
+                    onInput={(index, inputValue) => handleInputChange(id, index, inputValue)}
                 />
-                <TableRow
-                    onChange={handleSelectChestPressExercise}
-                    value={chestPressExercise}
-                    options={chestPressExerciseOptions}
-                    reps={reps}
-                    rowId='chestpress'
-                    inputs={inputs}
-                    onInput={(index, input) => onInput('chestpress', index, input)}
-                />
-                <TableRow
-                    onChange={handleSelectChestFlyExercise}
-                    value={chestFlyExercise}
-                    options={chestFlyExerciseOptions}
-                    reps={reps}
-                    rowId='chestfly'
-                    inputs={inputs}
-                    onInput={(index, input) => onInput('chestfly', index, input)}
-                />
-                <TableRow
-                    onChange={handleSelectTricepExercise}
-                    value={tricepExercise}
-                    options={tricepExerciseOptions}
-                    reps={reps}
-                    rowId='tricep1'
-                    inputs={inputs}
-                    onInput={(index, input) => onInput('tricep1', index, input)}
-                />
-                <TableRow
-                    onChange={handleSelectTricepExerciseTwo}
-                    value={tricepExerciseTwo}
-                    options={tricepExerciseOptionsTwo}
-                    reps={reps}
-                    rowId='tricep2'
-                    inputs={inputs}
-                    onInput={(index, input) => onInput('tricep2', index, input)}
-                />
+            ))}
+
             </tbody>
         
         </table>
