@@ -12,15 +12,25 @@ function HypertophyPage() {
     const [repSelection, setRepSelection] = useState(null)
     const [inputs, setInputs] = useState({})
 
-    const onInput = (exercise, index, input) => {
-        console.log(exercise, index, input)
+    const onInput = (row, exercise, index, input) => {
         const inputData = {...inputs}
-        if(!inputData[exercise]){
-            inputData[exercise] = new Array(repSelection).fill('')
+        if(!inputData[row]){
+            inputData[row] = {
+                input: new Array(repSelection).fill('hello'),
+                selection: exercise,
+            }
         }
-        inputData[exercise][index] = input
+
+       if(index === -1){
+        inputData[row].selection = exercise
+       } else {
+
+        inputData[row].input[index] = input
+       }
+
+       
+       console.log(inputData)
         setInputs(inputData)
-        console.log("input:", inputs)
     }
 
     const handleSelect = (option) => {
@@ -32,11 +42,13 @@ function HypertophyPage() {
     }
 
     const handleSaveWorkout = async () => {
-        // const workoutDoc = await addDoc(collection(db, "workoutLogs"), {
-        //     target: selection,
-        //     reps: repSelection,
-        //     timestamp: new Date()
-        // })
+        console.log(inputs)
+        const workoutDoc = await addDoc(collection(db, "workoutLogs"), {
+            // target: selection,
+            // reps: repSelection,
+            // timestamp: new Date(),
+            inputs: inputs
+        })
     }
 
     const options = [
