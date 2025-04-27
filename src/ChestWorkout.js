@@ -57,10 +57,13 @@ function ChestWorkout({ target, reps, label, inputs, onInput }){
                 : exercise)
             
         setExercises(exerciseOptions)
+        onInput(rowId, newExerciseValue, -1 )
+
+
     }
 
-    const handleInputChange = (rowId, index, inputValue) => {
-        onInput(rowId, index, inputValue)
+    const handleInputChange = (rowId, selected, index, inputValue ) => {
+        onInput(rowId, selected, index, inputValue)
       }
 
     
@@ -79,9 +82,9 @@ function ChestWorkout({ target, reps, label, inputs, onInput }){
                     options={options}
                     reps={reps}
                     rowId={id}
-                    inputs={inputs}
+                    inputs={inputs[id]?.input}
                     onChange={(newOption) => handleExerciseChange(id, newOption)}
-                    onInput={(index, inputValue) => handleInputChange(id, index, inputValue)}
+                    cellInput={(index, inputValue) => handleInputChange(id, selected, index, inputValue)}
                 />
             ))}
 
