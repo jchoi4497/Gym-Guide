@@ -29,7 +29,6 @@ function HypertophyPage() {
         inputData[row].input[index] = input
        }
 
-       
        console.log(inputData)
         setInputs(inputData)
     }
