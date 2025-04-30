@@ -46,7 +46,7 @@ function HypertophyPage() {
     const handleSaveWorkout = async () => {
         console.log(inputs)
         try {
-            const workoutDoc = await addDoc(collection(db, "workoutLogs"), {
+            const docRef = await addDoc(collection(db, "workoutLogs"), {
             // target: selection,
             // reps: setCountSelection,
             // timestamp: new Date(),
@@ -54,7 +54,7 @@ function HypertophyPage() {
         })
 
         // Get the document ID
-        const workoutId = workoutDoc.id
+        const workoutId = docRef.id
         console.log(workoutId)
 
         // Redirect to another page with the document ID in the URL
