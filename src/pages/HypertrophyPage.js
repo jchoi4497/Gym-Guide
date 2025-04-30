@@ -1,4 +1,5 @@
-import { useState, useMemo} from "react"
+import { useState, useMemo, useEffect} from "react"
+import { useParams } from 'react-router-dom'
 import DropDown from "../DropDown"
 import ChestWorkout from "../ChestWorkout"
 import BackWorkout from "../BackWorkout"
@@ -8,6 +9,7 @@ import db from '../firebase'
 import { collection, addDoc } from "firebase/firestore"
 
 function HypertophyPage() {
+    const { workoutId } = useParams()
     const [selection, setSelection] = useState(null)
     const [setCountSelection, setSetCountSelection] = useState(null)
     const [inputs, setInputs] = useState({})
@@ -43,13 +45,25 @@ function HypertophyPage() {
 
     const handleSaveWorkout = async () => {
         console.log(inputs)
-        const workoutDoc = await addDoc(collection(db, "workoutLogs"), {
+        try {
+            const workoutDoc = await addDoc(collection(db, "workoutLogs"), {
             // target: selection,
             // reps: setCountSelection,
             // timestamp: new Date(),
             inputs: inputs
         })
+
+        // Get the document ID
+        const workoutId = workoutDoc.id
+        console.log(workoutId)
+
+        // Redirect to another page with the document ID in the URL
+        window.location.href = `/SavedWorkout/${workoutId}`
+    } catch (error) {
+        console.error('ERROR SAVING WORKOUT:', error)
     }
+    }
+
 
     const options = [
         {label: "Chest/Triceps", value: "chest"},
