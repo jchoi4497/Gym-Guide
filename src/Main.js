@@ -17,8 +17,8 @@ function Main(){
                 <Route exact path="/Strength" element={<StrengthPage />} />
                 <Route exact path="/Hypertrophy" element={<HypertrophyPage />} />
                 <Route exact path="ColorDesign" element={<ColorDesignPage />} />
-                <Route exact path="PreviousWorkouts" element={<PreviousWorkouts />} />
-
+                <Route exact path="/SavedWorkout/:workoutId" element={<PreviousWorkouts />} />
+                <Route exact path="/PreviousWorkouts" element={<PreviousWorkouts />} />
             </Routes>
         </BrowserRouter>
     )
