@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { doc, getDoc, updateDoc } from 'firebase/firestore'
-import db from '../firebase' // Assuming your Firestore instance is in a separate file
+import db from './firebase' // Assuming your Firestore instance is in a separate file
 
 
-function SavedWorkout() {
+function SavedWorkout({label, target}) {
     const { workoutId } = useParams()
-    const [inputs, setInputs] = useState(null)
+    const [workoutData, setWorkoutData] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState(null)
 
@@ -16,15 +16,16 @@ function SavedWorkout() {
             const docSnap = await getDoc(docRef)
 
             if (docSnap.exists()) {
-            setInputs(docSnap.data())
-            } else {
-            setError('No such document found.')
+                console.log("DOC SNAP DATA:", docSnap.data()) 
+                setWorkoutData(docSnap.data())
+                } else {
+                setError('No such document found.')
             }
-        } catch (error) {
-            setError('Error fetching data: ' + error.message)
-        } finally {
-            setIsLoading(false)
-        }
+            } catch (error) {
+                setError('Error fetching data: ' + error.message)
+            } finally {
+                setIsLoading(false)
+            } 
     }
 
         useEffect(() => {
@@ -38,15 +39,31 @@ function SavedWorkout() {
     if (error) {
         return <div>Error: {error}</div>
     }
-    if (!inputs) {
+    if (!workoutData || !workoutData.inputs) {
         return <div>No workout data found.</div>
     }
 
     return (
+        <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80 px-20">
+            <div className="text-5xl mb-6">Saved Hypertrophy Workout</div>
 
+            {Object.entries(workoutData.inputs).map(([row, data]) => (
+            <div key={row} className="mb-8 p-4 bg-white rounded-2xl shadow-lg">
+                <div className="text-2xl font-bold mb-2">{data.selection}</div>
+                <div className="flex space-x-4">
+                {data.input.map((weight, idx) => (
+                    <div
+                    key={idx}
+                    className="p-4 rounded bg-blue-200 text-xl text-center min-w-[60px]"
+                    >
+                    {weight || "-"}
+                    </div>
+                ))}
+                </div>
+            </div>
+            ))}
+        </div>
     )
-    
-      
 }
 
 export default SavedWorkout
