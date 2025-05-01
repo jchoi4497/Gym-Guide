@@ -59,7 +59,6 @@ function ChestWorkout({ target, reps, label, inputs, onInput }){
         setExercises(exerciseOptions)
         onInput(rowId, newExerciseValue, -1 )
 
-
     }
 
     const handleInputChange = (rowId, selected, index, inputValue ) => {
