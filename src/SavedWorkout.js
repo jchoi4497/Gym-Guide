@@ -47,7 +47,9 @@ function SavedWorkout({label, target}) {
         <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80 px-20">
             <div className="text-5xl mb-6">Saved Hypertrophy Workout</div>
 
-            {Object.entries(workoutData.inputs).map(([row, data]) => (
+            {Object.entries(workoutData.inputs)
+            .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
+            .map(([row, data]) => (
             <div key={row} className="mb-8 p-4 bg-white rounded-2xl shadow-lg">
                 <div className="text-2xl font-bold mb-2">{data.selection}</div>
                 <div className="flex space-x-4">
