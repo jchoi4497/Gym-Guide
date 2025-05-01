@@ -47,9 +47,9 @@ function HypertophyPage() {
         console.log(inputs)
         try {
             const docRef = await addDoc(collection(db, "workoutLogs"), {
-            // target: selection,
-            // reps: setCountSelection,
-            // timestamp: new Date(),
+            target: selection,
+            reps: setCountSelection,
+            timestamp: new Date(),
             inputs: inputs
         })
 
