@@ -11,6 +11,13 @@ function SavedWorkout({ label, target }) {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const categoryOrder = {
+        chest: ["incline", "chestpress", "fly", "tri", "tri2"],
+        back: ["pullup", "row", "lat", "bicep", "bicep2"],
+        legs: ["squat", "splitsquat", "backextension", "calfraise"],
+        shoulders: ["reardelt", "latraise", "reardelt2", "latraise2", "wristcurl", "reversewristcurl"]
+    };
+
     const fetchData = async () => {
         try {
             const docRef = doc(db, 'workoutLogs', workoutId);
@@ -44,16 +51,18 @@ function SavedWorkout({ label, target }) {
         return <div>No workout data found.</div>;
     }
 
-    console.log("Workout Inputs", workoutData.inputs);
+    const order = categoryOrder[workoutData.target] || Object.keys(workoutData.inputs);
 
     return (
         <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80 px-20">
             <div className="text-5xl mb-6">Saved Hypertrophy Workout</div>
 
-            {Object.entries(workoutData.inputs)
-                .sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
-                .map(([row, data]) => (
-                    <div key={row} className="mb-8 p-4 bg-white rounded-2xl shadow-lg">
+            {order.map((key) => {
+                const data = workoutData.inputs[key];
+                if (!data) return null;
+
+                return (
+                    <div key={key} className="mb-8 p-4 bg-white rounded-2xl shadow-lg">
                         <div className="text-2xl font-bold mb-2">
                             {exerciseNames[data.selection] || data.selection}
                         </div>
@@ -68,7 +77,8 @@ function SavedWorkout({ label, target }) {
                             ))}
                         </div>
                     </div>
-                ))}
+                );
+            })}
         </div>
     );
 }
