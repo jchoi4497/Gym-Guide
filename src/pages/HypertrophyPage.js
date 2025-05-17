@@ -111,14 +111,14 @@ function HypertophyPage() {
                                     hover:bg-blue-800 active:bg-blue-400 cursor-pointer"
                 onClick={handleSaveWorkout}
             >
-                Save Plan
+                Save Workout
             </button>
         </div>
         <div className="m-6 flex justify-end">
             <Link to="/PreviousWorkouts">
                 <button className="px-5 py-2 rounded-3xl shadow-lg text-white
-                                    transition-all duration-300 bg-green-600 hover:filter
-                                    hover:bg-green-700 active:bg-green-400 cursor-pointer">
+                                    transition-all duration-300 bg-blue-700 hover:filter
+                                     hover:bg-blue-800 active:bg-blue-400 cursor-pointer">
                     View Workouts
                 </button>
             </Link>

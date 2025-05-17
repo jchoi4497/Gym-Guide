@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import db from './firebase';
 import { Link } from 'react-router-dom';
 
@@ -14,6 +14,16 @@ function ListOfWorkouts() {
     { label: "Legs", value: "legs" },
     { label: "Shoulders/Forearms", value: "shoulders" }
   ];
+
+  const handleDeleteWorkout = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this workout?")) return;
+    try {
+      await deleteDoc(doc(db, "workoutLogs", id));
+      setWorkouts(workouts.filter(workout => workout.id !== id));
+    } catch (error) {
+      console.error("Error deleting workout:", error);
+    }
+  };
 
   function getLabel(value) {
     return options.find(option => option.value === value)?.label || value;
@@ -62,17 +72,27 @@ function ListOfWorkouts() {
             : 'Unknown Date';
 
           return (
-            <li key={workout.id} className="bg-white p-4 rounded shadow">
-              <div className="text-xl font-semibold">{getLabel(workout.target?.label ?? workout.target)}</div>
-              <div className="text-gray-600">Date: {dateFormat}</div>
-              <button>
-                <Link
-                  to={`/PreviousWorkouts/${workout.id}`}
-                  className="text-blue-600 underline mt-2 inline-block"
-                >
-                  View Details →
-                </Link>
+            <li key={workout.id} className="bg-white p-4 rounded shadow  flex items-center justify-between">
+              <div>
+                <div className="text-xl font-semibold">{getLabel(workout.target?.label ?? workout.target)}</div>
+                <div className="text-gray-600">Date: {dateFormat}</div>
+                <button>
+                  <Link
+                    to={`/PreviousWorkouts/${workout.id}`}
+                    className="text-blue-600 underline mt-2 inline-block"
+                  >
+                    View Details →
+                  </Link>
+                </button>
+              </div>
+
+              <button
+                onClick={() => handleDeleteWorkout(workout.id)}
+                className="ml-4 px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700"
+              >
+                Delete
               </button>
+
             </li>
           );
         })}
