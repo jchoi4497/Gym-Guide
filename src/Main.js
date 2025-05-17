@@ -1,16 +1,16 @@
-import React from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
-import LandingPage from './pages/LandingPage'
-import TrainingStylePage from './pages/TrainingStyle'
-import StrengthPage from './pages/StrengthPage'
-import HypertrophyPage from './pages/HypertrophyPage'
-import ColorDesignPage from './pages/ColorDesignPage'
-import SavedWorkout from './SavedWorkout'
-import PreviousWorkouts from './pages/PreviousWorkouts'
-import './index.css'
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
+import TrainingStylePage from './pages/TrainingStyle';
+import StrengthPage from './pages/StrengthPage';
+import HypertrophyPage from './pages/HypertrophyPage';
+import ColorDesignPage from './pages/ColorDesignPage';
+import SavedWorkout from './SavedWorkout';
+import PreviousWorkouts from './pages/PreviousWorkouts';
+import ListOfWorkouts from './ListOfWorkouts';
+import './index.css';
 
-function Main(){
-    return(
+function Main() {
+    return (
         <BrowserRouter>
             <Routes>
                 <Route exact path="/" element={<LandingPage />} />
@@ -19,10 +19,11 @@ function Main(){
                 <Route exact path="/Hypertrophy" element={<HypertrophyPage />} />
                 <Route exact path="ColorDesign" element={<ColorDesignPage />} />
                 <Route exact path="/SavedWorkout/:workoutId" element={<SavedWorkout />} />
-                <Route exact path="/PreviousWorkouts" element={<PreviousWorkouts />} />
+                <Route exact path="/PreviousWorkouts/:workoutId" element={<SavedWorkout />} />
+                <Route exact path="/PreviousWorkouts" element={<ListOfWorkouts />} />
             </Routes>
         </BrowserRouter>
-    )
+    );
 }
 
-export default Main
+export default Main;

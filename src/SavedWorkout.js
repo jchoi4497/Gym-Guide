@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import db from './firebase'; // Assuming your Firestore instance is in a separate file
 import exerciseNames from './exerciseNames';
+import { Link } from 'react-router-dom';
 
 
 function SavedWorkout({ label, target }) {
@@ -17,6 +18,16 @@ function SavedWorkout({ label, target }) {
         legs: ["squat", "splitsquat", "backextension", "calfraise"],
         shoulders: ["reardelt", "latraise", "reardelt2", "latraise2", "wristcurl", "reversewristcurl"]
     };
+    const options = [
+        { label: "Chest/Triceps", value: "chest" },
+        { label: "Back/Biceps", value: "back" },
+        { label: "Legs", value: "legs" },
+        { label: "Shoulders/Forearms", value: "shoulders" }
+    ];
+
+    function getLabel(value) {
+        return options.find(option => option.value === value)?.label || value;
+    }
 
     const fetchData = async () => {
         try {
@@ -51,11 +62,22 @@ function SavedWorkout({ label, target }) {
         return <div>No workout data found.</div>;
     }
 
-    const order = categoryOrder[workoutData.target] || Object.keys(workoutData.inputs);
+    const order = categoryOrder[workoutData.target?.value] || Object.keys(workoutData.inputs);
 
     return (
         <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80 px-20">
-            <div className="text-5xl mb-6">Saved Hypertrophy Workout</div>
+
+
+
+            <div className="flex justify-between items-center mb-6">
+                <div className="text-5xl">Saved {getLabel(workoutData.target?.label ?? workoutData.target)} Workout</div>
+                {workoutData.date && (
+                    <div className="text-5xl text-gray-600">
+                        {new Date(workoutData.date.seconds * 1000).toLocaleDateString()}
+                    </div>
+                )}
+            </div>
+
 
             {order.map((key) => {
                 const data = workoutData.inputs[key];
@@ -79,6 +101,15 @@ function SavedWorkout({ label, target }) {
                     </div>
                 );
             })}
+            <div className="m-6 flex justify-end">
+                <Link to="/PreviousWorkouts">
+                    <button className="px-5 py-2 rounded-3xl shadow-lg text-white
+                                    transition-all duration-300 bg-green-600 hover:filter
+                                    hover:bg-green-700 active:bg-green-400 cursor-pointer">
+                        View Workouts
+                    </button>
+                </Link>
+            </div>
         </div>
     );
 }
