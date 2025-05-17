@@ -7,6 +7,7 @@ import LegsWorkout from "../LegsWorkout";
 import ShouldersWorkout from "../ShouldersWorkout";
 import db from '../firebase';
 import { collection, addDoc } from "firebase/firestore";
+import { Link } from 'react-router-dom';
 
 function HypertophyPage() {
     const { workoutId } = useParams();
@@ -49,7 +50,7 @@ function HypertophyPage() {
             const docRef = await addDoc(collection(db, "workoutLogs"), {
                 target: selection,
                 reps: setCountSelection,
-                timestamp: new Date(),
+                date: new Date(),
                 inputs: inputs
             });
 
@@ -112,6 +113,15 @@ function HypertophyPage() {
             >
                 Save Plan
             </button>
+        </div>
+        <div className="m-6 flex justify-end">
+            <Link to="/PreviousWorkouts">
+                <button className="px-5 py-2 rounded-3xl shadow-lg text-white
+                                    transition-all duration-300 bg-green-600 hover:filter
+                                    hover:bg-green-700 active:bg-green-400 cursor-pointer">
+                    View Workouts
+                </button>
+            </Link>
         </div>
 
     </div>;
