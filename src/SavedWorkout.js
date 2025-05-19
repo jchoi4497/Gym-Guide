@@ -66,11 +66,15 @@ function SavedWorkout({ label, target }) {
 
     return (
         <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80 px-20">
-
+            <div className="flex space-x-6 mb-6">
+                <Link to="/" className="text-blue-700 hover:underline font-medium">🏠 Home</Link>
+                <Link to="/Hypertrophy" className="text-blue-700 hover:underline font-medium">Hypertrophy</Link>
+                <Link to="/SavedWorkouts" className="text-blue-700 hover:underline font-medium">Saved Workouts</Link>
+            </div>
 
 
             <div className="flex justify-between items-center mb-6">
-                <div className="text-5xl">Saved {getLabel(workoutData.target?.label ?? workoutData.target)} Workout</div>
+                <div className="text-5xl">{getLabel(workoutData.target?.label ?? workoutData.target)} Workout</div>
                 {workoutData.date && (
                     <div className="text-5xl text-gray-600">
                         {new Date(workoutData.date.seconds * 1000).toLocaleDateString()}
@@ -102,10 +106,10 @@ function SavedWorkout({ label, target }) {
                 );
             })}
             <div className="m-6 flex justify-end">
-                <Link to="/PreviousWorkouts">
+                <Link to="/SavedWorkouts">
                     <button className="px-5 py-2 rounded-3xl shadow-lg text-white
-                                    transition-all duration-300 bg-green-600 hover:filter
-                                    hover:bg-green-700 active:bg-green-400 cursor-pointer">
+                                    transition-all duration-300 bg-blue-700 hover:filter
+                                     hover:bg-blue-800 active:bg-blue-400 cursor-pointer">
                         View Workouts
                     </button>
                 </Link>

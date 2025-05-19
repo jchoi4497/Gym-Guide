@@ -9,7 +9,7 @@ function TrainingStylePage() {
             <h1 className="text-4xl text-center mt-6 italic">Training Styles</h1>
             <div className="flex space-x-10 justify-center mt-7">
                 <WorkoutType to="/Hypertrophy" type='Hypertrophy' image={HypertrophyImage} desc='Program designed to increase muscle size and mass.' />
-                <WorkoutType to="/Strength" type='Strength' image={StrengthImage} desc='Program designed to build muscle strength and mass' />
+                {/* <WorkoutType to="/Strength" type='Strength' image={StrengthImage} desc='Program designed to build muscle strength and mass' /> */}
             </div>
             <div className="bg-stone-200 p-4 max-w-6xl mx-auto">
                 <h3 className="underline">* Key insights for optimal results *</h3>
