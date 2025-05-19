@@ -63,8 +63,13 @@ function ListOfWorkouts() {
   }
 
   return (
-    <div className="p-6 bg-sky-100 min-h-screen">
-      <h1 className="text-4xl font-bold mb-6">Previous Workouts</h1>
+    <div className="p-6 bg-sky-100 font-serif min-h-screen">
+      <div className="flex space-x-6 mb-6">
+        <Link to="/" className="text-blue-700 hover:underline font-medium">🏠 Home</Link>
+        <Link to="/Hypertrophy" className="text-blue-700 hover:underline font-medium">Hypertrophy</Link>
+        <Link to="/SavedWorkouts" className="text-blue-700 hover:underline font-medium">Saved Workouts</Link>
+      </div>
+      <div className="text-5xl mb-6">Saved Workouts</div>
       <ul className="space-y-4">
         {workouts.map(workout => {
           const dateFormat = workout.date
@@ -78,7 +83,7 @@ function ListOfWorkouts() {
                 <div className="text-gray-600">Date: {dateFormat}</div>
                 <button>
                   <Link
-                    to={`/PreviousWorkouts/${workout.id}`}
+                    to={`/SavedWorkout/${workout.id}`}
                     className="text-blue-600 underline mt-2 inline-block"
                   >
                     View Details →

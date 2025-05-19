@@ -5,7 +5,6 @@ import StrengthPage from './pages/StrengthPage';
 import HypertrophyPage from './pages/HypertrophyPage';
 import ColorDesignPage from './pages/ColorDesignPage';
 import SavedWorkout from './SavedWorkout';
-import PreviousWorkouts from './pages/PreviousWorkouts';
 import ListOfWorkouts from './ListOfWorkouts';
 import './index.css';
 
@@ -19,8 +18,7 @@ function Main() {
                 <Route exact path="/Hypertrophy" element={<HypertrophyPage />} />
                 <Route exact path="ColorDesign" element={<ColorDesignPage />} />
                 <Route exact path="/SavedWorkout/:workoutId" element={<SavedWorkout />} />
-                <Route exact path="/PreviousWorkouts/:workoutId" element={<SavedWorkout />} />
-                <Route exact path="/PreviousWorkouts" element={<ListOfWorkouts />} />
+                <Route exact path="/SavedWorkouts" element={<ListOfWorkouts />} />
             </Routes>
         </BrowserRouter>
     );
