@@ -1,13 +1,14 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useParams } from 'react-router-dom';
+import db from '../firebase';
+import { collection, addDoc } from "firebase/firestore";
+import { Link } from 'react-router-dom';
 import DropDown from "../DropDown";
 import ChestWorkout from "../ChestWorkout";
 import BackWorkout from "../BackWorkout";
 import LegsWorkout from "../LegsWorkout";
 import ShouldersWorkout from "../ShouldersWorkout";
-import db from '../firebase';
-import { collection, addDoc } from "firebase/firestore";
-import { Link } from 'react-router-dom';
+import Navbar from "../Navbar";
 
 function HypertophyPage() {
     const { workoutId } = useParams();
@@ -87,11 +88,7 @@ function HypertophyPage() {
     }, [setCountOptions, setCountSelection]);
 
     return <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80 px-20">
-        <div className="flex space-x-6 mb-6">
-            <Link to="/" className="text-blue-700 hover:underline font-medium">🏠 Home</Link>
-            <Link to="/Hypertrophy" className="text-blue-700 hover:underline font-medium">Hypertrophy</Link>
-            <Link to="/SavedWorkouts" className="text-blue-700 hover:underline font-medium">Saved Workouts</Link>
-        </div>
+        <Navbar />
         <div className="text-5xl mb-6 ml-10">Hypertrophy Training</div>
         <div className="italic ml-10">Training program designed to increase muscle size and mass.</div>
 

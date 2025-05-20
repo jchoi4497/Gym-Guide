@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, getDocs, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 import db from './firebase';
 import { Link } from 'react-router-dom';
+import Navbar from './Navbar';
 
 function ListOfWorkouts() {
   const [workouts, setWorkouts] = useState([]);
@@ -51,7 +52,7 @@ function ListOfWorkouts() {
   }, []);
 
   if (isLoading) {
-    return <div>Loading previous workouts...</div>;
+    return <div>Loading saved workouts...</div>;
   }
 
   if (error) {
@@ -59,17 +60,13 @@ function ListOfWorkouts() {
   }
 
   if (workouts.length === 0) {
-    return <div>No previous workouts found.</div>;
+    return <div>No saved workouts found.</div>;
   }
 
   return (
-    <div className="p-6 bg-sky-100 font-serif min-h-screen">
-      <div className="flex space-x-6 mb-6">
-        <Link to="/" className="text-blue-700 hover:underline font-medium">🏠 Home</Link>
-        <Link to="/Hypertrophy" className="text-blue-700 hover:underline font-medium">Hypertrophy</Link>
-        <Link to="/SavedWorkouts" className="text-blue-700 hover:underline font-medium">Saved Workouts</Link>
-      </div>
-      <div className="text-5xl mb-6">Saved Workouts</div>
+    <div className="p-6 bg-sky-100 font-serif min-h-screen pt-10 pb-80 px-20">
+      <Navbar />
+      <div className="text-5xl mb-6 ">Saved Workouts</div>
       <ul className="space-y-4">
         {workouts.map(workout => {
           const dateFormat = workout.date
