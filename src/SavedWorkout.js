@@ -1,13 +1,12 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import db from './firebase'; // Assuming your Firestore instance is in a separate file
+import { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore';
+import db from './firebase';
 import exerciseNames from './exerciseNames';
-import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 
 
-function SavedWorkout({ label, target }) {
+function SavedWorkout() {
     const { workoutId } = useParams();
     const [workoutData, setWorkoutData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);

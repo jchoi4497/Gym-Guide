@@ -6,7 +6,7 @@ function TrainingStylePage() {
 
     return (
         <div className="p-7 bg-stone-200 h-screen font-serif overflow-y-auto">
-            <h1 className="text-4xl text-center mt-6 italic">Training Styles</h1>
+            <h1 className="text-4xl text-center mt-6 italic">Training Style</h1>
             <div className="flex space-x-10 justify-center mt-7">
                 <WorkoutType to="/Hypertrophy" type='Hypertrophy' image={HypertrophyImage} desc='Program designed to increase muscle size and mass.' />
                 {/* <WorkoutType to="/Strength" type='Strength' image={StrengthImage} desc='Program designed to build muscle strength and mass' /> */}

@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import './index.css';
 import LandingPage from './pages/LandingPage';
 import TrainingStylePage from './pages/TrainingStyle';
 import StrengthPage from './pages/StrengthPage';
@@ -6,7 +7,6 @@ import HypertrophyPage from './pages/HypertrophyPage';
 import ColorDesignPage from './pages/ColorDesignPage';
 import SavedWorkout from './SavedWorkout';
 import ListOfWorkouts from './ListOfWorkouts';
-import './index.css';
 
 function Main() {
     return (
