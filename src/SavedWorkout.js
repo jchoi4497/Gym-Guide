@@ -4,6 +4,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import db from './firebase'; // Assuming your Firestore instance is in a separate file
 import exerciseNames from './exerciseNames';
 import { Link } from 'react-router-dom';
+import Navbar from './Navbar';
 
 
 function SavedWorkout({ label, target }) {
@@ -66,13 +67,7 @@ function SavedWorkout({ label, target }) {
 
     return (
         <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80 px-20">
-            <div className="flex space-x-6 mb-6">
-                <Link to="/" className="text-blue-700 hover:underline font-medium">🏠 Home</Link>
-                <Link to="/Hypertrophy" className="text-blue-700 hover:underline font-medium">Hypertrophy</Link>
-                <Link to="/SavedWorkouts" className="text-blue-700 hover:underline font-medium">Saved Workouts</Link>
-            </div>
-
-
+            <Navbar />
             <div className="flex justify-between items-center mb-6">
                 <div className="text-5xl">{getLabel(workoutData.target?.label ?? workoutData.target)} Workout</div>
                 {workoutData.date && (
