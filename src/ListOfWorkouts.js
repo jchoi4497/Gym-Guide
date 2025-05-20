@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { collection, getDocs, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
-import db from './firebase';
 import { Link } from 'react-router-dom';
+import db from './firebase';
 import Navbar from './Navbar';
 
 function ListOfWorkouts() {

@@ -1,8 +1,7 @@
 import { useState, useMemo } from "react";
-import { useParams } from 'react-router-dom';
-import db from '../firebase';
-import { collection, addDoc } from "firebase/firestore";
 import { Link } from 'react-router-dom';
+import { collection, addDoc } from "firebase/firestore";
+import db from '../firebase';
 import DropDown from "../DropDown";
 import ChestWorkout from "../ChestWorkout";
 import BackWorkout from "../BackWorkout";
@@ -11,7 +10,6 @@ import ShouldersWorkout from "../ShouldersWorkout";
 import Navbar from "../Navbar";
 
 function HypertophyPage() {
-    const { workoutId } = useParams();
     const [selection, setSelection] = useState(null);
     const [setCountSelection, setSetCountSelection] = useState(null);
     const [inputs, setInputs] = useState({});
