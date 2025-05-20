@@ -20,7 +20,7 @@ function TrainingStylePage() {
                 <p className="pl-5">- To build muscle effectively, the majority of your calories should come from protein.</p>
                 <p>3. Intensity should be key in your workouts, with every set (except the first) pushed to failure to maximize muscle growth.</p>
                 <p>4. Proper warm-ups should be a crucial part of your workout routine.</p>
-                <p>5. Cardio! I sometimes include 30 minutes of cardio at the end of my workouts to burn extra calories, improve cardiovascular health, and boost energy while winding down after strength training.</p>
+                <p>5. Cardio! I most of the time include 30 minutes of cardio at the end of my workouts to burn extra calories, improve cardiovascular health, and boost energy while winding down after strength training.</p>
 
             </div>
         </div>
