@@ -88,13 +88,20 @@ function ListOfWorkouts() {
                 </button>
               </div>
 
-              <button
-                onClick={() => handleDeleteWorkout(workout.id)}
-                className="ml-4 px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700"
-              >
-                Delete
-              </button>
-
+              <div className="flex items-center space-x-2">
+                <Link
+                  to={`/SavedWorkout/${workout.id}`}
+                  className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Edit
+                </Link>
+                <button
+                  onClick={() => handleDeleteWorkout(workout.id)}
+                  className="ml-4 px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           );
         })}
