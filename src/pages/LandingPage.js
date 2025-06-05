@@ -11,7 +11,7 @@ function LandingPage() {
                     An in-depth fitness guide built from real-world experience & research.
                 </p>
                 <Link to="/TrainingStyle">
-                    <button className="px-8 py-3 rounded-full bg-blue-600 text-white text-lg font-semibold shadow-lg transition-all duration-300 hover:bg-blue-700 active:scale-95">
+                    <button className="px-8 py-3 rounded-full bg-blue-600 text-white text-lg font-semibold shadow-lg transition-all duration-300 hover:bg-blue-700 active:bg-blue-600 active:scale-95">
                         Get Started
                     </button>
                 </Link>
