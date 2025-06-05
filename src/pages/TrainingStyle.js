@@ -4,7 +4,7 @@ import StrengthImage from '../images/Strength.jpg';
 
 function TrainingStylePage() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-sky-200 to-stone-300 font-sans overflow-y-auto p-8">
+        <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-sans overflow-y-auto p-8">
             <h1 className="text-5xl font-bold text-center mb-10 italic">
                 Training Style
             </h1>

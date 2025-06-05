@@ -47,7 +47,7 @@ function Navbar() {
   }
 
   return (
-    <nav className="flex items-center justify-between p-5 mb-8 rounded-2xl bg-gradient-to-r from-sky-400 to-blue-500 shadow-lg">
+    <nav className="flex items-center justify-between p-5 mb-8 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-700 shadow-lg">
       {/* Brand */}
       <div className="text-3xl font-bold italic text-white tracking-wide">
         JC's Gym Guide

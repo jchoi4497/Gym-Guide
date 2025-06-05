@@ -86,7 +86,7 @@ function HypertophyPage() {
     }, [setCountOptions, setCountSelection]);
 
     return (
-        <div className="bg-gradient-to-br from-sky-200 to-stone-300 min-h-screen pb-32 font-serif">
+        <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-32 font-serif">
             <Navbar />
 
             <div className="max-w-6xl mx-auto px-6 pt-14">
