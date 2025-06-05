@@ -8,11 +8,11 @@ function WorkoutType({ type, image, desc, to }) {
                 <img
                     src={image}
                     className="
-                    w-72 h-72 object-cover border-2 border-solid
+                    w-72 h-72 object-cover border-white border-2 border-solid
                     transition-all duration-300
                     hover:scale-105 hover:saturate-125
                     rounded-2xl shadow-lg mb-6 mt-4
-                    hover:border-blue-400 active:border-stone-400
+                    hover:border-blue-500 active:border-stone-400
                     "
                 />
             </Link>

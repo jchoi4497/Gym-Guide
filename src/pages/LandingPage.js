@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 function LandingPage() {
     return (
-        <div className="h-screen bg-gradient-to-br from-sky-200 to-stone-300 flex items-center justify-center">
+        <div className="h-screen bg-gradient-to-br from-sky-300 to-stone-300 flex items-center justify-center">
             <div className="bg-white rounded-3xl shadow-2xl p-12 max-w-xl text-center animate-fadeIn">
                 <h1 className="text-5xl font-extrabold text-gray-900 mb-6">
                     Jonathan's Gym Guide
