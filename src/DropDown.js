@@ -35,7 +35,8 @@ function DropDown({ options, value, onChange }) {
 
     const renderedOptions = options?.map((option) => {
         return <div
-            className="hover:bg-sky-100 rounded cursor-pointer p-2 italic font-serif active:bg-sky-200"
+            className="hover:bg-gradient-to-r hover:from-blue-100 hover:to-blue-200 rounded-md cursor-pointer p-3 italic font-serif
+                       active:bg-blue-300 transition-colors duration-200"
             onClick={() => handleOptionClick(option.value)}
             key={option.value}
         >
@@ -51,13 +52,17 @@ function DropDown({ options, value, onChange }) {
     return (
         <div ref={dropdownRef} className="relative">
             <Panel
-                className="flex justify-between items-center cursor-pointer italic font-serif active:bg-stone-200 hover:bg-stone-100 p-2 min-w-70"
+                className="flex justify-between items-center cursor-pointer italic font-serif p-3 min-w-[280px]
+                           rounded-md bg-gradient-to-r from-blue-50 to-blue-100
+                           shadow-sm hover:from-blue-100 hover:to-blue-200
+                           active:from-blue-200 active:to-blue-300
+                           transition-colors duration-300"
                 onClick={handleClick}
             >
                 {label || 'Select ...'}
             </Panel>
             {isOpen && (
-                <Panel className="absolute top-full left-0 w-full bg-white shadow-lg z-10 rounded max-h-60 overflow-y-auto">
+                <Panel className="absolute top-full left-0 w-full bg-white rounded-md shadow-lg z-20 max-h-60 overflow-y-auto">
                     {renderedOptions}
                 </Panel>)}
         </div>
