@@ -52,19 +52,19 @@ function ListOfWorkouts() {
   }, []);
 
   if (isLoading) {
-    return <div>Loading saved workouts...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-300 to-stone-300 font-serif text-gray-800">Loading saved workouts...</div>;
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-300 to-stone-300 font-serif text-red-600">{error}</div>;
   }
 
   if (workouts.length === 0) {
-    return <div>No saved workouts found.</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-300 to-stone-300 font-serif text-gray-800">No saved workouts found.</div>;
   }
 
   return (
-    <div className="p-6 bg-sky-100 font-serif min-h-screen pt-10 pb-80 px-20">
+    <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-serif pb-32 px-6 md:px-20 pt-10">
       <Navbar />
       <div className="text-5xl mb-6 ">Saved Workouts</div>
       <ul className="space-y-4">
