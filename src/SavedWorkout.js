@@ -156,8 +156,8 @@ function SavedWorkout() {
                     <button
                         onClick={handleSaveChanges}
                         className="px-5 py-2 rounded-3xl shadow-lg text-white
-                                    transition-all duration-300 bg-blue-700 hover:filter
-                                     hover:bg-blue-800 active:bg-blue-400 cursor-pointer"
+                                    transition-all duration-300 bg-blue-600 hover:filter
+                                     hover:bg-blue-700 active:bg-blue-400 cursor-pointer"
                     >
                         Save Changes
                     </button>
