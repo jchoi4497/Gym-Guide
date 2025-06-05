@@ -1,11 +1,11 @@
-import Main from "./Main"
+import Main from "./Main";
 
 function App() {
-    return (
-      <div>
-        <Main />
-      </div>
-    )
-  }
+  return (
+    <div>
+      <Main className="font-sans" />
+    </div>
+  );
+}
 
-export default App
+export default App;
