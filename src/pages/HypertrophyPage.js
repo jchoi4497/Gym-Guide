@@ -85,46 +85,49 @@ function HypertophyPage() {
         })?.label;
     }, [setCountOptions, setCountSelection]);
 
-    return <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80 px-20">
-        <Navbar />
-        <div className="text-5xl mb-6 ml-10">Hypertrophy Training</div>
-        <div className="italic ml-10">Training program designed to increase muscle size and mass.</div>
+    return (
+        <div className="bg-gradient-to-br from-sky-200 to-stone-300 min-h-screen pb-32 font-serif">
+            <Navbar />
 
-        <div className="flex m-10 space-x-12">
-            <div className="">
-                STEP 1. Select Muscle Group to Target.
-                <DropDown options={options} value={selection} onChange={handleSelect} />
+            <div className="max-w-6xl mx-auto px-6 pt-14">
+                <h1 className="text-5xl font-extrabold mb-4 text-gray-800">Hypertrophy Training</h1>
+                <p className="text-lg text-gray-700 italic mb-10">Training program designed to increase muscle size and mass.</p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                    <div className="bg-white rounded-3xl p-6 shadow-lg">
+                        <h2 className="text-2xl font-semibold mb-4">Step 1: Select Muscle Group</h2>
+                        <DropDown options={options} value={selection} onChange={handleSelect} />
+                    </div>
+
+                    <div className="bg-white rounded-3xl p-6 shadow-lg">
+                        <h2 className="text-2xl font-semibold mb-4">Step 2: Choose Set × Rep Range</h2>
+                        <DropDown options={setCountOptions} value={setCountSelection} onChange={repHandleSelect} />
+                    </div>
+                </div>
+
+                <div className="mb-14">
+                    {selection === "chest" && setCountSelection && <ChestWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
+                    {selection === "back" && setCountSelection && <BackWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
+                    {selection === "legs" && setCountSelection && <LegsWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
+                    {selection === "shoulders" && setCountSelection && <ShouldersWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
+                </div>
+
+                <div className="flex flex-col md:flex-row justify-end space-y-4 md:space-y-0 md:space-x-4">
+                    <button
+                        onClick={handleSaveWorkout}
+                        className="px-6 py-3 rounded-full bg-blue-700 text-white font-semibold shadow-lg transition-all duration-300 hover:bg-blue-800 active:scale-95"
+                    >
+                        Save Workout
+                    </button>
+                    <Link to="/SavedWorkouts">
+                        <button className="bg-sky-500 hover:bg-sky-600 px-6 py-3 rounded-full text-white font-semibold shadow-lg transition-all duration-300 active:scale-95">
+                            View Workouts
+                        </button>
+                    </Link>
+                </div>
             </div>
-            <div className="">
-                STEP 2. Select Set x Rep Range
-                <DropDown options={setCountOptions} value={setCountSelection} onChange={repHandleSelect} />
-            </div>
         </div>
-        {selection === "chest" && setCountSelection && <ChestWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
-        {selection === "back" && setCountSelection && <BackWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
-        {selection === "legs" && setCountSelection && <LegsWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
-        {selection === "shoulders" && setCountSelection && <ShouldersWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
-
-        <div className="m-6 flex justify-end">
-            <button className="px-5 py-2 rounded-3xl shadow-lg text-white
-                                    transition-all duration-300 bg-blue-700 hover:filter
-                                    hover:bg-blue-800 active:bg-blue-400 cursor-pointer"
-                onClick={handleSaveWorkout}
-            >
-                Save Workout
-            </button>
-        </div>
-        <div className="m-6 flex justify-end">
-            <Link to="/SavedWorkouts">
-                <button className="px-5 py-2 rounded-3xl shadow-lg text-white
-                                    transition-all duration-300 bg-blue-700 hover:filter
-                                     hover:bg-blue-800 active:bg-blue-400 cursor-pointer">
-                    View Workouts
-                </button>
-            </Link>
-        </div>
-
-    </div>;
+    );
 }
 
 export default HypertophyPage;
