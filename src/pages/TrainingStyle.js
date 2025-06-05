@@ -3,25 +3,60 @@ import HypertrophyImage from '../images/Hypertrophy.png';
 import StrengthImage from '../images/Strength.jpg';
 
 function TrainingStylePage() {
-
     return (
-        <div className="p-7 bg-stone-200 h-screen font-serif overflow-y-auto">
-            <h1 className="text-4xl text-center mt-6 italic">Training Style</h1>
-            <div className="flex space-x-10 justify-center mt-7">
-                <WorkoutType to="/Hypertrophy" type='Hypertrophy' image={HypertrophyImage} desc='Program designed to increase muscle size and mass.' />
-                {/* <WorkoutType to="/Strength" type='Strength' image={StrengthImage} desc='Program designed to build muscle strength and mass' /> */}
-            </div>
-            <div className="bg-stone-200 p-4 max-w-6xl mx-auto">
-                <h3 className="underline">* Key insights for optimal results *</h3>
-                <p>1. Discipline, Train consistently-progress comes from regular effort. I personally go to the gym four times a week to stay strong and keep improving. Remember, the journey is more important than the destination.</p>
-                <p>2. Maintain a consistent diet tailored to your goals—whether it's bulking, leaning out, or maintaining weight—by balancing nutrients and staying disciplined with your intake.</p>
-                <p className="pl-5">- (Caloric intake &lt; Caloric Caloric expenditure) --&gt; Lose Weight</p>
-                <p className="pl-5">- (Caloric intake &gt; Caloric Caloric expenditure) --&gt; Gain Weight</p>
-                <p className="pl-5">- To build muscle effectively, the majority of your calories should come from protein.</p>
-                <p>3. Intensity should be key in your workouts, with every set (except the first) pushed to failure to maximize muscle growth.</p>
-                <p>4. Proper warm-ups should be a crucial part of your workout routine.</p>
-                <p>5. Cardio! I most of the time include 30 minutes of cardio at the end of my workouts to burn extra calories, improve cardiovascular health, and boost energy while winding down after strength training.</p>
+        <div className="min-h-screen bg-gradient-to-br from-sky-200 to-stone-300 font-sans overflow-y-auto p-8">
+            <h1 className="text-5xl font-bold text-center mb-10 italic">
+                Training Style
+            </h1>
 
+            <div className="flex flex-wrap gap-10 justify-center mb-16">
+                <WorkoutType
+                    to="/Hypertrophy"
+                    type="Hypertrophy"
+                    image={HypertrophyImage}
+                    desc="Program designed to increase muscle size and mass."
+                />
+                {/* Uncomment if you want to use the Strength type too */}
+                {/* <WorkoutType
+          to="/Strength"
+          type="Strength"
+          image={StrengthImage}
+          desc="Program designed to build muscle strength and mass."
+        /> */}
+            </div>
+
+            <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl p-10 text-gray-800 space-y-6">
+                <h3 className="text-2xl font-bold underline mb-4">
+                    📌 Key Insights for Optimal Results
+                </h3>
+                <ul className="space-y-3 text-lg leading-relaxed">
+                    <li>
+                        <strong>Discipline:</strong> Train consistently. I personally go to the gym
+                        four times a week to stay strong and keep improving. The journey matters more
+                        than the destination.
+                    </li>
+                    <li>
+                        <strong>Nutrition:</strong> Keep a diet tailored to your goal — bulking,
+                        cutting, or maintaining — by balancing nutrients and being consistent.
+                        <div className="pl-6 mt-2 space-y-1">
+                            <p>📉 Calories in &lt; Calories out → Lose weight</p>
+                            <p>📈 Calories in &gt; Calories out → Gain weight</p>
+                            <p>💪 Prioritize protein intake to fuel muscle growth.</p>
+                        </div>
+                    </li>
+                    <li>
+                        <strong>Intensity:</strong> Every working set (except warm-ups) should push
+                        close to failure to stimulate maximum growth.
+                    </li>
+                    <li>
+                        <strong>Warm-Ups:</strong> A proper warm-up routine reduces injury risk and
+                        improves workout performance.
+                    </li>
+                    <li>
+                        <strong>Cardio:</strong> I usually do 30 minutes of cardio post-workout to
+                        burn extra calories, improve heart health, and stay energized.
+                    </li>
+                </ul>
             </div>
         </div>
     );
