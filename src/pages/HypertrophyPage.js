@@ -115,12 +115,12 @@ function HypertophyPage() {
                 <div className="flex flex-col md:flex-row justify-end space-y-4 md:space-y-0 md:space-x-4">
                     <button
                         onClick={handleSaveWorkout}
-                        className="px-6 py-3 rounded-full bg-blue-700 text-white font-semibold shadow-lg transition-all duration-300 hover:bg-blue-800 active:scale-95"
+                        className="px-6 py-3 rounded-full bg-blue-700 text-white font-semibold shadow-lg transition-all duration-300 hover:bg-blue-800 active:bg-blue-600 active:scale-95"
                     >
                         Save Workout
                     </button>
                     <Link to="/SavedWorkouts">
-                        <button className="bg-sky-500 hover:bg-sky-600 px-6 py-3 rounded-full text-white font-semibold shadow-lg transition-all duration-300 active:scale-95">
+                        <button className="bg-gray-800 hover:bg-blue-600 px-6 py-3 rounded-full text-white font-semibold shadow-lg transition-all duration-300 active:bg-gray-600 active:scale-95">
                             View Workouts
                         </button>
                     </Link>
