@@ -64,17 +64,17 @@ function ListOfWorkouts() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-serif pb-32 px-6 md:px-20 pt-10">
+    <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-serif pb-32">
       <Navbar />
-      <div className="text-5xl mb-6 ">Saved Workouts</div>
-      <ul className="space-y-4">
+      <div className="text-5xl mb-6 pl-20">Saved Workouts</div>
+      <ul className="space-y-4 px-4 sm:px-20">
         {workouts.map(workout => {
           const dateFormat = workout.date
             ? new Date(workout.date.seconds * 1000).toLocaleDateString()
             : 'Unknown Date';
 
           return (
-            <li key={workout.id} className="bg-white p-4 rounded shadow  flex items-center justify-between">
+            <li key={workout.id} className="bg-white p-4 rounded shadow  flex items-center justify-between sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl">
               <div>
                 <div className="text-xl font-semibold">{getLabel(workout.target?.label ?? workout.target)}</div>
                 <div className="text-gray-600">Date: {dateFormat}</div>
