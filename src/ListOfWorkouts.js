@@ -74,7 +74,7 @@ function ListOfWorkouts() {
             : 'Unknown Date';
 
           return (
-            <li key={workout.id} className="bg-white p-4 rounded shadow  flex items-center justify-between sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl">
+            <li key={workout.id} className="bg-white p-4 rounded shadow-lg  flex items-center justify-between sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl">
               <div>
                 <div className="text-xl font-semibold">{getLabel(workout.target?.label ?? workout.target)}</div>
                 <div className="text-gray-600">Date: {dateFormat}</div>
