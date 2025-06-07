@@ -120,7 +120,7 @@ function HypertophyPage() {
                         Save Workout
                     </button>
                     <Link to="/SavedWorkouts">
-                        <button className="bg-gray-800 hover:bg-blue-600 px-6 py-3 rounded-full text-white font-semibold shadow-lg transition-all duration-300 active:bg-gray-600 active:scale-95">
+                        <button className="w-full bg-gray-800 hover:bg-blue-600 px-6 py-3 rounded-full text-white font-semibold shadow-lg transition-all duration-300 active:bg-gray-600 active:scale-95">
                             View Workouts
                         </button>
                     </Link>
