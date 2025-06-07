@@ -1,6 +1,6 @@
 import DropDown from "./DropDown";
 
-function TableRow({ reps, onChange, options, value, rowId, cellInput, inputs, exercise }) {
+function TableRow({ reps, onChange, options, value, rowId, cellInput, inputs }) {
 
     const recordInputCells = function () {
         const cellElements = [];
