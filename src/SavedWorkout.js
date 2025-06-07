@@ -93,7 +93,7 @@ function SavedWorkout() {
     const order = [...orderedInputs, ...remainingInputs];
 
     return (
-        <div className="bg-sky-100 min-h-screen font-serif pb-80">
+        <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen font-serif pb-80">
             <Navbar />
             <div className="px-4 sm:px-20">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
@@ -150,8 +150,8 @@ function SavedWorkout() {
             <div className="m-6 flex flex-col justify-end sm:space-x-4 space-y-4 px-4 sm:px-20">
                 <Link to="/SavedWorkouts">
                     <button className="px-5 py-2 rounded-3xl shadow-lg text-white
-                                    transition-all duration-300 bg-blue-700 hover:filter
-                                     hover:bg-blue-800 active:bg-blue-400 cursor-pointer">
+                                    transition-all duration-300 bg-gray-800 hover:filter
+                                     hover:bg-blue-600 active:bg-gray-600 cursor-pointer">
                         View Workouts
                     </button>
                 </Link>
