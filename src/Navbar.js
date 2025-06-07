@@ -4,13 +4,22 @@ import { Link } from "react-router-dom";
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const toggleMenu = () => {
+    console.log("toggle clciked");
+    setIsOpen(!isOpen);
+  };
 
   const menuRef = useRef();
+  const buttonRef = useRef();
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target)
+      ) {
         setIsOpen(false);
       }
     };
@@ -62,8 +71,9 @@ function Navbar() {
 
       {/* Mobile Toggle */}
       <button
+        ref={buttonRef}
         onClick={toggleMenu}
-        className="text-white text-3xl md:hidden focus:outline-none"
+        className="text-white text-3xl md:hidden focus:outline-none z-30"
       >
         {isOpen ? "✕" : "☰"}
       </button>
