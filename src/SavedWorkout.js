@@ -151,7 +151,7 @@ function SavedWorkout() {
                 <Link to="/SavedWorkouts">
                     <button className="px-5 py-2 rounded-3xl shadow-lg text-white
                                     transition-all duration-300 bg-gray-800 hover:filter
-                                     hover:bg-blue-600 active:bg-gray-600 cursor-pointer">
+                                     hover:bg-blue-600 active:bg-gray-600 cursor-pointer active:scale-95">
                         View Workouts
                     </button>
                 </Link>
@@ -159,7 +159,7 @@ function SavedWorkout() {
                 <button
                     onClick={() => setIsEditing(!isEditing)}
                     className=
-                    {`px-5 py-2 rounded text-white w-auto self-start
+                    {`px-5 py-2 rounded text-white w-auto self-start active:scale-95 transition-all
                     ${isEditing ? 'bg-red-600 hover:bg-red-700 active:bg-red-400' : 'bg-blue-500 hover:bg-blue-600'}`}
                 >
                     {isEditing ? "Cancel" : "Edit Workout"}
@@ -170,7 +170,7 @@ function SavedWorkout() {
                         onClick={handleSaveChanges}
                         className="px-5 py-2 rounded-3xl shadow-lg text-white
                                         transition-all duration-300 bg-green-600 hover:filter
-                                         hover:bg-green-700 active:bg-green-400 cursor-pointer w-auto self-start"
+                                         hover:bg-green-700 active:bg-green-400 cursor-pointer w-auto self-start active:scale-95"
                     >
                         Save Changes
                     </button>
