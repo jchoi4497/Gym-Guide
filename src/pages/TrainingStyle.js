@@ -14,7 +14,7 @@ function TrainingStylePage() {
                     to="/Hypertrophy"
                     type="Hypertrophy"
                     image={HypertrophyImage}
-                    desc="Program designed to increase muscle size and mass."
+                    desc="Program designed to increase muscle size and mass. Click the picture above ⬆️ to get started!"
                 />
                 {/* Uncomment if you want to use the Strength type too */}
                 {/* <WorkoutType
