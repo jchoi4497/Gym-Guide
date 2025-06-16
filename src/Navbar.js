@@ -48,7 +48,7 @@ function Navbar() {
       <Link
         to={to}
         onClick={toggleMenu}
-        className="block text-blue-700 font-semibold hover:bg-blue-50 rounded-lg px-3 py-2 transition"
+        className="block text-blue-700 font-semibold hover:bg-blue-50 active:bg-blue-200 rounded-lg px-3 py-2 transition"
       >
         {label}
       </Link>
@@ -56,7 +56,7 @@ function Navbar() {
   }
 
   return (
-    <nav className="flex items-center justify-between p-5 mb-8 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-700 shadow-lg">
+    <nav className="flex items-center justify-between p-5 mb-8 bg-gradient-to-r from-sky-500 to-blue-700 shadow-lg">
       {/* Brand */}
       <div className="text-3xl font-bold italic text-white tracking-wide">
         JC's Gym Guide
@@ -82,7 +82,7 @@ function Navbar() {
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute top-20 right-4 bg-white rounded-xl shadow-xl p-4 space-y-3 z-20 w-48 md:hidden">
+          className="absolute top-19 right-0 bg-white rounded-b-xl shadow-xl p-4 space-y-3 z-20 w-48 md:hidden">
           <MobileLink to="/" label="🏠 Home" toggleMenu={toggleMenu} />
           <MobileLink to="/Hypertrophy" label="Create Workout" toggleMenu={toggleMenu} />
           <MobileLink to="/SavedWorkouts" label="Saved Workouts" toggleMenu={toggleMenu} />
