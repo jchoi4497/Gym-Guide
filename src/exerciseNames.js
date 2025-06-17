@@ -29,9 +29,9 @@ const exerciseNames = {
   // triceps2
   oacpdt: "1 Arm Cable Pull Downs",
   rpdt: "Rope Pull Downs",
-  sbcpd: "Straight Bar Cable Push Downs",
-  obce: "Overhead Bar Cable Extensions",
-  ode: "Overhead Dumbbell Extensions",
+  sbcpdt: "Straight Bar Cable Push Downs",
+  obcet: "Overhead Bar Cable Extensions",
+  odet: "Overhead Dumbbell Extensions",
   dt: "Dips",
 
   // pullups
