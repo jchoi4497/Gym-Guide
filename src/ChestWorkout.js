@@ -25,7 +25,7 @@ function ChestWorkout({ target, reps, label, inputs, onInput }) {
 
     const tricepExerciseOptions = [
         { label: "Straight Bar Cable Push Downs", value: "sbcpd" },
-        { label: "Rope Pull Downs", value: "t" },
+        { label: "Rope Pull Downs", value: "rpd" },
         { label: "1 Arm Cable Pull Downs", value: "oacpd" },
         { label: "Overhead Bar Cable Extensions", value: "obce" },
         { label: "Overhead Dumbbell Extensions", value: "ode" },
