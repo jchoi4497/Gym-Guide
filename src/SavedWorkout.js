@@ -58,28 +58,36 @@ function SavedWorkout() {
         fetchData();
     }, [workoutId]);
 
+    const buildExerciseSummaryText = (inputs) => {
+        return Object.entries(inputs)
+            .map(([key, data]) => {
+                const exerciseName = exerciseNames[data.selection] || data.selection;
+                const sets = data.input.filter(set => set.trim() !== "").join(", ");
+                return `${exerciseName}: ${sets || "no data"}`;
+            })
+            .join("; ");
+    };
+
     const generateSummary = async (inputs) => {
         setSummaryLoading(true);
         setSummaryError(null);
 
         try {
-            const exercises = Object.values(inputs)
-                .map((item) => exerciseNames[item.selection] || item.selection)
-                .join(', ');
+            const summaryText = buildExerciseSummaryText(inputs);
 
-            const response = await fetch('/.netlify/functions/createSummary', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            const response = await fetch("/.netlify/functions/generateSummary", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    prompt: `Summarize this hypertrophy workout session in a motivational sentence. Exercises done: ${exercises}. Make every new summary different. Analyze the data and compare old data with new and summarize the analysis in one motivational sentence.`,
+                    prompt: `Summarize this hypertrophy workout session in a motivational sentence. Here are the exercises and their sets/reps: ${summaryText}. Compare this data to previous workouts and provide an analysis with motivational feedback.`,
                 }),
             });
 
             const data = await response.json();
             setSummary(data.message);
         } catch (error) {
-            setSummaryError('Failed to generate summary.');
-            console.error('OpenAI Error:', error);
+            setSummaryError("Failed to generate summary.");
+            console.error("OpenAI Error:", error);
         } finally {
             setSummaryLoading(false);
         }
