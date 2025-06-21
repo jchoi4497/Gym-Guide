@@ -13,27 +13,26 @@ function SavedWorkout() {
     const [editedInputs, setEditedInputs] = useState({});
     const [error, setError] = useState(null);
 
-    // === OpenAI summary states from your openai branch ===
+    // AI summary states
     const [summary, setSummary] = useState('');
     const [summaryLoading, setSummaryLoading] = useState(false);
     const [summaryError, setSummaryError] = useState(null);
 
     const categoryOrder = {
-        chest: ["incline", "chestpress", "fly", "tri", "tri2"],
-        back: ["pullup", "row", "lat", "bicep", "bicep2"],
-        legs: ["squat", "splitsquat", "backextension", "calfraise"],
-        shoulders: ["reardelt", "latraise", "reardelt2", "latraise2", "wristcurl", "reversewristcurl"]
+        chest: ['incline', 'chestpress', 'fly', 'tri', 'tri2'],
+        back: ['pullup', 'row', 'lat', 'bicep', 'bicep2'],
+        legs: ['squat', 'splitsquat', 'backextension', 'calfraise'],
+        shoulders: ['reardelt', 'latraise', 'reardelt2', 'latraise2', 'wristcurl', 'reversewristcurl'],
     };
+
     const options = [
-        { label: "Chest/Triceps", value: "chest" },
-        { label: "Back/Biceps", value: "back" },
-        { label: "Legs", value: "legs" },
-        { label: "Shoulders/Forearms", value: "shoulders" }
+        { label: 'Chest/Triceps', value: 'chest' },
+        { label: 'Back/Biceps', value: 'back' },
+        { label: 'Legs', value: 'legs' },
+        { label: 'Shoulders/Forearms', value: 'shoulders' },
     ];
 
-    function getLabel(value) {
-        return options.find(option => option.value === value)?.label || value;
-    }
+    const getLabel = (value) => options.find((option) => option.value === value)?.label || value;
 
     const fetchData = async () => {
         try {
@@ -65,22 +64,22 @@ function SavedWorkout() {
 
         try {
             const exercises = Object.values(inputs)
-                .map(item => exerciseNames[item.selection] || item.selection)
-                .join(", ");
+                .map((item) => exerciseNames[item.selection] || item.selection)
+                .join(', ');
 
-            const response = await fetch("/.netlify/functions/generateSummary", {
-                method: "POST",
-                headers: { "Content-Type": 'application/json' },
+            const response = await fetch('/.netlify/functions/generateSummary', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     prompt: `Summarize this hypertrophy workout session in a motivational sentence. Exercises done: ${exercises}. Make every new summary different. Analyze the data and compare old data with new and summarize the analysis in one motivational sentence.`,
-                })
+                }),
             });
 
             const data = await response.json();
             setSummary(data.message);
         } catch (error) {
-            setSummaryError("Failed to generate summary.");
-            console.error("OpenAI Error:", error);
+            setSummaryError('Failed to generate summary.');
+            console.error('OpenAI Error:', error);
         } finally {
             setSummaryLoading(false);
         }
@@ -89,38 +88,26 @@ function SavedWorkout() {
     const handleSaveChanges = async () => {
         try {
             const docRef = doc(db, 'workoutLogs', workoutId);
-            await updateDoc(docRef, {
-                inputs: editedInputs
-            });
-            setWorkoutData(prev => ({ ...prev, inputs: editedInputs }));
+            await updateDoc(docRef, { inputs: editedInputs });
+            setWorkoutData((prev) => ({ ...prev, inputs: editedInputs }));
             setIsEditing(false);
-            alert("Workout updated!");
+            alert('Workout updated!');
         } catch (error) {
-            console.error("Error updating workout:", error);
-            alert("Failed to save changes.");
+            console.error('Error updating workout:', error);
+            alert('Failed to save changes.');
         }
     };
 
-    if (isLoading) {
-        return <div>Loading...</div>;
-    }
-    if (error) {
-        return <div>Error: {error}</div>;
-    }
-    if (!workoutData || !workoutData.inputs) {
-        return <div>No workout data found.</div>;
-    }
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
+    if (!workoutData || !workoutData.inputs) return <div>No workout data found.</div>;
 
-    const targetValue = typeof workoutData.target === "string"
-        ? workoutData.target
-        : workoutData.target?.value;
+    const targetValue = typeof workoutData.target === 'string' ? workoutData.target : workoutData.target?.value;
 
     const orderedKeys = categoryOrder[targetValue] || [];
     const inputKeys = Object.keys(workoutData.inputs);
-
-    const orderedInputs = orderedKeys.filter(key => inputKeys.includes(key));
-    const remainingInputs = inputKeys.filter(key => !orderedKeys.includes(key));
-
+    const orderedInputs = orderedKeys.filter((key) => inputKeys.includes(key));
+    const remainingInputs = inputKeys.filter((key) => !orderedKeys.includes(key));
     const order = [...orderedInputs, ...remainingInputs];
 
     return (
@@ -128,7 +115,9 @@ function SavedWorkout() {
             <Navbar />
             <div className="px-4 sm:px-20">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                    <div className="text-5xl">{getLabel(workoutData.target?.label ?? workoutData.target)} Workout</div>
+                    <div className="text-5xl">
+                        {getLabel(workoutData.target?.label ?? workoutData.target)} Workout
+                    </div>
                     <div className="flex items-center space-x-4">
                         {workoutData.date && (
                             <div className="text-5xl text-gray-600">
@@ -155,7 +144,7 @@ function SavedWorkout() {
                                         {isEditing ? (
                                             <input
                                                 type="text"
-                                                value={editedInputs[key]?.input[idx] || ""}
+                                                value={editedInputs[key]?.input[idx] || ''}
                                                 onChange={(e) => {
                                                     const newInputs = { ...editedInputs };
                                                     newInputs[key].input[idx] = e.target.value;
@@ -164,8 +153,8 @@ function SavedWorkout() {
                                                 className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl border min-w-[60px] text-center"
                                             />
                                         ) : (
-                                            <div className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl  min-w-[60px] text-center">
-                                                {weight || "-"}
+                                            <div className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl min-w-[60px] text-center">
+                                                {weight || '-'}
                                             </div>
                                         )}
                                     </div>
@@ -176,7 +165,6 @@ function SavedWorkout() {
                 })}
             </div>
 
-            {/* ==== NEW: AI Summary Section ==== */}
             <div className="sm:px-20 px-4 mb-20">
                 <h2 className="text-3xl font-bold mb-4">Analysis</h2>
                 {summaryLoading ? (
@@ -197,19 +185,18 @@ function SavedWorkout() {
 
                 <button
                     onClick={() => setIsEditing(!isEditing)}
-                    className=
-                    {`px-6 py-3 w-full rounded text-white sm:w-auto self-start active:scale-95 transition-all
-                    ${isEditing ? 'bg-red-600 hover:bg-red-700 active:bg-red-400' : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-400'}`}
+                    className={`px-6 py-3 w-full rounded text-white sm:w-auto self-start active:scale-95 transition-all ${isEditing
+                            ? 'bg-red-600 hover:bg-red-700 active:bg-red-400'
+                            : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-400'
+                        }`}
                 >
-                    {isEditing ? "Cancel" : "Edit Workout"}
+                    {isEditing ? 'Cancel' : 'Edit Workout'}
                 </button>
 
                 {isEditing && (
                     <button
                         onClick={handleSaveChanges}
-                        className="px-6 py-3 w-full rounded-3xl shadow-lg text-white
-                                        transition-all duration-300 bg-green-600 hover:filter
-                                         hover:bg-green-700 active:bg-green-400 cursor-pointer w-auto sm:w-auto self-start active:scale-95"
+                        className="px-6 py-3 w-full rounded-3xl shadow-lg text-white transition-all duration-300 bg-green-600 hover:bg-green-700 active:bg-green-400 cursor-pointer w-auto sm:w-auto self-start active:scale-95"
                     >
                         Save Changes
                     </button>
