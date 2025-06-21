@@ -5,7 +5,6 @@ import db from './firebase';
 import exerciseNames from './exerciseNames';
 import Navbar from './Navbar';
 
-
 function SavedWorkout() {
     const { workoutId } = useParams();
     const [workoutData, setWorkoutData] = useState(null);
@@ -13,6 +12,11 @@ function SavedWorkout() {
     const [isEditing, setIsEditing] = useState(false);
     const [editedInputs, setEditedInputs] = useState({});
     const [error, setError] = useState(null);
+
+    // state for openai summary and loading/error
+    const [summary, setSummary] = useState('');
+    const [summaryLoading, setSummaryLoading] = useState(false);
+    const [summaryError, setSummaryError] = useState(null);
 
     const categoryOrder = {
         chest: ["incline", "chestpress", "fly", "tri", "tri2"],
@@ -33,13 +37,16 @@ function SavedWorkout() {
 
     const fetchData = async () => {
         try {
+            setIsLoading(true);
             const docRef = doc(db, 'workoutLogs', workoutId);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
                 console.log("DOC SNAP DATA:", docSnap.data());
-                setWorkoutData(docSnap.data());
-                setEditedInputs(docSnap.data().inputs);
+                const data = docSnap.data();
+                setWorkoutData(data);
+                setEditedInputs(data.inputs);
+                await generateSummary(data.inputs);
             } else {
                 setError('No such document found.');
             }
@@ -53,6 +60,33 @@ function SavedWorkout() {
     useEffect(() => {
         fetchData();
     }, [workoutId]); // Only re-fetch data when docId changes
+
+    const generateSummary = async (inputs) => {
+        setSummaryLoading(true);
+        setSummaryError(null);
+
+        try {
+            const exercises = Object.values(inputs)
+                .map(item => exerciseNames[item.selection] || item.selection)
+                .join(", ");
+
+            const response = await fetch("/.netlify/functions/generateSummary", {
+                method: "POST",
+                headers: { "Content-Type": 'application/json' },
+                body: JSON.stringify({
+                    prompt: `Summarize this hypertrophy workout session in a motivational sentence. Exercises done: ${exercises}. Make every new summary different. Analyze the data and compare old data with new and summarize the analysis in one motivational sentence.`,
+                })
+            });
+
+            const data = await response.json();
+            setSummary(data.message);
+        } catch (error) {
+            setSummaryError("Failed to generate summary.");
+            console.error("OpenAI Error:", error);
+        } finally {
+            setSummaryLoading(false);
+        }
+    };
 
     const handleSaveChanges = async () => {
         try {
@@ -144,6 +178,18 @@ function SavedWorkout() {
                         </div>
                     );
                 })}
+            </div>
+
+            {/* ==== NEW: AI Summary Section ==== */}
+            <div className="sm:px-20 px-4 mb-20">
+                <h2 className="text-3xl font-bold mb-4">Analysis</h2>
+                {summaryLoading ? (
+                    <p>Generating summary...</p>
+                ) : summaryError ? (
+                    <p className="text-red-600">{summaryError}</p>
+                ) : (
+                    <p className="italic text-lg">{summary}</p>
+                )}
             </div>
 
 
