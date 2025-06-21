@@ -75,6 +75,8 @@ function SavedWorkout() {
         try {
             const summaryText = buildExerciseSummaryText(inputs);
 
+
+            // how user was feeling, how they felt the training went,
             const response = await fetch("/.netlify/functions/createSummary", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
