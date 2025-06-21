@@ -75,7 +75,7 @@ function SavedWorkout() {
         try {
             const summaryText = buildExerciseSummaryText(inputs);
 
-            const response = await fetch("/.netlify/functions/generateSummary", {
+            const response = await fetch("/.netlify/functions/createSummary", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -86,7 +86,7 @@ function SavedWorkout() {
             const data = await response.json();
             setSummary(data.message);
         } catch (error) {
-            setSummaryError("Failed to generate summary.");
+            setSummaryError("Failed to create summary.");
             console.error("OpenAI Error:", error);
         } finally {
             setSummaryLoading(false);
