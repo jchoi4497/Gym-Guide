@@ -79,7 +79,7 @@ function SavedWorkout() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    prompt: `Summarize this hypertrophy workout session in a motivational sentence. Here are the exercises and their sets/reps: ${summaryText}. Compare this data to previous workouts and provide an analysis with motivational feedback.`,
+                    prompt: `Here are the exercises and their sets/reps: ${summaryText}. Compare this data to previous workouts and provide an analysis on what improved and what didn't. Give some advice on what to do with motivational feedback. Slightly change format for new saved workouts to keep things fresh, but summaries made for previous workouts keep.`,
                 }),
             });
 
