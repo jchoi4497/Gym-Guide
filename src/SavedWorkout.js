@@ -186,8 +186,8 @@ function SavedWorkout() {
                 <button
                     onClick={() => setIsEditing(!isEditing)}
                     className={`px-6 py-3 w-full rounded text-white sm:w-auto self-start active:scale-95 transition-all ${isEditing
-                            ? 'bg-red-600 hover:bg-red-700 active:bg-red-400'
-                            : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-400'
+                        ? 'bg-red-600 hover:bg-red-700 active:bg-red-400'
+                        : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-400'
                         }`}
                 >
                     {isEditing ? 'Cancel' : 'Edit Workout'}
