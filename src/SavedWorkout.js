@@ -67,7 +67,7 @@ function SavedWorkout() {
                 .map((item) => exerciseNames[item.selection] || item.selection)
                 .join(', ');
 
-            const response = await fetch('/.netlify/functions/generateSummary', {
+            const response = await fetch('/.netlify/functions/createSummary', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
