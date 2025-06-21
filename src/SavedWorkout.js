@@ -13,7 +13,7 @@ function SavedWorkout() {
     const [editedInputs, setEditedInputs] = useState({});
     const [error, setError] = useState(null);
 
-    // state for openai summary and loading/error
+    // === OpenAI summary states from your openai branch ===
     const [summary, setSummary] = useState('');
     const [summaryLoading, setSummaryLoading] = useState(false);
     const [summaryError, setSummaryError] = useState(null);
@@ -42,11 +42,9 @@ function SavedWorkout() {
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
-                console.log("DOC SNAP DATA:", docSnap.data());
-                const data = docSnap.data();
-                setWorkoutData(data);
-                setEditedInputs(data.inputs);
-                await generateSummary(data.inputs);
+                setWorkoutData(docSnap.data());
+                setEditedInputs(docSnap.data().inputs);
+                await generateSummary(docSnap.data().inputs);
             } else {
                 setError('No such document found.');
             }
@@ -59,7 +57,7 @@ function SavedWorkout() {
 
     useEffect(() => {
         fetchData();
-    }, [workoutId]); // Only re-fetch data when docId changes
+    }, [workoutId]);
 
     const generateSummary = async (inputs) => {
         setSummaryLoading(true);
@@ -103,7 +101,6 @@ function SavedWorkout() {
         }
     };
 
-    // SavedWorkouts States
     if (isLoading) {
         return <div>Loading...</div>;
     }
@@ -168,7 +165,6 @@ function SavedWorkout() {
                                             />
                                         ) : (
                                             <div className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl  min-w-[60px] text-center">
-
                                                 {weight || "-"}
                                             </div>
                                         )}
@@ -191,7 +187,6 @@ function SavedWorkout() {
                     <p className="italic text-lg">{summary}</p>
                 )}
             </div>
-
 
             <div className="m-6 flex flex-col justify-end sm:space-x-4 space-y-4 px-4 sm:px-20">
                 <Link to="/SavedWorkouts">
