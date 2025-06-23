@@ -117,7 +117,7 @@ function HypertophyPage() {
                     </div>
                 </div>
 
-                <div className="mb-14">
+                <div className="mb-10">
                     {selection === "chest" && setCountSelection && <ChestWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
                     {selection === "back" && setCountSelection && <BackWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
                     {selection === "legs" && setCountSelection && <LegsWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
@@ -125,7 +125,7 @@ function HypertophyPage() {
                 </div>
 
                 {selection && setCountSelection && (
-                    <div className="">
+                    <div className="mb-10">
                         <WorkoutNotes value={note} onChange={setNote} />
                     </div>
                 )}
