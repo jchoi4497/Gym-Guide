@@ -8,12 +8,15 @@ import BackWorkout from "../BackWorkout";
 import LegsWorkout from "../LegsWorkout";
 import ShouldersWorkout from "../ShouldersWorkout";
 import Navbar from "../Navbar";
+import WorkoutNotes from "../WorkoutNotes";
 
 function HypertophyPage() {
     const [selection, setSelection] = useState(null);
     const [setCountSelection, setSetCountSelection] = useState(null);
     const [inputs, setInputs] = useState({});
+    const [note, setNote] = useState("");
 
+    // Workout Selection: Weigt x Reps input
     const onInput = (row, exercise, index, input) => {
         const inputData = { ...inputs };
         if (!inputData[row]) {
@@ -43,6 +46,13 @@ function HypertophyPage() {
         setSetCountSelection(option);
     };
 
+    // Note inpute
+    const handleSaveNote = (savedNote) => {
+        setNote(savedNote);
+    };
+
+
+    // Save Workout
     const handleSaveWorkout = async () => {
         console.log(inputs);
         try {
@@ -50,8 +60,10 @@ function HypertophyPage() {
                 target: selection,
                 reps: setCountSelection,
                 date: new Date(),
-                inputs: inputs
+                inputs: inputs,
+                note: note,
             });
+
 
             // Get the document ID
             const workoutId = docRef.id;
@@ -111,6 +123,12 @@ function HypertophyPage() {
                     {selection === "legs" && setCountSelection && <LegsWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
                     {selection === "shoulders" && setCountSelection && <ShouldersWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
                 </div>
+
+                {selection && setCountSelection && (
+                    <div className="">
+                        <WorkoutNotes value={note} onChange={setNote} />
+                    </div>
+                )}
 
                 <div className="flex flex-col md:flex-row justify-end space-y-4 md:space-y-0 md:space-x-4">
                     <button

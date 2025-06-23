@@ -12,6 +12,7 @@ function SavedWorkout() {
     const [isEditing, setIsEditing] = useState(false);
     const [editedInputs, setEditedInputs] = useState({});
     const [error, setError] = useState(null);
+    const [note, setNote] = useState("");
 
     // AI summary states
     const [summary, setSummary] = useState('');
@@ -41,9 +42,11 @@ function SavedWorkout() {
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
-                setWorkoutData(docSnap.data());
-                setEditedInputs(docSnap.data().inputs);
-                await generateSummary(docSnap.data().inputs);
+                const data = docSnap.data();
+                setWorkoutData(data);
+                setEditedInputs(data.inputs);
+                setNote(data.not || "");
+                await generateSummary(data.inputs, data.note);
             } else {
                 setError('No such document found.');
             }
@@ -68,20 +71,36 @@ function SavedWorkout() {
             .join("; ");
     };
 
-    const generateSummary = async (inputs) => {
+    const generateSummary = async (inputs, note) => {
         setSummaryLoading(true);
         setSummaryError(null);
 
         try {
             const summaryText = buildExerciseSummaryText(inputs);
+            const promptText = `
+                The following is a workout log entry.
 
+                    **User Notes:** "${note}"
+
+                    **Workout Data Summary:** ${summaryText}
+
+                    Based on the workout data and the user’s notes about how they were feeling that day, provide a brief analysis of the session.
+
+                    - Highlight what went well and what could be improved based on the exercise performance.
+                    - Reflect on how their reported mood or condition may have affected the workout.
+                    - Offer one or two actionable suggestions for their next session.
+                    - Conclude with a motivational sentence to keep them encouraged.
+
+                    Summarize everything in 2–3 varied, conversational sentences.
+                    For newer saved workouts, slightly change the phrasing style to keep things fresh,
+                    but for previously analyzed workouts, keep their original summary consistent.`;
 
             // how user was feeling, how they felt the training went,
             const response = await fetch("/.netlify/functions/createSummary", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    prompt: `Here are the exercises and their sets/reps: ${summaryText}. Compare this data to previous workouts and provide an analysis on what improved and what didn't. Give some advice on what to do with motivational feedback. Slightly change format for new saved workouts to keep things fresh, but summaries made for previous workouts keep. Summarize in 2-3 sentences.`,
+                    prompt: promptText,
                 }),
             });
 
