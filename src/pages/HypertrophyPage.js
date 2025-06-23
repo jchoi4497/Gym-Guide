@@ -46,7 +46,7 @@ function HypertophyPage() {
         setSetCountSelection(option);
     };
 
-    // Note inpute
+    // Note input
     const handleSaveNote = (savedNote) => {
         setNote(savedNote);
     };
