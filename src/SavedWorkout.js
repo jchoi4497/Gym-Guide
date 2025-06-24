@@ -16,8 +16,6 @@ function SavedWorkout() {
 
     // AI summary states
     const [summary, setSummary] = useState('');
-    const [summaryLoading, setSummaryLoading] = useState(false);
-    const [summaryError, setSummaryError] = useState(null);
 
     const categoryOrder = {
         chest: ['incline', 'chestpress', 'fly', 'tri', 'tri2'],
@@ -46,7 +44,7 @@ function SavedWorkout() {
                 setWorkoutData(data);
                 setEditedInputs(data.inputs);
                 setNote(data.note || "");
-                await generateSummary(editedInputs, note);
+                setSummary(data.summary || '');
             } else {
                 setError('No such document found.');
             }
@@ -72,8 +70,6 @@ function SavedWorkout() {
     };
 
     const generateSummary = async (inputs, note) => {
-        setSummaryLoading(true);
-        setSummaryError(null);
 
         try {
             const summaryText = buildExerciseSummaryText(inputs);
@@ -105,12 +101,11 @@ function SavedWorkout() {
             });
 
             const data = await response.json();
-            setSummary(data.message);
+            return data.message;
         } catch (error) {
-            setSummaryError("Failed to create summary.");
             console.error("OpenAI Error:", error);
         } finally {
-            setSummaryLoading(false);
+            return '';
         }
     };
 
@@ -218,13 +213,7 @@ function SavedWorkout() {
 
                 <div className="mb-20 p-4 bg-white rounded-2xl shadow-lg">
                     <h2 className="text-3xl font-bold mb-4">Analysis</h2>
-                    {summaryLoading ? (
-                        <p>Generating summary...</p>
-                    ) : summaryError ? (
-                        <p className="text-red-600">{summaryError}</p>
-                    ) : (
-                        <p className="italic text-lg">{summary}</p>
-                    )}
+                    <p className="italic text-lg">{summary}</p>
                 </div>
 
             </div>
