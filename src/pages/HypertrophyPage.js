@@ -9,6 +9,7 @@ import LegsWorkout from "../LegsWorkout";
 import ShouldersWorkout from "../ShouldersWorkout";
 import Navbar from "../Navbar";
 import WorkoutNotes from "../WorkoutNotes";
+import { generateSummary } from '../summaryUtil';
 
 function HypertophyPage() {
     const [selection, setSelection] = useState(null);
