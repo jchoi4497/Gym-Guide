@@ -22,7 +22,7 @@ export async function generateSummary(inputs, note) {
     const promptText = `
       The following is a workout log entry.
 
-      **User Notes:** "${note}"
+      **User Notes:** ${notesText}
 
       **Workout Data Summary:** ${summaryText}
 
