@@ -8,7 +8,7 @@ export default function WorkoutNotes({ value, onChange }) {
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Write any thoughts about today's workout. How was your sleep, what did you eat, how did your body feel, how did you feel mentally?..."
+        placeholder="Write notes about how you felt before/after, sleep, what you ate, how did your body feel, how did you feel mentally?..."
         rows="4"
         className="w-full p-4 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
       />
