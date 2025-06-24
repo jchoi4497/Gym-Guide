@@ -219,7 +219,7 @@ function SavedWorkout() {
                             onChange={(e) => setNote(e.target.value)}
                             rows={4}
                             className="w-full p-4 rounded border border-gray-300 text-lg resize-none"
-                            placeholder="Write your notes about how you felt, sleep, mood, etc."
+                            placeholder="Write notes about how you felt before/after, sleep, what you ate, how did your body feel, how did you feel mentally?..."
                         />
                     ) : (
                         <p className="italic text-lg whitespace-pre-wrap">{note || 'No notes added.'}</p>
