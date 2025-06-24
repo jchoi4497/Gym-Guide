@@ -15,8 +15,6 @@ function SavedWorkout() {
     const [editedInputs, setEditedInputs] = useState({});
     const [error, setError] = useState(null);
     const [note, setNote] = useState("");
-
-    // AI summary states
     const [summary, setSummary] = useState('');
 
     const categoryOrder = {
@@ -64,7 +62,6 @@ function SavedWorkout() {
     const handleSaveChanges = async () => {
         try {
             setIsSaving(true);
-            // Generate New Summary
             const newSummary = await generateSummary(editedInputs, note);
             const docRef = doc(db, 'workoutLogs', workoutId);
 
@@ -83,10 +80,11 @@ function SavedWorkout() {
 
             setSummary(newSummary);
             setIsEditing(false);
-            alert('Workout and analysis updated!');
         } catch (error) {
             console.error('Error updating workout:', error);
-            alert('Failed to save changes.');
+            // Optionally show an inline error message here instead of alert
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -122,7 +120,6 @@ function SavedWorkout() {
 
             <div className="sm:px-20 px-4">
                 {/* Workout Inputs */}
-
                 <div className="mb-8">
                     {order.map((key) => {
                         const data = isEditing ? editedInputs[key] : workoutData.inputs[key];
@@ -161,7 +158,6 @@ function SavedWorkout() {
                 </div>
 
                 {/* Workout Notes */}
-
                 <div className="mb-8 p-4 bg-white rounded-2xl shadow-lg">
                     <div className="text-2xl font-bold mb-2">Workout Notes</div>
                     {isEditing ? (
@@ -178,12 +174,10 @@ function SavedWorkout() {
                 </div>
 
                 {/* OpenAI Analysis */}
-
                 <div className="mb-20 p-4 bg-white rounded-2xl shadow-lg">
                     <h2 className="text-3xl font-bold mb-4">Analysis</h2>
                     <p className="italic text-lg">{summary}</p>
                 </div>
-
             </div>
 
             <div className="m-6 flex flex-col justify-end sm:space-x-4 space-y-4 px-4 sm:px-20">
@@ -196,8 +190,8 @@ function SavedWorkout() {
                 <button
                     onClick={() => setIsEditing(!isEditing)}
                     className={`px-6 py-3 w-full rounded text-white sm:w-auto self-start active:scale-95 transition-all ${isEditing
-                        ? 'bg-red-600 hover:bg-red-700 active:bg-red-400'
-                        : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-400'
+                            ? 'bg-red-600 hover:bg-red-700 active:bg-red-400'
+                            : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-400'
                         }`}
                 >
                     {isEditing ? 'Cancel' : 'Edit Workout'}
@@ -208,8 +202,8 @@ function SavedWorkout() {
                         onClick={handleSaveChanges}
                         disabled={isSaving}
                         className={`px-6 py-3 w-full rounded-3xl shadow-lg text-white transition-all duration-300 ${isSaving
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-green-600 hover:bg-green-700 active:bg-green-400'
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-green-600 hover:bg-green-700 active:bg-green-400'
                             } w-auto sm:w-auto self-start active:scale-95`}
                     >
                         {isSaving ? 'Saving...' : 'Save Changes'}

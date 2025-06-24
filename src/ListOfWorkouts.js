@@ -8,6 +8,8 @@ function ListOfWorkouts() {
   const [workouts, setWorkouts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null); // modal state
+  const [isDeleting, setIsDeleting] = useState(false); // loading state for deletion
 
   const options = [
     { label: "Chest/Triceps", value: "chest" },
@@ -17,12 +19,15 @@ function ListOfWorkouts() {
   ];
 
   const handleDeleteWorkout = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this workout?")) return;
+    setIsDeleting(true);
     try {
       await deleteDoc(doc(db, "workoutLogs", id));
       setWorkouts(workouts.filter(workout => workout.id !== id));
     } catch (error) {
       console.error("Error deleting workout:", error);
+    } finally {
+      setIsDeleting(false);
+      setConfirmDeleteId(null); // close modal after done
     }
   };
 
@@ -32,7 +37,6 @@ function ListOfWorkouts() {
 
   const fetchWorkouts = async () => {
     try {
-
       const q = query(collection(db, "workoutLogs"), orderBy("date", "desc"));
       const querySnapshot = await getDocs(q);
       const workoutArray = querySnapshot.docs.map(doc => ({
@@ -52,15 +56,27 @@ function ListOfWorkouts() {
   }, []);
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-300 to-stone-300 font-serif text-gray-800">Loading saved workouts...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-300 to-stone-300 font-serif text-gray-800">
+        Loading saved workouts...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-300 to-stone-300 font-serif text-red-600">{error}</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-300 to-stone-300 font-serif text-red-600">
+        {error}
+      </div>
+    );
   }
 
   if (workouts.length === 0) {
-    return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-300 to-stone-300 font-serif text-gray-800">No saved workouts found.</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-300 to-stone-300 font-serif text-gray-800">
+        No saved workouts found.
+      </div>
+    );
   }
 
   return (
@@ -74,7 +90,10 @@ function ListOfWorkouts() {
             : 'Unknown Date';
 
           return (
-            <li key={workout.id} className="bg-white p-4 rounded shadow-lg  flex items-center justify-between sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl">
+            <li
+              key={workout.id}
+              className="bg-white p-4 rounded shadow-lg flex items-center justify-between sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl"
+            >
               <div>
                 <div className="text-xl font-semibold">{getLabel(workout.target?.label ?? workout.target)}</div>
                 <div className="text-gray-600">Date: {dateFormat}</div>
@@ -96,8 +115,9 @@ function ListOfWorkouts() {
                   Edit
                 </Link>
                 <button
-                  onClick={() => handleDeleteWorkout(workout.id)}
+                  onClick={() => setConfirmDeleteId(workout.id)}
                   className="ml-4 px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700"
+                  disabled={isDeleting}
                 >
                   Delete
                 </button>
@@ -106,6 +126,37 @@ function ListOfWorkouts() {
           );
         })}
       </ul>
+
+      {/* Custom Confirm Modal */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-transparent">
+          <div className="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full border border-gray-200">
+            <h2 className="text-2xl font-bold mb-3 text-gray-800">Confirm Delete</h2>
+            <p className="text-gray-600 mb-6 text-sm">
+              Are you sure you want to delete this workout? This action can’t be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="px-4 py-2 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-medium"
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteWorkout(confirmDeleteId)}
+                disabled={isDeleting}
+                className={`px-4 py-2 rounded-full text-sm font-medium shadow ${isDeleting
+                    ? 'bg-red-300 cursor-not-allowed'
+                    : 'bg-red-600 hover:bg-red-700 text-white'
+                  }`}
+              >
+                {isDeleting ? 'Deleting…' : 'Yes, Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
