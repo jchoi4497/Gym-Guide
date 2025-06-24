@@ -11,6 +11,7 @@ function SavedWorkout() {
     const [workoutData, setWorkoutData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const [editedInputs, setEditedInputs] = useState({});
     const [error, setError] = useState(null);
     const [note, setNote] = useState("");
@@ -62,10 +63,9 @@ function SavedWorkout() {
 
     const handleSaveChanges = async () => {
         try {
+            setIsSaving(true);
             // Generate New Summary
-
             const newSummary = await generateSummary(editedInputs, note);
-
             const docRef = doc(db, 'workoutLogs', workoutId);
 
             await updateDoc(docRef, {
@@ -206,9 +206,13 @@ function SavedWorkout() {
                 {isEditing && (
                     <button
                         onClick={handleSaveChanges}
-                        className="px-6 py-3 w-full rounded-3xl shadow-lg text-white transition-all duration-300 bg-green-600 hover:bg-green-700 active:bg-green-400 cursor-pointer w-auto sm:w-auto self-start active:scale-95"
+                        disabled={isSaving}
+                        className={`px-6 py-3 w-full rounded-3xl shadow-lg text-white transition-all duration-300 ${isSaving
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-green-600 hover:bg-green-700 active:bg-green-400'
+                            } w-auto sm:w-auto self-start active:scale-95`}
                     >
-                        Save Changes
+                        {isSaving ? 'Saving...' : 'Save Changes'}
                     </button>
                 )}
             </div>
