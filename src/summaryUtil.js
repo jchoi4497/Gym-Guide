@@ -14,6 +14,11 @@ export async function generateSummary(inputs, note) {
 
   try {
     const summaryText = buildExerciseSummaryText(inputs);
+
+    const notesText = note.trim() === ''
+      ? 'No additional user notes provided.'
+      : `"${note}"`;
+
     const promptText = `
       The following is a workout log entry.
 
