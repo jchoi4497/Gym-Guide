@@ -111,11 +111,28 @@ function SavedWorkout() {
 
     const handleSaveChanges = async () => {
         try {
+            // Generate New Summary
+
+            const newSummary = await generateSummary(editedInputs, note);
+
             const docRef = doc(db, 'workoutLogs', workoutId);
-            await updateDoc(docRef, { inputs: editedInputs, note: note });
-            setWorkoutData((prev) => ({ ...prev, inputs: editedInputs, note: note }));
+
+            await updateDoc(docRef, {
+                inputs: editedInputs,
+                note: note,
+                summary: newSummary,
+            });
+
+            setWorkoutData((prev) => ({
+                ...prev,
+                inputs: editedInputs,
+                note: note,
+                summary: newSummary,
+            }));
+
+            setSummary(newSummary);
             setIsEditing(false);
-            alert('Workout updated!');
+            alert('Workout and analysis updated!');
         } catch (error) {
             console.error('Error updating workout:', error);
             alert('Failed to save changes.');
