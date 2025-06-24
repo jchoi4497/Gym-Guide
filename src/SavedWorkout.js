@@ -152,7 +152,7 @@ function SavedWorkout() {
                 </div>
             </div>
 
-            <div className="max-w-6xl mx-auto sm:px-20 px-4">
+            <div className="sm:px-20 px-4">
                 {/* Workout Inputs */}
 
                 <div className="mb-8">
