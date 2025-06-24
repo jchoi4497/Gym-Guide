@@ -46,22 +46,21 @@ function HypertophyPage() {
         setSetCountSelection(option);
     };
 
-    // Note input
-    const handleSaveNote = (savedNote) => {
-        setNote(savedNote);
-    };
-
-
     // Save Workout
     const handleSaveWorkout = async () => {
         console.log(inputs);
         try {
+            // Generate New Summary
+            const newSummary = await generateSummary(inputs, note);
+
+            // Save WorkoutLog with ai summary
             const docRef = await addDoc(collection(db, "workoutLogs"), {
                 target: selection,
                 reps: setCountSelection,
                 date: new Date(),
                 inputs: inputs,
                 note: note,
+                summary: newSummary,
             });
 
 
