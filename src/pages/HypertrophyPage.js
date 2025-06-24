@@ -16,6 +16,7 @@ function HypertophyPage() {
     const [setCountSelection, setSetCountSelection] = useState(null);
     const [inputs, setInputs] = useState({});
     const [note, setNote] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
     // Workout Selection: Weigt x Reps input
     const onInput = (row, exercise, index, input) => {
@@ -50,6 +51,7 @@ function HypertophyPage() {
     // Save Workout
     const handleSaveWorkout = async () => {
         console.log(inputs);
+        setIsSaving(true);
         try {
             // Generate New Summary
             const newSummary = await generateSummary(inputs, note);
@@ -73,6 +75,9 @@ function HypertophyPage() {
             window.location.href = `/SavedWorkout/${workoutId}`;
         } catch (error) {
             console.error('ERROR SAVING WORKOUT:', error);
+            alert('Error saving workout. Please try again.');
+        } finally {
+            setIsSaving(false);  // End loading
         }
     };
 
@@ -133,9 +138,13 @@ function HypertophyPage() {
                 <div className="flex flex-col md:flex-row justify-end space-y-4 md:space-y-0 md:space-x-4">
                     <button
                         onClick={handleSaveWorkout}
-                        className="px-6 py-3 rounded-full bg-blue-700 text-white font-semibold shadow-lg transition-all duration-300 hover:bg-blue-800 active:bg-blue-600 active:scale-95"
+                        disabled={isSaving} // disable button while saving
+                        className={`px-6 py-3 rounded-full text-white font-semibold shadow-lg transition-all duration-300
+                                ${isSaving
+                                ? 'bg-gray-400 cursor-not-allowed'
+                                : 'bg-blue-700 hover:bg-blue-800 active:bg-blue-600 active:scale-95'}`}
                     >
-                        Save Workout
+                        {isSaving ? 'Saving...' : 'Save Workout'}
                     </button>
                     <Link to="/SavedWorkouts">
                         <button className="w-full bg-gray-800 hover:bg-blue-600 px-6 py-3 rounded-full text-white font-semibold shadow-lg transition-all duration-300 active:bg-gray-600 active:scale-95">
