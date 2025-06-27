@@ -1,5 +1,5 @@
 import { useState } from "react";
-import WorkoutTable from "./WorkoutTable";
+import WorkoutTable from "../WorkoutTable";
 
 function BackWorkout({ target, reps, label, inputs, onInput }) {
 
