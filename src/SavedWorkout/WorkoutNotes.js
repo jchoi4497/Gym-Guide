@@ -16,19 +16,3 @@ export default function WorkoutNotes({ value, onChange, isEditing }) {
     </div>
   );
 }
-
-
-{/* <div className="mb-8 p-4 bg-white rounded-2xl shadow-lg">
-  <div className="text-2xl font-bold mb-2">Workout Notes</div>
-  {isEditing ? (
-    <textarea
-      value={note}
-      onChange={(e) => setNote(e.target.value)}
-      rows={4}
-      className="w-full p-4 rounded border border-gray-300 text-lg resize-none"
-      placeholder="Write notes about how you felt before/after, sleep, what you ate, how did your body feel, how did you feel mentally?..."
-    />
-  ) : (
-    <p className="italic text-lg whitespace-pre-wrap">{note || 'No notes added.'}</p>
-  )}
-</div>; */}

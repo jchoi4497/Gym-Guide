@@ -131,7 +131,6 @@ function SavedWorkout() {
                     editedInputs={editedInputs}
                     workoutData={workoutData}
                     setEditedInputs={setEditedInputs}
-
                 />
 
                 {/* Workout Notes */}
@@ -140,7 +139,6 @@ function SavedWorkout() {
                     onChange={setNote}
                     isEditing={isEditing}
                 />
-
 
                 {/* OpenAI Analysis */}
                 <WorkoutAnalysis summary={summary} />
