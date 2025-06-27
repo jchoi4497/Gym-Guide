@@ -8,7 +8,7 @@ import BackWorkout from "../BackWorkout";
 import LegsWorkout from "../LegsWorkout";
 import ShouldersWorkout from "../ShouldersWorkout";
 import Navbar from "../Navbar";
-import WorkoutNotes from "../WorkoutNotes";
+import WorkoutNotesInput from "../WorkoutNotesInput";
 import { generateSummary } from '../summaryUtil';
 
 function HypertophyPage() {
@@ -131,7 +131,7 @@ function HypertophyPage() {
 
                 {selection && setCountSelection && (
                     <div className="mb-10">
-                        <WorkoutNotes value={note} onChange={setNote} />
+                        <WorkoutNotesInput value={note} onChange={setNote} />
                     </div>
                 )}
 

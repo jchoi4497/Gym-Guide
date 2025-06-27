@@ -1,4 +1,4 @@
-export default function WorkoutNotes({ value, onChange }) {
+export default function WorkoutNotesInput({ value, onChange }) {
 
   return (
     <div className="p-6 bg-gradient-to-br from-white to-gray-100 rounded-2xl shadow-xl">
