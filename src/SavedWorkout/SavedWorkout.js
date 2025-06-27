@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import db from './firebase';
-import exerciseNames from './exerciseNames';
-import Navbar from './Navbar';
-import { generateSummary } from './summaryUtil';
+import db from '../firebase';
+import exerciseNames from '../exerciseNames';
+import Navbar from '../Navbar';
+import { generateSummary } from '../summaryUtil';
+import DataChart from '../DataChart';
+import WorkoutInputs from './WorkoutInputs';
+import WorkoutNotes from './WorkoutNotes';
 
 function SavedWorkout() {
     const { workoutId } = useParams();
@@ -16,6 +19,7 @@ function SavedWorkout() {
     const [error, setError] = useState(null);
     const [note, setNote] = useState("");
     const [summary, setSummary] = useState('');
+
 
     const categoryOrder = {
         chest: ['incline', 'chestpress', 'fly', 'tri', 'tri2'],
@@ -120,64 +124,40 @@ function SavedWorkout() {
 
             <div className="sm:px-20 px-4">
                 {/* Workout Inputs */}
-                <div className="mb-8">
-                    {order.map((key) => {
-                        const data = isEditing ? editedInputs[key] : workoutData.inputs[key];
-                        if (!data) return null;
+                <WorkoutInputs
+                    order={order}
+                    isEditing={isEditing}
+                    editedInputs={editedInputs}
+                    workoutData={workoutData}
+                    setEditedInputs={setEditedInputs}
 
+                />
+
+                {/* Workout Notes */}
+                <WorkoutNotes
+                    value={note}
+                    onChange={setNote}
+                    isEditing={isEditing}
+                />
+
+
+                {/* OpenAI Analysis */}
+                <div className="mb-8 p-4 bg-white rounded-2xl shadow-lg">
+                    <h2 className="text-3xl font-bold mb-4">Analysis</h2>
+                    <p className="italic text-lg">{summary}</p>
+                </div>
+
+                {/* Progress Graphs */}
+                <div className="p-4 bg-white rounded-2xl shadow-lg">
+                    <h2 className="text-3xl font-bold mb-4">Workout Progress Charts</h2>
+                    {order.map((key) => {
+                        const data = workoutData.inputs[key];
                         return (
-                            <div key={key} className="mb-8 p-4 bg-white rounded-2xl shadow-lg">
-                                <div className="text-2xl font-bold mb-2">
-                                    {exerciseNames[data.selection] || data.selection}
-                                </div>
-                                <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-3 sm:space-y-0">
-                                    {data.input.map((weight, idx) => (
-                                        <div key={idx}>
-                                            {isEditing ? (
-                                                <input
-                                                    type="text"
-                                                    value={editedInputs[key]?.input[idx] || ''}
-                                                    onChange={(e) => {
-                                                        const newInputs = { ...editedInputs };
-                                                        newInputs[key].input[idx] = e.target.value;
-                                                        setEditedInputs(newInputs);
-                                                    }}
-                                                    className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl border min-w-[60px] text-center"
-                                                />
-                                            ) : (
-                                                <div className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl min-w-[60px] text-center">
-                                                    {weight || '-'}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                            <DataChart key={key} exerciseKey={exerciseNames[data.selection] || data.selection} data={data} />
                         );
                     })}
                 </div>
 
-                {/* Workout Notes */}
-                <div className="mb-8 p-4 bg-white rounded-2xl shadow-lg">
-                    <div className="text-2xl font-bold mb-2">Workout Notes</div>
-                    {isEditing ? (
-                        <textarea
-                            value={note}
-                            onChange={(e) => setNote(e.target.value)}
-                            rows={4}
-                            className="w-full p-4 rounded border border-gray-300 text-lg resize-none"
-                            placeholder="Write notes about how you felt before/after, sleep, what you ate, how did your body feel, how did you feel mentally?..."
-                        />
-                    ) : (
-                        <p className="italic text-lg whitespace-pre-wrap">{note || 'No notes added.'}</p>
-                    )}
-                </div>
-
-                {/* OpenAI Analysis */}
-                <div className="mb-20 p-4 bg-white rounded-2xl shadow-lg">
-                    <h2 className="text-3xl font-bold mb-4">Analysis</h2>
-                    <p className="italic text-lg">{summary}</p>
-                </div>
             </div>
 
             <div className="m-6 flex flex-col justify-end sm:space-x-4 space-y-4 px-4 sm:px-20">
@@ -190,8 +170,8 @@ function SavedWorkout() {
                 <button
                     onClick={() => setIsEditing(!isEditing)}
                     className={`px-6 py-3 w-full rounded text-white sm:w-auto self-start active:scale-95 transition-all ${isEditing
-                            ? 'bg-red-600 hover:bg-red-700 active:bg-red-400'
-                            : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-400'
+                        ? 'bg-red-600 hover:bg-red-700 active:bg-red-400'
+                        : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-400'
                         }`}
                 >
                     {isEditing ? 'Cancel' : 'Edit Workout'}
@@ -202,8 +182,8 @@ function SavedWorkout() {
                         onClick={handleSaveChanges}
                         disabled={isSaving}
                         className={`px-6 py-3 w-full rounded-3xl shadow-lg text-white transition-all duration-300 ${isSaving
-                                ? 'bg-gray-400 cursor-not-allowed'
-                                : 'bg-green-600 hover:bg-green-700 active:bg-green-400'
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-green-600 hover:bg-green-700 active:bg-green-400'
                             } w-auto sm:w-auto self-start active:scale-95`}
                     >
                         {isSaving ? 'Saving...' : 'Save Changes'}
