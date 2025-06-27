@@ -8,6 +8,7 @@ import { generateSummary } from '../summaryUtil';
 import DataChart from '../DataChart';
 import WorkoutInputs from './WorkoutInputs';
 import WorkoutNotes from './WorkoutNotes';
+import WorkoutAnalysis from './WorkoutAnalysis';
 
 function SavedWorkout() {
     const { workoutId } = useParams();
@@ -142,10 +143,7 @@ function SavedWorkout() {
 
 
                 {/* OpenAI Analysis */}
-                <div className="mb-8 p-4 bg-white rounded-2xl shadow-lg">
-                    <h2 className="text-3xl font-bold mb-4">Analysis</h2>
-                    <p className="italic text-lg">{summary}</p>
-                </div>
+                <WorkoutAnalysis summary={summary} />
 
                 {/* Progress Graphs */}
                 <div className="p-4 bg-white rounded-2xl shadow-lg">
