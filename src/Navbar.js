@@ -5,7 +5,7 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => {
-    console.log("toggle clciked");
+    console.log("toggle clicked");
     setIsOpen(!isOpen);
   };
 

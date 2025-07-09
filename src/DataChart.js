@@ -14,7 +14,7 @@ function DataChart({ exerciseKey, currentData, previousData }) {
   const chartData = Array.from({ length: setCount }).map((_, index) => ({
     set: `Set ${index + 1}`,
     current: Number(currentData.input[index]) || 0,
-    previous: Number(previousData?.input?.[index]) || null,
+    previous: Number(previousData?.input?.[index]) || 0,
   }));
 
   return (
