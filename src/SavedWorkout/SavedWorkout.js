@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { doc, getDoc, updateDoc, } from 'firebase/firestore';
+import { collection, query, where, orderBy, limit, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
 import db from '../firebase';
 import Navbar from '../Navbar';
 import { generateSummary } from '../summaryUtil';
@@ -18,6 +18,7 @@ function SavedWorkout() {
     const [error, setError] = useState(null);
     const [note, setNote] = useState("");
     const [summary, setSummary] = useState('');
+    const [previousWorkoutData, setPreviousWorkoutData] = useState(null);
 
     const categoryOrder = {
         chest: ['incline', 'chestpress', 'fly', 'tri', 'tri2'],
@@ -33,6 +34,30 @@ function SavedWorkout() {
         { label: 'Shoulders/Forearms', value: 'shoulders' },
     ];
 
+    const fetchPreviousWorkout = async (target) => {
+        try {
+            const q = query(
+                collection(db, 'workoutLogs'),
+                where('target', '==', target),
+                orderBy('date', 'desc'),
+                limit(2)
+            );
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // current workout is latest, previous is index 1
+                if (docs.length > 1 && docs[0].id === workoutId) {
+                    setPreviousWorkoutData(docs[1]);
+                } else {
+                    setPreviousWorkoutData(docs[0]);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching previous workout:', error);
+        }
+    };
+
     const getLabel = (value) => options.find((option) => option.value === value)?.label || value;
 
     const fetchData = async () => {
@@ -43,6 +68,8 @@ function SavedWorkout() {
 
             if (docSnap.exists()) {
                 const data = docSnap.data();
+                console.log("Workout document data:", data);
+                console.log("Target field:", data.target);
                 setWorkoutData(data);
                 setEditedInputs(data.inputs);
                 setNote(data.note || "");
@@ -60,6 +87,12 @@ function SavedWorkout() {
     useEffect(() => {
         fetchData();
     }, [workoutId]);
+
+    useEffect(() => {
+        if (workoutData?.target) {
+            fetchPreviousWorkout(workoutData.target);
+        }
+    }, [workoutData]);
 
     const handleSaveChanges = async () => {
         try {
@@ -94,7 +127,7 @@ function SavedWorkout() {
     if (error) return <div>Error: {error}</div>;
     if (!workoutData || !workoutData.inputs) return <div>No workout data found.</div>;
 
-    const targetValue = typeof workoutData.target === 'string' ? workoutData.target : workoutData.target?.value;
+    const targetValue = workoutData.target;
 
     const orderedKeys = categoryOrder[targetValue] || [];
     const inputKeys = Object.keys(workoutData.inputs);
@@ -108,7 +141,7 @@ function SavedWorkout() {
             <div className="px-4 sm:px-20">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
                     <div className="text-5xl">
-                        {getLabel(workoutData.target?.label ?? workoutData.target)} Workout
+                        {getLabel(workoutData.target)} Workout
                     </div>
                     <div className="flex items-center space-x-4">
                         {workoutData.date && (
@@ -128,6 +161,7 @@ function SavedWorkout() {
                     editedInputs={editedInputs}
                     workoutData={workoutData}
                     setEditedInputs={setEditedInputs}
+                    previousWorkoutData={previousWorkoutData}
                 />
 
                 {/* Workout Notes */}

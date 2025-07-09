@@ -25,18 +25,24 @@ function HypertrophyPage() {
         try {
             const q = query(
                 collection(db, "workoutLogs"),
-                where("target.value", "==", selection),
+                where("target", "==", selection),
                 orderBy("date", "desc"),
-                limit(1)
+                limit(2)  // get 2 most recent workouts
             );
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
-                setPreviousWorkoutData(querySnapshot.docs[0].data());
+                const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if (docs.length > 1) {
+                    setPreviousWorkoutData(docs[1]); // the one before the current workout
+                } else {
+                    setPreviousWorkoutData(null);
+                }
             } else {
                 setPreviousWorkoutData(null);
             }
         } catch (error) {
             console.error("Failed to fetch previous workout", error);
+            setPreviousWorkoutData(null);
         }
     };
 
@@ -70,7 +76,7 @@ function HypertrophyPage() {
     };
 
     const handleSelect = (option) => {
-        setSelection(option);
+        setSelection(option.value);
     };
 
     const repHandleSelect = (option) => {
@@ -128,6 +134,8 @@ function HypertrophyPage() {
     const label = useMemo(() => {
         return setCountOptions.find(option => option.value === setCountSelection)?.label;
     }, [setCountSelection]);
+
+    console.log("Previous workout data fetched:", previousWorkoutData);
 
     return (
         <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-32 font-serif">
