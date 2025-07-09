@@ -97,6 +97,7 @@ function SavedWorkout() {
     const handleSaveChanges = async () => {
         try {
             setIsSaving(true);
+            console.log("Generating summary with:", JSON.stringify({ inputs: editedInputs, note }));
             const newSummary = await generateSummary(editedInputs, note);
             const docRef = doc(db, 'workoutLogs', workoutId);
 
