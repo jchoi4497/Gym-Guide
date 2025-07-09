@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from 'react-router-dom';
-import { collection, addDoc } from "firebase/firestore";
+import { collection, addDoc, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import db from '../firebase';
 import DropDown from "../DropDown";
 import ChestWorkout from "../WorkoutSplits/ChestWorkout";
@@ -11,7 +11,7 @@ import Navbar from "../Navbar";
 import WorkoutNotesInput from "../WorkoutNotesInput";
 import { generateSummary } from '../summaryUtil';
 
-function HypertophyPage() {
+function HypertrophyPage() {
     const [selection, setSelection] = useState(null);
     const [setCountSelection, setSetCountSelection] = useState(null);
     const [inputs, setInputs] = useState({});
@@ -51,9 +51,9 @@ function HypertophyPage() {
     const onInput = (row, exercise, index, input) => {
         const inputData = { ...inputs };
         if (!inputData[row]) {
-            const input = new Array(setCountSelection).fill('');
+            const inputArr = new Array(setCountSelection).fill('');
             inputData[row] = {
-                input,
+                input: inputArr,
                 selection: exercise,
             };
         }
@@ -126,10 +126,8 @@ function HypertophyPage() {
     ];
 
     const label = useMemo(() => {
-        return setCountOptions.find(option => {
-            return option.value === setCountSelection;
-        })?.label;
-    }, [setCountOptions, setCountSelection]);
+        return setCountOptions.find(option => option.value === setCountSelection)?.label;
+    }, [setCountSelection]);
 
     return (
         <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-32 font-serif">
@@ -221,4 +219,4 @@ function HypertophyPage() {
     );
 }
 
-export default HypertophyPage;
+export default HypertrophyPage;
