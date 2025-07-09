@@ -76,7 +76,7 @@ function HypertrophyPage() {
     };
 
     const handleSelect = (option) => {
-        setSelection(option.value);
+        setSelection(option);
     };
 
     const repHandleSelect = (option) => {
@@ -134,8 +134,6 @@ function HypertrophyPage() {
     const label = useMemo(() => {
         return setCountOptions.find(option => option.value === setCountSelection)?.label;
     }, [setCountSelection]);
-
-    console.log("Previous workout data fetched:", previousWorkoutData);
 
     return (
         <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-32 font-serif">
