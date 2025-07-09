@@ -64,8 +64,6 @@ function ChestWorkout({ target, reps, label, inputs, onInput, previousInputs }) 
         onInput(rowId, selected, index, inputValue);
     };
 
-
-
     return (
         <WorkoutTable
             label={label}
