@@ -1,6 +1,5 @@
 import { useState } from "react";
 import WorkoutTable from "../WorkoutTable";
-import DataChart from "../DataChart";
 
 function ChestWorkout({ target, reps, label, inputs, onInput, previousInputs }) {
 
@@ -76,7 +75,6 @@ function ChestWorkout({ target, reps, label, inputs, onInput, previousInputs }) 
             onExerciseChange={handleExerciseChange}
             onCellInput={handleInputChange}
             inputs={inputs}
-            previousInputs={previousInputs}
         />
     );
 }
