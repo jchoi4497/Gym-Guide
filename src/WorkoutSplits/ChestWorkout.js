@@ -1,7 +1,8 @@
 import { useState } from "react";
 import WorkoutTable from "../WorkoutTable";
+import DataChart from "../DataChart";
 
-function ChestWorkout({ target, reps, label, inputs, onInput }) {
+function ChestWorkout({ target, reps, label, inputs, onInput, previousInputs }) {
 
     const inclineExerciseOptions = [
         { label: "Dumbbell Incline Press", value: "dip" },
@@ -75,6 +76,7 @@ function ChestWorkout({ target, reps, label, inputs, onInput }) {
             onExerciseChange={handleExerciseChange}
             onCellInput={handleInputChange}
             inputs={inputs}
+            previousInputs={previousInputs}
         />
     );
 }

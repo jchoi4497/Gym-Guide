@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from 'react-router-dom';
 import { collection, addDoc } from "firebase/firestore";
 import db from '../firebase';
@@ -17,6 +17,35 @@ function HypertophyPage() {
     const [inputs, setInputs] = useState({});
     const [note, setNote] = useState("");
     const [isSaving, setIsSaving] = useState(false);
+    const [previousWorkoutData, setPreviousWorkoutData] = useState(null);
+
+
+    // Previous Workout
+    const fetchPreviousWorkout = async () => {
+        try {
+            const q = query(
+                collection(db, "workoutLogs"),
+                where("target.value", "==", selection),
+                orderBy("date", "desc"),
+                limit(1)
+            );
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty) {
+                setPreviousWorkoutData(querySnapshot.docs[0].data());
+            } else {
+                setPreviousWorkoutData(null);
+            }
+        } catch (error) {
+            console.error("Failed to fetch previous workout", error);
+        }
+    };
+
+    useEffect(() => {
+        if (selection) {
+            fetchPreviousWorkout();
+        }
+    }, [selection]);
+
 
     // Workout Selection: Weigt x Reps input
     const onInput = (row, exercise, index, input) => {
@@ -123,10 +152,45 @@ function HypertophyPage() {
                 </div>
 
                 <div className="mb-10">
-                    {selection === "chest" && setCountSelection && <ChestWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
-                    {selection === "back" && setCountSelection && <BackWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
-                    {selection === "legs" && setCountSelection && <LegsWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
-                    {selection === "shoulders" && setCountSelection && <ShouldersWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
+                    {selection === "chest" && setCountSelection &&
+                        <ChestWorkout
+                            target={selection}
+                            reps={setCountSelection}
+                            label={label}
+                            inputs={inputs}
+                            onInput={onInput}
+                            previousInputs={previousWorkoutData?.inputs}
+                        />
+                    }
+                    {selection === "back" && setCountSelection &&
+                        <BackWorkout
+                            target={selection}
+                            reps={setCountSelection}
+                            label={label}
+                            inputs={inputs}
+                            onInput={onInput}
+                            previousInputs={previousWorkoutData?.inputs}
+                        />
+                    }
+                    {selection === "legs" && setCountSelection &&
+                        <LegsWorkout
+                            target={selection}
+                            reps={setCountSelection}
+                            label={label} inputs={inputs}
+                            onInput={onInput}
+                            previousInputs={previousWorkoutData?.inputs}
+                        />
+                    }
+                    {selection === "shoulders" && setCountSelection &&
+                        <ShouldersWorkout
+                            target={selection}
+                            reps={setCountSelection}
+                            label={label}
+                            inputs={inputs}
+                            onInput={onInput}
+                            previousInputs={previousWorkoutData?.inputs}
+                        />
+                    }
                 </div>
 
                 {selection && setCountSelection && (
