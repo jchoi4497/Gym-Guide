@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, } from 'firebase/firestore';
 import db from '../firebase';
-import exerciseNames from '../exerciseNames';
 import Navbar from '../Navbar';
 import { generateSummary } from '../summaryUtil';
-import DataChart from '../DataChart';
 import WorkoutInputs from './WorkoutInputs';
 import WorkoutNotes from './WorkoutNotes';
 import WorkoutAnalysis from './WorkoutAnalysis';
@@ -20,7 +18,6 @@ function SavedWorkout() {
     const [error, setError] = useState(null);
     const [note, setNote] = useState("");
     const [summary, setSummary] = useState('');
-
 
     const categoryOrder = {
         chest: ['incline', 'chestpress', 'fly', 'tri', 'tri2'],
@@ -142,17 +139,6 @@ function SavedWorkout() {
 
                 {/* OpenAI Analysis */}
                 <WorkoutAnalysis summary={summary} />
-
-                {/* Progress Graphs */}
-                <div className="p-4 bg-white rounded-2xl shadow-lg">
-                    <h2 className="text-3xl font-bold mb-4">Workout Progress Charts</h2>
-                    {order.map((key) => {
-                        const data = workoutData.inputs[key];
-                        return (
-                            <DataChart key={key} exerciseKey={exerciseNames[data.selection] || data.selection} data={data} />
-                        );
-                    })}
-                </div>
 
             </div>
 
