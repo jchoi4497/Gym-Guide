@@ -1,6 +1,6 @@
 export function parseWeightReps(input) {
   // check to see if x is included to see if proper format
-  if (!input.includes('x')) return null;
+  if (typeof input !== 'string' || !input.includes('x')) return null;
 
   // split string by the x in middle and trim extra spaces if user made some
   const parts = input.split('x').map(str => str.trim());
