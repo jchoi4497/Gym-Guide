@@ -1,4 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer } from 'recharts';
+import { parseWeightReps } from './parsing';
 
 function DataChart({ exerciseKey, currentData, previousData }) {
   if (!currentData || !currentData.input || currentData.input.length === 0) {
@@ -11,11 +12,16 @@ function DataChart({ exerciseKey, currentData, previousData }) {
     previousData?.input?.length || 0
   );
 
-  const chartData = Array.from({ length: setCount }).map((_, index) => ({
-    set: `Set ${index + 1}`,
-    current: Number(currentData.input[index]) || 0,
-    previous: Number(previousData?.input?.[index]) || 0,
-  }));
+  const chartData = Array.from({ length: setCount }).map((_, index) => {
+    const currentParsed = parseWeightReps(currentData.input[index]);
+    const previousParsed = parseWeightReps(previousData?.input?.[index]);
+
+    return {
+      set: `Set ${index + 1}`,
+      current: currentParsed ? currentParsed.volume : 0,
+      previous: previousParsed ? previousParsed.volume : 0,
+    };
+  });
 
   return (
     <div className="p-3 bg-white rounded-2xl shadow-lg w-full max-w-xs sm:max-w-sm">
@@ -51,6 +57,6 @@ function DataChart({ exerciseKey, currentData, previousData }) {
       </ResponsiveContainer>
     </div>
   );
-}
+};
 
 export default DataChart;
