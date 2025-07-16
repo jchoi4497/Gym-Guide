@@ -25,20 +25,28 @@ export async function generateSummary(inputs, note, previousInputs = null) {
   try {
     const summaryText = buildExerciseSummaryText(inputs);
 
-    const notesText = note.trim() === ''
-      ? 'No additional user notes provided.'
-      : `"${note}"`;
-
     const previousSummaryText = previousInputs
       ? buildExerciseSummaryText(previousInputs)
       : null;
 
+    const notesText = note.trim() === ''
+      ? 'No additional user notes provided.'
+      : `"${note}"`;
+
+
     const promptText = `
+
+      You are a helpful fitness AI trainer.
+
+      Given the following workout log and notes, provide a brief analysis of performance, possible improvement areas, and trends.
+
       The following is a workout log entry.
 
-      **User Notes:** ${notesText}
+      User Notes: ${notesText}
 
-      **Workout Data Summary:** ${summaryText}
+      Previous Inputs/Notes: ${previousSummaryText}
+
+      Workout Data Summary: ${summaryText}
 
       Based on the workout data and the user’s notes about how they were feeling that day, provide a brief analysis of the session.
 
