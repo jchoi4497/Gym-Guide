@@ -33,7 +33,13 @@ function DataChart({ exerciseKey, currentData, previousData }) {
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="set" />
-          <YAxis />
+          <YAxis
+            label={{
+              value: 'Volume',
+              angle: -90,
+              position: 'insideLeft',
+              style: { textAnchor: 'middle', fill: '#374151' } // optional styling
+            }} />
           <Tooltip />
           <Legend verticalAlign="top" height={36} />
           <Line
