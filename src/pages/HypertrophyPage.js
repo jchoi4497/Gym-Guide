@@ -89,7 +89,7 @@ function HypertrophyPage() {
         setIsSaving(true);
         try {
             // Generate New Summary
-            const newSummary = await generateSummary(inputs, note);
+            const newSummary = await generateSummary(inputs, note, previousWorkoutData?.inputs);
 
             // Save WorkoutLog with ai summary
             const docRef = await addDoc(collection(db, "workoutLogs"), {
