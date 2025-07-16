@@ -1,12 +1,22 @@
 // src/utils/summaryUtils.js
 import exerciseNames from './exerciseNames';
+import { parseWeightReps } from './parsing';
 
-export async function generateSummary(inputs, note) {
+export async function generateSummary(inputs, note, previousInputs = null) {
   const buildExerciseSummaryText = (inputs) => {
     return Object.entries(inputs)
       .map(([key, data]) => {
         const exerciseName = exerciseNames[data.selection] || data.selection;
-        const sets = data.input.filter(set => set.trim() !== "").join(", ");
+        const sets = data.input
+          .filter(set => set.trim() !== "")
+          .map(set => {
+            const parsed = parseWeightReps(set);
+            if (parsed) {
+              return `${parsed.weight}x${parsed.reps} (${parsed.volume} vol)`;
+            }
+            return set; // fallback if parsing fails
+          })
+          .join(", ");
         return `${exerciseName}: ${sets || "no data"}`;
       })
       .join("; ");
@@ -18,6 +28,10 @@ export async function generateSummary(inputs, note) {
     const notesText = note.trim() === ''
       ? 'No additional user notes provided.'
       : `"${note}"`;
+
+    const previousSummaryText = previousInputs
+      ? buildExerciseSummaryText(previousInputs)
+      : null;
 
     const promptText = `
       The following is a workout log entry.
