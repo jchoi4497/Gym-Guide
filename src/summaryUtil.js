@@ -29,6 +29,9 @@ export async function generateSummary(inputs, note, previousInputs = null) {
       ? buildExerciseSummaryText(previousInputs)
       : null;
 
+    console.log("Previous Inputs:", previousInputs);
+    console.log("Parsed Previous Summary:", previousSummaryText);
+
     const notesText = note.trim() === ''
       ? 'No additional user notes provided.'
       : `"${note}"`;
@@ -51,6 +54,7 @@ export async function generateSummary(inputs, note, previousInputs = null) {
       Based on the workout data and the user’s notes about how they were feeling that day, provide a brief analysis of the session.
 
       - Highlight what went well and what could be improved based on the exercise performance.
+      - Compare the previous workout and current workout and analyze that based of the given data above.
       - Reflect on how their reported mood or condition may have affected the workout.
       - Offer one or two actionable suggestions for their next session.
       - Conclude with a motivational sentence to keep them encouraged.
