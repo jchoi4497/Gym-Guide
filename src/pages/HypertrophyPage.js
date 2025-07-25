@@ -32,13 +32,13 @@ function HypertrophyPage() {
             );
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
-                const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            } else {
-                setPreviousWorkoutData(null);
+                const doc = querySnapshot.docs[0];
+                return { id: doc.id, ...doc.data() }; // Return previous workout
             }
+            return null;
         } catch (error) {
             console.error("Failed to fetch previous workout", error);
-            setPreviousWorkoutData(null);
+            return null;
         }
     };
 
@@ -77,9 +77,13 @@ function HypertrophyPage() {
         console.log(inputs);
         setIsSaving(true);
         try {
+            // create date var
             const workoutDate = new Date();
+            // get previous workout directly
+            const prevWorkout = await fetchPreviousWorkout(workoutDate);
+            console.log("fetch prev workout:", prevWorkout);
             // Generate New Summary
-            const newSummary = await generateSummary(inputs, note, previousWorkoutData?.inputs);
+            const newSummary = await generateSummary(inputs, note, prevWorkout?.inputs);
 
             // Save WorkoutLog with ai summary
             const docRef = await addDoc(collection(db, "workoutLogs"), {
@@ -212,6 +216,6 @@ function HypertrophyPage() {
             </div>
         </div>
     );
-}
+};
 
 export default HypertrophyPage;
