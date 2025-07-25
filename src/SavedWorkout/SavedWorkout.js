@@ -103,7 +103,7 @@ function SavedWorkout() {
             console.log("Generating summary with:", JSON.stringify({ inputs: editedInputs, note }));
             console.log("Previous workout being passed:", previousWorkoutData);
 
-            const newSummary = await generateSummary(editedInputs, note);
+            const newSummary = await generateSummary(editedInputs, note, previousWorkoutData?.inputs);
             const docRef = doc(db, 'workoutLogs', workoutId);
 
             await updateDoc(docRef, {
