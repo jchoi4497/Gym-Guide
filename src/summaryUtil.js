@@ -43,27 +43,30 @@ export async function generateSummary(inputs, note, previousInputs) {
 
       You are a helpful fitness AI trainer.
 
-      Given the following workout log and notes, provide a brief analysis of performance, possible improvement areas, and trends.
+      Given the following workout log and notes, provide a brief analysis including:
 
-      The following is a workout log entry.
+      1. What went well in the current workout.
+      2. Areas for improvement based on the exercise performance.
+      3. A detailed comparison between the previous workout and the current workout, explaining the differences and trends clearly.
+      4. How the user's reported mood or condition may have affected their performance.
+      5. One or two actionable suggestions for their next session.
+      6. A motivational sentence to encourage the user.
 
-      User Notes: ${notesText}
+      The following data is provided:
 
-      Previous Inputs/Notes: ${previousSummaryText}
+      User Notes:
+      ${notesText}
 
-      Workout Data Summary: ${summaryText}
+      Previous Workout Summary:
+      ${previousSummaryText || "No previous workout data available."}
 
-      Based on the workout data and the user’s notes about how they were feeling that day, provide a brief analysis of the session.
+      Current Workout Summary:
+      ${summaryText}
 
-      - Highlight what went well and what could be improved based on the exercise performance.
-      - Compare the previous workout and current workout and analyze that based of the given data above.
-      - Reflect on how their reported mood or condition may have affected the workout.
-      - Offer one or two actionable suggestions for their next session.
-      - Conclude with a motivational sentence to keep them encouraged.
+      Please provide a concise, 2-3 sentence summary covering all points above. Use clear, conversational language, and explicitly describe the comparison between the current and previous workouts.
 
-      Summarize everything in 2–3 varied, conversational sentences.
-      For newer saved workouts, slightly change the phrasing style to keep things fresh,
-      but for previously analyzed workouts, keep their original summary consistent.`;
+      Thank you.
+      `;
 
     const response = await fetch("/.netlify/functions/createSummary", {
       method: "POST",
