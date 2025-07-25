@@ -80,6 +80,7 @@ function HypertrophyPage() {
             // create date var
             const workoutDate = new Date();
             // get previous workout directly
+            console.log(workoutDate);
             const prevWorkout = await fetchPreviousWorkout(workoutDate);
             console.log("fetch prev workout:", prevWorkout);
             // Generate New Summary
