@@ -47,10 +47,13 @@ function SavedWorkout() {
             if (!querySnapshot.empty) {
                 const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 // current workout is latest, previous is index 1
-                if (docs.length > 1 && docs[0].id === workoutId) {
-                    setPreviousWorkoutData(docs[1]);
+                const prevWorkout = docs.find(doc => doc.id !== workoutId);
+                if (prevWorkout) {
+                    console.log("Fetched previous workout:", prevWorkout);
+                    setPreviousWorkoutData(prevWorkout);
                 } else {
-                    setPreviousWorkoutData(docs[0]);
+                    console.log("No previous workout found");
+                    setPreviousWorkoutData(null);
                 }
             }
         } catch (error) {
@@ -98,6 +101,8 @@ function SavedWorkout() {
         try {
             setIsSaving(true);
             console.log("Generating summary with:", JSON.stringify({ inputs: editedInputs, note }));
+            console.log("Previous workout being passed:", previousWorkoutData);
+
             const newSummary = await generateSummary(editedInputs, note);
             const docRef = doc(db, 'workoutLogs', workoutId);
 
