@@ -27,7 +27,7 @@ export async function generateSummary(inputs, note, previousInputs) {
   try {
     const summaryText = buildExerciseSummaryText(inputs);
 
-    const previousSummaryText = previousInputs
+    const previousSummaryText = previousInputs && Object.keys(previousInputs).length > 0
       ? buildExerciseSummaryText(previousInputs)
       : null;
 
