@@ -20,6 +20,14 @@ function SavedWorkout() {
     const [summary, setSummary] = useState('');
     const [previousWorkoutData, setPreviousWorkoutData] = useState(null);
 
+    const muscleOptions = [
+        { label: 'Chest/Triceps', value: 'chest' },
+        { label: 'Back/Biceps', value: 'back' },
+        { label: 'Legs', value: 'legs' },
+        { label: 'Shoulders/Forearms', value: 'shoulders' },
+    ];
+    const getLabel = (value) => muscleOptions.find((option) => option.value === value)?.label || value;
+
     const categoryOrder = {
         chest: ['incline', 'chestpress', 'fly', 'tri', 'tri2'],
         back: ['pullup', 'row', 'lat', 'bicep', 'bicep2'],
@@ -27,25 +35,28 @@ function SavedWorkout() {
         shoulders: ['reardelt', 'latraise', 'reardelt2', 'latraise2', 'wristcurl', 'reversewristcurl'],
     };
 
-    const options = [
-        { label: 'Chest/Triceps', value: 'chest' },
-        { label: 'Back/Biceps', value: 'back' },
-        { label: 'Legs', value: 'legs' },
-        { label: 'Shoulders/Forearms', value: 'shoulders' },
-    ];
 
-    const fetchPreviousWorkout = async (target) => {
+    const fetchPreviousWorkout = async (target, currentDate) => {
+        //write the function with the current date
+        console.log(1, target);
+        console.log(0, currentDate);
+
         try {
+            // We want the data of the workout that is before this workout
             const q = query(
                 collection(db, 'workoutLogs'),
                 where('target', '==', target),
+                where('date', '<', currentDate),
                 orderBy('date', 'desc'),
-                limit(2)
+                limit(1)
             );
+            console.log(2, q);
             const querySnapshot = await getDocs(q);
+            console.log(3, querySnapshot);
 
             if (!querySnapshot.empty) {
                 const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                console.log(4, docs);
                 // current workout is latest, previous is index 1
                 const prevWorkout = docs.find(doc => doc.id !== workoutId);
                 if (prevWorkout) {
@@ -61,7 +72,6 @@ function SavedWorkout() {
         }
     };
 
-    const getLabel = (value) => options.find((option) => option.value === value)?.label || value;
 
     const fetchData = async () => {
         try {
@@ -91,9 +101,11 @@ function SavedWorkout() {
         fetchData();
     }, [workoutId]);
 
+    // Can I add fetchpreviousworkout(workoutdata.date to this useeffect or create new one)
     useEffect(() => {
-        if (workoutData?.target) {
-            fetchPreviousWorkout(workoutData.target);
+        console.log(0, workoutData);
+        if (workoutData?.target && workoutData?.date) {
+            fetchPreviousWorkout(workoutData.target, workoutData.date);
         }
     }, [workoutData]);
 
