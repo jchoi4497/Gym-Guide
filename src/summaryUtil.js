@@ -63,6 +63,10 @@ export async function generateSummary(inputs, note, previousInputs) {
       Current Workout Summary:
       ${summaryText}
 
+      Personal Notes:
+      1. I believe that pushing your muscles to failure is good for muscle growth. So keep in mind seeing a decline in reps is not necessarily something or an area to improve on.
+      2. Opposite of 1, keep in mind not seeing a decline on reps could mean the weight is too easy. But also, everything is situational per user. For example due to injury maybe the user does not want to push to failure for safety reasons.
+
       Please provide a concise, 2-3 sentence summary covering all points above. Use clear, conversational language, and explicitly describe the comparison between the current and previous workouts.
 
       Thank you.
