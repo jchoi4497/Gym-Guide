@@ -21,22 +21,18 @@ function HypertrophyPage() {
 
 
     // Previous Workout
-    const fetchPreviousWorkout = async () => {
+    const fetchPreviousWorkout = async (currentDate) => {
         try {
             const q = query(
                 collection(db, "workoutLogs"),
                 where("target", "==", selection),
+                where("date", "<", currentDate),
                 orderBy("date", "desc"),
-                limit(2)  // get 2 most recent workouts
+                limit(1)  // get 2 most recent workouts
             );
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                if (docs.length > 1) {
-                    setPreviousWorkoutData(docs[1]); // the one before the current workout
-                } else {
-                    setPreviousWorkoutData(null);
-                }
             } else {
                 setPreviousWorkoutData(null);
             }
@@ -45,13 +41,6 @@ function HypertrophyPage() {
             setPreviousWorkoutData(null);
         }
     };
-
-    useEffect(() => {
-        if (selection) {
-            fetchPreviousWorkout();
-        }
-    }, [selection]);
-
 
     // Workout Selection: Weigt x Reps input
     const onInput = (row, exercise, index, input) => {
@@ -88,6 +77,7 @@ function HypertrophyPage() {
         console.log(inputs);
         setIsSaving(true);
         try {
+            const workoutDate = new Date();
             // Generate New Summary
             const newSummary = await generateSummary(inputs, note, previousWorkoutData?.inputs);
 
@@ -95,12 +85,11 @@ function HypertrophyPage() {
             const docRef = await addDoc(collection(db, "workoutLogs"), {
                 target: selection,
                 reps: setCountSelection,
-                date: new Date(),
+                date: workoutDate,
                 inputs: inputs,
                 note: note,
                 summary: newSummary,
             });
-
 
             // Get the document ID
             const workoutId = docRef.id;

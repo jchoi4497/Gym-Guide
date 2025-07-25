@@ -3,6 +3,8 @@ import exerciseNames from './exerciseNames';
 import { parseWeightReps } from './parsing';
 
 export async function generateSummary(inputs, note, previousInputs) {
+  console.log("generateSummary called");
+
   const buildExerciseSummaryText = (inputs) => {
     return Object.entries(inputs)
       .map(([key, data]) => {
