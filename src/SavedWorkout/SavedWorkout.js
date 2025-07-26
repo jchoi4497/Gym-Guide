@@ -38,8 +38,6 @@ function SavedWorkout() {
 
     const fetchPreviousWorkout = async (target, currentDate) => {
         //write the function with the current date
-        console.log(1, target);
-        console.log(0, currentDate);
 
         try {
             // We want the data of the workout that is before this workout
@@ -50,17 +48,13 @@ function SavedWorkout() {
                 orderBy('date', 'desc'),
                 limit(1)
             );
-            console.log(2, q);
             const querySnapshot = await getDocs(q);
-            console.log(3, querySnapshot);
 
             if (!querySnapshot.empty) {
                 const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                console.log(4, docs);
                 // current workout is latest, previous is index 1
                 const prevWorkout = docs.find(doc => doc.id !== workoutId);
                 if (prevWorkout) {
-                    console.log("Fetched previous workout:", prevWorkout);
                     setPreviousWorkoutData(prevWorkout);
                 } else {
                     console.log("No previous workout found");
@@ -81,8 +75,6 @@ function SavedWorkout() {
 
             if (docSnap.exists()) {
                 const data = docSnap.data();
-                console.log("Workout document data:", data);
-                console.log("Target field:", data.target);
                 setWorkoutData(data);
                 setEditedInputs(data.inputs);
                 setNote(data.note || "");
@@ -103,7 +95,6 @@ function SavedWorkout() {
 
     // Can I add fetchpreviousworkout(workoutdata.date to this useeffect or create new one)
     useEffect(() => {
-        console.log(0, workoutData);
         if (workoutData?.target && workoutData?.date) {
             fetchPreviousWorkout(workoutData.target, workoutData.date);
         }
@@ -112,9 +103,6 @@ function SavedWorkout() {
     const handleSaveChanges = async () => {
         try {
             setIsSaving(true);
-            console.log("Generating summary with:", JSON.stringify({ inputs: editedInputs, note }));
-            console.log("Previous workout being passed:", previousWorkoutData);
-
             const newSummary = await generateSummary(editedInputs, note, previousWorkoutData?.inputs);
             const docRef = doc(db, 'workoutLogs', workoutId);
 
