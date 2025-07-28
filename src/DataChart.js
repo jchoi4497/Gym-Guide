@@ -24,8 +24,7 @@ function DataChart({ exerciseKey, currentData, previousData }) {
   });
 
   return (
-    <div className="p-3 bg-white rounded-2xl shadow-lg w-full max-w-xs sm:max-w-sm">
-      <h3 className="text-lg font-semibold mb-2">{exerciseKey}</h3>
+    <div className="p-3 border border-gray-300 bg-white rounded-2xl shadow-lg w-full max-w-xs sm:max-w-sm">
       <ResponsiveContainer width="100%" height={180}>
         <LineChart
           data={chartData}
