@@ -19,6 +19,7 @@ function SavedWorkout() {
     const [note, setNote] = useState("");
     const [summary, setSummary] = useState('');
     const [previousWorkoutData, setPreviousWorkoutData] = useState(null);
+    const [graphView, setGraphView] = useState('previous')
 
     const muscleOptions = [
         { label: 'Chest/Triceps', value: 'chest' },
@@ -160,6 +161,14 @@ function SavedWorkout() {
             </div>
 
             <div className="sm:px-20 px-4">
+                {/* Chart View Buttons */}
+                <div className="flex space-x-2 mb-4 pr-4 justify-end">
+                    <div>Compare Data: </div>
+                    <button onClick={() => setGraphView('previous')}>Previous</button>
+                    <button onClick={() => setGraphView('weekly')}>Week</button>
+                    <button onClick={() => setGraphView('monthly')}>Month</button>
+                </div>
+
                 {/* Workout Inputs */}
                 <WorkoutInputs
                     order={order}
