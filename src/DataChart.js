@@ -1,7 +1,7 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer } from 'recharts';
 import { parseWeightReps } from './parsing';
 
-function DataChart({ exerciseKey, currentData, previousData }) {
+function DataChart({ currentData, previousData }) {
   if (!currentData || !currentData.input || currentData.input.length === 0) {
     return <div className="text-gray-600">No data to chart for this exercise.</div>;
   }
