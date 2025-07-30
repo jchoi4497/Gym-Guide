@@ -1,13 +1,26 @@
 import exerciseNames from '../exerciseNames';
 import DataChart from '../DataChart';
 
-function WorkoutInputs({ order, isEditing, editedInputs, workoutData, setEditedInputs, previousWorkoutData }) {
+function WorkoutInputs({ order, isEditing, editedInputs, workoutData, setEditedInputs, previousWorkoutData, graphView }) {
   return (
     <div className="mb-8">
       {order.map((key) => {
         const data = isEditing ? editedInputs[key] : workoutData.inputs[key];
         const prevData = previousWorkoutData?.inputs[key];
         if (!data) return null;
+
+        if (graphView === 'previous') {
+          // placeholder logic for now
+
+        } else if (graphView === 'weekly') {
+          //mweekly logic
+
+        } else if(graphView === 'monthly'){
+          //monthky logic
+        }
+
+
+
 
         return (
           <div key={key} className="mb-8 p-4 bg-white rounded-2xl shadow-lg">
@@ -46,6 +59,7 @@ function WorkoutInputs({ order, isEditing, editedInputs, workoutData, setEditedI
                   exerciseKey={exerciseNames[data.selection] || data.selection}
                   currentData={data}
                   previousData={prevData}
+                  graphView={graphView}
                 />
               </div>
 
