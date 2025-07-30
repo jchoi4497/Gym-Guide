@@ -177,6 +177,7 @@ function SavedWorkout() {
                     workoutData={workoutData}
                     setEditedInputs={setEditedInputs}
                     previousWorkoutData={previousWorkoutData}
+                    graphView={graphView}
                 />
 
                 {/* Workout Notes */}
