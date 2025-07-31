@@ -9,19 +9,6 @@ function WorkoutInputs({ order, isEditing, editedInputs, workoutData, setEditedI
         const prevData = previousWorkoutData?.inputs[key];
         if (!data) return null;
 
-        if (graphView === 'previous') {
-          // placeholder logic for now
-
-        } else if (graphView === 'weekly') {
-          //mweekly logic
-
-        } else if(graphView === 'monthly'){
-          //monthky logic
-        }
-
-
-
-
         return (
           <div key={key} className="mb-8 p-4 bg-white rounded-2xl shadow-lg">
             <div className="text-2xl font-bold mb-2">

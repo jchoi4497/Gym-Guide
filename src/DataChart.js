@@ -1,4 +1,4 @@
-import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer, graphView } from 'recharts';
 import { parseWeightReps } from './parsing';
 
 function DataChart({ currentData, previousData }) {
@@ -6,23 +6,27 @@ function DataChart({ currentData, previousData }) {
     return <div className="text-gray-600">No data to chart for this exercise.</div>;
   }
 
-  // Build chart data based on set count (use the longer of the two if needed)
-  const setCount = Math.max(
-    currentData.input.length,
-    previousData?.input?.length || 0
-  );
+  let chartData = []
 
-  const chartData = Array.from({ length: setCount }).map((_, index) => {
-    const currentParsed = parseWeightReps(currentData.input[index]);
-    const previousParsed = parseWeightReps(previousData?.input?.[index]);
+  if (graphView === 'previous'){
+    // Build chart data based on set count (use the longer of the two if needed)
+    const setCount = Math.max(
+      currentData.input.length,
+      previousData?.input?.length || 0
+    );
 
-    return {
-      set: `Set ${index + 1}`,
-      current: currentParsed ? currentParsed.volume : 0,
-      previous: previousParsed ? previousParsed.volume : 0,
-    };
-  });
+    const chartData = Array.from({ length: setCount }).map((_, index) => {
+      const currentParsed = parseWeightReps(currentData.input[index]);
+      const previousParsed = parseWeightReps(previousData?.input?.[index]);
 
+      return {
+        set: `Set ${index + 1}`,
+        current: currentParsed ? currentParsed.volume : 0,
+        previous: previousParsed ? previousParsed.volume : 0,
+      };
+    });
+  }
+  
   return (
     <div className="p-3 border border-gray-300 bg-white rounded-2xl shadow-lg w-full max-w-xs sm:max-w-sm">
       <ResponsiveContainer width="100%" height={180}>
