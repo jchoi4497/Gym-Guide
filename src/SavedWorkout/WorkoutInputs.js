@@ -1,7 +1,7 @@
 import exerciseNames from '../exerciseNames';
 import DataChart from '../DataChart';
 
-function WorkoutInputs({ order, isEditing, editedInputs, workoutData, setEditedInputs, previousWorkoutData, graphView }) {
+function WorkoutInputs({ order, isEditing, editedInputs, workoutData, setEditedInputs, previousWorkoutData, monthlyWorkoutData, graphView }) {
   return (
     <div className="mb-8">
       {order.map((key) => {
@@ -46,6 +46,7 @@ function WorkoutInputs({ order, isEditing, editedInputs, workoutData, setEditedI
                   exerciseKey={exerciseNames[data.selection] || data.selection}
                   currentData={data}
                   previousData={prevData}
+                  monthlyWorkoutData={monthlyWorkoutData}
                   graphView={graphView}
                 />
               </div>
