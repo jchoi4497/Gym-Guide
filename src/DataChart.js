@@ -1,5 +1,6 @@
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, ResponsiveContainer } from 'recharts';
 import { parseWeightReps } from './parsing';
+import { format } from 'date-fns';
 
 function DataChart({ currentData, previousData, monthlyWorkoutData, graphView }) {
   if (!currentData || !currentData.input || currentData.input.length === 0) {
@@ -44,15 +45,18 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView })
       point['Current'] = currentParsed ? currentParsed.volume : 0;
       // creating the rest of the lines by date, go through array of workouts and apply helper function
       monthlyWorkoutData.forEach((workout, i) => {
-        const parsed = parseWeightReps(workout.input?.[index]);
-        // the label of the line would be the date of workout or how many weeks ago if date not found
-        const label = workout.date ? workoutdate : `Week ${i + 1}`;
+        const label = workout.date
+          ? format(new Date(workout.date.seconds * 1000), 'yyyy-MM-dd')
+          : `Week ${i + 1}`;
         //naming the point object the label
-        point[label] = parsed ? parsed.volume : 0;
+        point[label] = parseWeightReps(workout.input?.[index])?.volume || 0;
       });
 
       return point;
     });
+
+    console.log('chartData (monthly):', chartData);
+    console.log('monthlyWorkoutData:', monthlyWorkoutData);
   }
 
   // lines built dynamically depending on which user chooses weekly/monthly, push the component based off conditional
@@ -98,12 +102,14 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView })
 
     // Monthly workouts lines
     monthlyWorkoutData.forEach((workout, i) => {
-      const label = workout.date ? workout.date : `Week ${i + 1}`;
+      const label = workout.date
+        ? format(new Date(workout.date.seconds * 1000), 'yyyy,MM-dd')
+        : `Week ${i + 1}`;
       const colors = ['#F43F5E', '#F59E0B', '#10B981', '#3B82F6']; // different stroke colors
 
       lines.push(
         <Line
-          key={label}
+          key={workout.id}
           type="monotone"
           dataKey={label}
           stroke={colors[i % colors.length]}
@@ -113,14 +119,22 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView })
         />
       );
     });
+    console.log("chartData:", chartData);
   }
 
   return (
     <div className="p-3 border border-gray-300 bg-white rounded-2xl shadow-lg w-full max-w-xs sm:max-w-sm">
-      <ResponsiveContainer width="100%" height={180}>
+      <ResponsiveContainer width="100%" height={300}>
         <LineChart data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="set" />
+          <XAxis
+            dataKey="set"
+            interval={0}              // show all labels, no skipping
+            tick={{ fontSize: 10 }}   // smaller font for ticks
+            angle={-45}               // tilt labels to avoid overlap
+            textAnchor="end"          // align tilted text properly
+            height={60}               // add height so labels don't cut off
+          />
           <YAxis
             label={{
               value: 'Volume',
@@ -130,7 +144,7 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView })
             }}
           />
           <Tooltip />
-          <Legend verticalAlign="top" height={36} />
+          <Legend verticalAlign="bottom" height={40} />
           {lines}
         </LineChart>
       </ResponsiveContainer>
