@@ -19,7 +19,8 @@ function SavedWorkout() {
     const [note, setNote] = useState("");
     const [summary, setSummary] = useState('');
     const [previousWorkoutData, setPreviousWorkoutData] = useState(null);
-    const [graphView, setGraphView] = useState('previous')
+    const [monthlyWorkoutData, setMonthlyWorkoutData] = useState([]);
+    const [graphView, setGraphView] = useState('previous');
 
     const muscleOptions = [
         { label: 'Chest/Triceps', value: 'chest' },
@@ -36,37 +37,69 @@ function SavedWorkout() {
         shoulders: ['reardelt', 'latraise', 'reardelt2', 'latraise2', 'wristcurl', 'reversewristcurl'],
     };
 
-
-    const fetchPreviousWorkout = async (target, currentDate) => {
-        //write the function with the current date
-
+    const fetchPreviousWorkout = async (target, currentDate, graphView) => {
         try {
+            // default  limit 1 for previous but if user clicks monthly then limit is 4
+            let fetchLimit = 1;
+            if (graphView === 'monthly') {
+                fetchLimit = 4;
+            }
             // We want the data of the workout that is before this workout
             const q = query(
                 collection(db, 'workoutLogs'),
                 where('target', '==', target),
                 where('date', '<', currentDate),
                 orderBy('date', 'desc'),
-                limit(1)
+                limit(fetchLimit)
             );
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
                 const docs = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                // current workout is latest, previous is index 1
-                const prevWorkout = docs.find(doc => doc.id !== workoutId);
-                if (prevWorkout) {
-                    setPreviousWorkoutData(prevWorkout);
-                } else {
-                    console.log("No previous workout found");
+                if (graphView === 'previous') {
+                    const prevWorkout = docs.find(doc => doc.id !== workoutId);
+                    if (prevWorkout) {
+                        setPreviousWorkoutData(prevWorkout);
+                    } else {
+                        console.log("No previous workout found");
+                        setPreviousWorkoutData(null);
+                    }
+                    // one state for one data rule... so prevworkoutdata for previous, monthlyworkoutdata for monthly
+                } else if (graphView === 'monthly') {
+                    if (docs.length > 0) {
+                        setMonthlyWorkoutData(docs); // store 4 previous workouts
+                    } else {
+                        console.log("No monthly workout data found");
+                        setMonthlyWorkoutData([]); // no workouts found
+                    }
+                }
+                // Handle empty snapshot fallback
+            } else {
+                if (graphView === 'previous') {
+                    console.log("No previous workout found (query empty)");
                     setPreviousWorkoutData(null);
+                } else if (graphView === 'monthly') {
+                    console.log("No monthly workout data found (query empty)");
+                    setMonthlyWorkoutData([]);
                 }
             }
+
         } catch (error) {
             console.error('Error fetching previous workout:', error);
+            if (graphView === 'previous') {
+                setPreviousWorkoutData(null);
+            } else if (graphView === 'monthly') {
+                setMonthlyWorkoutData([]);
+            }
         }
     };
 
+    // Can I add fetchpreviousworkout(workoutdata.date to this useeffect or create new one)
+    useEffect(() => {
+        if (workoutData?.target && workoutData?.date && graphView) {
+            fetchPreviousWorkout(workoutData.target, workoutData.date, graphView);
+        }
+    }, [workoutData]);
 
     const fetchData = async () => {
         try {
@@ -94,12 +127,6 @@ function SavedWorkout() {
         fetchData();
     }, [workoutId]);
 
-    // Can I add fetchpreviousworkout(workoutdata.date to this useeffect or create new one)
-    useEffect(() => {
-        if (workoutData?.target && workoutData?.date) {
-            fetchPreviousWorkout(workoutData.target, workoutData.date);
-        }
-    }, [workoutData]);
 
     const handleSaveChanges = async () => {
         try {
@@ -178,6 +205,7 @@ function SavedWorkout() {
                     setEditedInputs={setEditedInputs}
                     previousWorkoutData={previousWorkoutData}
                     graphView={graphView}
+                    monthlyWorkoutData={monthlyWorkoutData}
                 />
 
                 {/* Workout Notes */}
