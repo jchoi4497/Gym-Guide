@@ -99,7 +99,7 @@ function SavedWorkout() {
         if (workoutData?.target && workoutData?.date && graphView) {
             fetchPreviousWorkout(workoutData.target, workoutData.date, graphView);
         }
-    }, [workoutData]);
+    }, [workoutData, graphView]);
 
     const fetchData = async () => {
         try {
