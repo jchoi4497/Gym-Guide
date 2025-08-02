@@ -55,16 +55,70 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView })
     });
   }
 
-  // lines built dynamically depending on which user chooses weekly/monthly
-  const lines =[]
+  // lines built dynamically depending on which user chooses weekly/monthly, push the component based off conditional
+  const lines = [];
+
+  if (graphView === 'previous') {
+    lines.push(
+      <Line
+        key="current"
+        type="monotone"
+        dataKey="current"
+        stroke="#4F46E5"
+        strokeWidth={2}
+        name="This Workout"
+      />
+    );
+
+    if (previousData) {
+      lines.push(
+        <Line
+          key="previous"
+          type="monotone"
+          dataKey="previous"
+          stroke="#F43F5E"
+          strokeWidth={2}
+          strokeDasharray="5 5"
+          name="Previous Workout"
+        />
+      );
+    }
+  } else if (graphView === 'monthly') {
+    // Current workout line
+    lines.push(
+      <Line
+        key="Current"
+        type="monotone"
+        dataKey="Current"
+        stroke="#4F46E5"
+        strokeWidth={2}
+        name="Current Workout"
+      />
+    );
+
+    // Monthly workouts lines
+    monthlyWorkoutData.forEach((workout, i) => {
+      const label = workout.date ? workout.date : `Week ${i + 1}`;
+      const colors = ['#F43F5E', '#F59E0B', '#10B981', '#3B82F6']; // different stroke colors
+
+      lines.push(
+        <Line
+          key={label}
+          type="monotone"
+          dataKey={label}
+          stroke={colors[i % colors.length]}
+          strokeWidth={2}
+          strokeDasharray="5 5"
+          name={label}
+        />
+      );
+    });
+  }
 
   return (
     <div className="p-3 border border-gray-300 bg-white rounded-2xl shadow-lg w-full max-w-xs sm:max-w-sm">
       <ResponsiveContainer width="100%" height={180}>
-        <LineChart
-          data={chartData}
-          margin={{ top: 10, right: 10, bottom: 10, left: 0 }}
-        >
+        <LineChart data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="set" />
           <YAxis
@@ -72,27 +126,12 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView })
               value: 'Volume',
               angle: -90,
               position: 'insideLeft',
-              style: { textAnchor: 'middle', fill: '#374151' } // optional styling
-            }} />
+              style: { textAnchor: 'middle', fill: '#374151' }
+            }}
+          />
           <Tooltip />
           <Legend verticalAlign="top" height={36} />
-          <Line
-            type="monotone"
-            dataKey="current"
-            stroke="#4F46E5"
-            strokeWidth={2}
-            name="This Workout"
-          />
-          {previousData && (
-            <Line
-              type="monotone"
-              dataKey="previous"
-              stroke="#F43F5E"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              name="Previous Workout"
-            />
-          )}
+          {lines}
         </LineChart>
       </ResponsiveContainer>
     </div>

@@ -192,7 +192,6 @@ function SavedWorkout() {
                 <div className="flex space-x-2 mb-4 pr-4 justify-end">
                     <div>Compare Data: </div>
                     <button onClick={() => setGraphView('previous')}>Previous</button>
-                    <button onClick={() => setGraphView('weekly')}>Week</button>
                     <button onClick={() => setGraphView('monthly')}>Month</button>
                 </div>
 
