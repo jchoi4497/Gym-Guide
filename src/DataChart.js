@@ -2,8 +2,13 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend, Responsi
 import { parseWeightReps } from './parsing';
 import { format } from 'date-fns';
 
-function DataChart({ currentData, previousData, monthlyWorkoutData, graphView }) {
-  if (!currentData || !currentData.input || currentData.input.length === 0) {
+function DataChart({ currentData, previousData, monthlyWorkoutData, graphView, exerciseKey }) {
+
+  const currentInput = currentData.input || [];
+  const previousInput = previousData?.input || [];
+
+
+  if (!currentInput.length) {
     return <div className="text-gray-600">No data to chart for this exercise.</div>;
   }
 
@@ -11,14 +16,11 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView })
 
   if (graphView === 'previous') {
     // Build chart data based on set count (use the longer of the two if needed)
-    const setCount = Math.max(
-      currentData.input.length,
-      previousData?.input?.length || 0
-    );
+    const setCount = Math.max(currentInput.length, previousInput.length,);
 
     chartData = Array.from({ length: setCount }).map((_, index) => {
-      const currentParsed = parseWeightReps(currentData.input[index]);
-      const previousParsed = parseWeightReps(previousData?.input?.[index]);
+      const currentParsed = parseWeightReps(currentInput[index]);
+      const previousParsed = parseWeightReps(previousInput[index]);
 
       return {
         // returns set on graph
@@ -31,8 +33,8 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView })
   } else if (graphView === 'monthly') {
     // finds max count for data set
     const setCount = Math.max(
-      currentData.input.length,
-      ...monthlyWorkoutData.map(workout => (workout.input?.length || 0))
+      currentInput.length,
+      ...monthlyWorkoutData.map(workout => (workout.inputs?.[exerciseKey]?.input?.length || 0))
     );
 
     chartData = Array.from({ length: setCount }).map((_, index) => {
@@ -40,23 +42,22 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView })
       const point = { set: `Set ${index + 1}` };
 
       // for the current line on graph
-      const currentParsed = parseWeightReps(currentData.input[index]);
+      const currentParsed = parseWeightReps(currentInput[index]);
       // makes current line named 'Current'
-      point['Current'] = currentParsed ? currentParsed.volume : 0;
+      point['Current'] = currentParsed?.volume || 0;
       // creating the rest of the lines by date, go through array of workouts and apply helper function
       monthlyWorkoutData.forEach((workout, i) => {
         const label = workout.date
           ? format(new Date(workout.date.seconds * 1000), 'yyyy-MM-dd')
           : `Week ${i + 1}`;
         //naming the point object the label
-        point[label] = parseWeightReps(workout.input?.[index])?.volume || 0;
-      });
 
+        const workoutInput = workout.inputs?.[exerciseKey]?.input || [];
+        const parsed = parseWeightReps(workoutInput[index]);
+        point[label] = parsed?.volume || 0;
+      });
       return point;
     });
-
-    console.log('chartData (monthly):', chartData);
-    console.log('monthlyWorkoutData:', monthlyWorkoutData);
   }
 
   // lines built dynamically depending on which user chooses weekly/monthly, push the component based off conditional
@@ -103,7 +104,7 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView })
     // Monthly workouts lines
     monthlyWorkoutData.forEach((workout, i) => {
       const label = workout.date
-        ? format(new Date(workout.date.seconds * 1000), 'yyyy,MM-dd')
+        ? format(new Date(workout.date.seconds * 1000), 'yyyy-MM-dd')
         : `Week ${i + 1}`;
       const colors = ['#F43F5E', '#F59E0B', '#10B981', '#3B82F6']; // different stroke colors
 
@@ -119,7 +120,7 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView })
         />
       );
     });
-    console.log("chartData:", chartData);
+    // console.log("chartData:", chartData);
   }
 
   return (

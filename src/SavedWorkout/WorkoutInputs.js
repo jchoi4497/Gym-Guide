@@ -43,7 +43,7 @@ function WorkoutInputs({ order, isEditing, editedInputs, workoutData, setEditedI
               {/* Chart */}
               <div className="flex-1">
                 <DataChart
-                  exerciseKey={exerciseNames[data.selection] || data.selection}
+                  exerciseKey={key}
                   currentData={data}
                   previousData={prevData}
                   monthlyWorkoutData={monthlyWorkoutData}
