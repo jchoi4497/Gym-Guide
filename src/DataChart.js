@@ -4,9 +4,10 @@ import { format } from 'date-fns';
 
 function DataChart({ currentData, previousData, monthlyWorkoutData, graphView, exerciseKey }) {
 
+  // workout inputs of current date --> eg. [160x12, 160x10, 160x11, 160x7] ... rest of workout
   const currentInput = currentData.input || [];
+  console.log("01", currentData.input);
   const previousInput = previousData?.input || [];
-
 
   if (!currentInput.length) {
     return <div className="text-gray-600">No data to chart for this exercise.</div>;
@@ -15,9 +16,11 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView, e
   let chartData = [];
 
   if (graphView === 'previous') {
-    // Build chart data based on set count (use the longer of the two if needed)
+
+    // setCount finds max point from dataset to set for X-Axis on graph.
     const setCount = Math.max(currentInput.length, previousInput.length,);
 
+    // Creates array with length of setCount --> [undefined,undefined,undefined,undefined]
     chartData = Array.from({ length: setCount }).map((_, index) => {
       const currentParsed = parseWeightReps(currentInput[index]);
       const previousParsed = parseWeightReps(previousInput[index]);
@@ -25,7 +28,7 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView, e
       return {
         // returns set on graph
         set: `Set ${index + 1}`,
-        // shows parsed value if successful or 0. volume = weight x reps
+        // shows parsed value... eg. 160x10 --> {weight: 160, reps: 10, volume: 1600} if successful or 0. volume = weight x reps
         current: currentParsed ? currentParsed.volume : 0,
         previous: previousParsed ? previousParsed.volume : 0,
       };
@@ -36,6 +39,7 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView, e
       currentInput.length,
       ...monthlyWorkoutData.map(workout => (workout.inputs?.[exerciseKey]?.input?.length || 0))
     );
+
 
     chartData = Array.from({ length: setCount }).map((_, index) => {
       // creating objects
