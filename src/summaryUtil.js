@@ -24,7 +24,7 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
       .join("; ");
   };
 
-  const monthlySummaryText = (workouts) => {
+  const buildMonthlySummaryText = (workouts) => {
     return workouts.map((workout) => {
       const dateLabel = workout.date
         ? new Date(workout.date.seconds * 1000).toLocaleDateString()
@@ -41,8 +41,13 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
       ? buildExerciseSummaryText(previousInputs)
       : null;
 
+    const monthlySummaryText = monthlyWorkoutData.length > 0
+      ? buildMonthlySummaryText(monthlyWorkoutData)
+      : null;
+
     console.log("Previous Inputs:", previousInputs);
     console.log("Parsed Previous Summary:", previousSummaryText);
+    console.log("Monthly Summary:", monthlySummaryText);
 
     const notesText = note.trim() === ''
       ? 'No additional user notes provided.'
