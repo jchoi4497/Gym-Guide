@@ -63,9 +63,10 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
       1. What went well in the current workout.
       2. Areas for improvement based on the exercise performance.
       3. A detailed comparison between the previous workout and the current workout, explaining the differences and trends clearly.
-      4. How the user's reported mood or condition may have affected their performance.
-      5. One or two actionable suggestions for their next session.
-      6. A motivational sentence to encourage the user.
+      4. A summary of monthly trends, pointing out patterns such as progression, plateau, or regression in performance over time."
+      5. How the user's reported mood or condition may have affected their performance.
+      6. One or two actionable suggestions for their next session.
+      7. A motivational sentence to encourage the user.
 
       The following data is provided:
 
@@ -78,11 +79,15 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
       Current Workout Summary:
       ${summaryText}
 
+      Monthly Workout Summary (Most recent first):
+      ${monthlySummaryText}
+
       Personal Notes:
         1. I believe that pushing your muscles to failure is good for muscle growth. So keep in mind seeing a decline in reps is not necessarily something or an area to improve on.
         2. Opposite of 1, keep in mind not seeing a decline on reps could mean the weight is too easy. But also, everything is situational per user. For example due to injury maybe the user does not want to push to failure for safety reasons.
 
-      Please provide a concise, 2-3 sentence summary covering all points above. Use clear, conversational language, and explicitly describe the comparison between the current and previous workouts.
+      Please provide a concise, 3-4 sentence summary covering all points above. Use clear, conversational language, and explicitly describe the comparison between the current and previous workouts.
+      Provide the sentences so that they are sectioned off where it makes sense, and make sure its in order.
 
       Thank you.
       `;
