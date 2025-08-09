@@ -22,6 +22,8 @@ function SavedWorkout() {
     const [monthlyWorkoutData, setMonthlyWorkoutData] = useState([]);
     const [graphView, setGraphView] = useState('previous');
 
+
+    //used to get label of workout on savedworkout page
     const muscleOptions = [
         { label: 'Chest/Triceps', value: 'chest' },
         { label: 'Back/Biceps', value: 'back' },
@@ -189,10 +191,26 @@ function SavedWorkout() {
 
             <div className="sm:px-20 px-4">
                 {/* Chart View Buttons */}
-                <div className="flex space-x-2 mb-4 pr-4 justify-end">
-                    <div>Compare Data: </div>
-                    <button onClick={() => setGraphView('previous')}>Previous</button>
-                    <button onClick={() => setGraphView('monthly')}>Month</button>
+                <div className="flex flex-wrap items-center justify-end gap-2 mb-6 sm:mb-8 px-4 sm:px-0">
+                    <span className="text-lg font-medium text-gray-700">Compare Data:</span>
+                    <button
+                        onClick={() => setGraphView('previous')}
+                        className={`px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all duration-200 shadow-md active:scale-95
+                        ${graphView === 'previous'
+                                ? 'bg-blue-600 hover:bg-blue-700'
+                                : 'bg-gray-500 hover:bg-gray-600'}`}
+                    >
+                        Previous
+                    </button>
+                    <button
+                        onClick={() => setGraphView('monthly')}
+                        className={`px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all duration-200 shadow-md active:scale-95
+                        ${graphView === 'monthly'
+                                ? 'bg-blue-600 hover:bg-blue-700'
+                                : 'bg-gray-500 hover:bg-gray-600'}`}
+                    >
+                        Month
+                    </button>
                 </div>
 
                 {/* Workout Inputs */}
