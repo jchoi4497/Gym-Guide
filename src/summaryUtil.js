@@ -2,7 +2,7 @@
 import exerciseNames from './exerciseNames';
 import { parseWeightReps } from './parsing';
 
-export async function generateSummary(inputs, note, previousInputs) {
+export async function generateSummary(inputs, note, previousInputs, monthlyWorkoutData = []) {
   console.log("generateSummary called");
 
   const buildExerciseSummaryText = (inputs) => {
@@ -22,6 +22,16 @@ export async function generateSummary(inputs, note, previousInputs) {
         return `${exerciseName}: ${sets || "no data"}`;
       })
       .join("; ");
+  };
+
+  const monthlySummaryText = (workouts) => {
+    return workouts.map((workout) => {
+      const dateLabel = workout.date
+        ? new Date(workout.date.seconds * 1000).toLocaleDateString()
+        : "Unknown Date";
+      return `${dateLabel} - ${buildExerciseSummaryText(workout.inputs || {})}`;
+    })
+      .join('/n');
   };
 
   try {
