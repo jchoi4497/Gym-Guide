@@ -83,38 +83,32 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
       7. A motivational sentence to encourage the user.
 
       Please format the response with section titles
-       1. Always insert **one blank line** between sections. ** in the text when we begin a new section from above start a new line**
+       1. Always insert **one line** between sections. ** in the text when we begin a new section from above start a new line**
 
       For example:
 
       What Went Well
       [text here]
-
-
+      -----------------------------------------------------------
       Mood/Condition
       [text here]
-
-
+      -----------------------------------------------------------
 
       Comparison with Previous Workout
       [text here]
-
-
+      -----------------------------------------------------------
 
       Monthly Trends
       [text here]
-
-
+      -----------------------------------------------------------
 
       Areas for Improvement
       [text here]
-
-
+      -----------------------------------------------------------
 
       Actionable Suggestion
       [text here]
-
-
+      -----------------------------------------------------------
 
       Motivation
       [text here]
