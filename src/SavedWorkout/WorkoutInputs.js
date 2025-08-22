@@ -10,7 +10,7 @@ function WorkoutInputs({ order, isEditing, editedInputs, workoutData, setEditedI
         if (!data) return null;
 
         return (
-          <div key={key} className="mb-8 p-4 bg-white rounded-2xl shadow-lg">
+          <div key={key} className="mb-8 p-4 bg-sky-50 rounded-2xl shadow-lg">
             <div className="text-2xl font-bold mb-2">
               {exerciseNames[data.selection] || data.selection}
             </div>

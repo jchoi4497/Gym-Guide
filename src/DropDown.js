@@ -62,7 +62,7 @@ function DropDown({ options, value, onChange }) {
                 {label || 'Select ...'}
             </Panel>
             {isOpen && (
-                <Panel className="absolute top-full left-0 w-full bg-white rounded-md shadow-lg z-20 max-h-60 overflow-y-auto">
+                <Panel className="absolute top-full left-0 w-full bg-sky-50 rounded-md shadow-lg z-20 max-h-60 overflow-y-auto">
                     {renderedOptions}
                 </Panel>)}
         </div>

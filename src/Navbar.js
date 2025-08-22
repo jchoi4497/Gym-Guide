@@ -35,7 +35,7 @@ function Navbar() {
     return (
       <Link
         to={to}
-        className="text-white font-medium hover:bg-white hover:text-blue-600 transition-all px-4 py-2 rounded-lg"
+        className="text-sky-50 font-medium hover:bg-sky-50 hover:text-blue-600 transition-all px-4 py-2 rounded-lg"
       >
         {label}
       </Link>
@@ -58,7 +58,7 @@ function Navbar() {
   return (
     <nav className="flex items-center justify-between p-5 mb-8 bg-gradient-to-r from-sky-500 to-blue-700 shadow-lg">
       {/* Brand */}
-      <div className="text-3xl font-bold italic text-white tracking-wide">
+      <div className="text-3xl font-bold italic text-sky-50 tracking-wide">
         JC's Gym Guide
       </div>
 
@@ -73,7 +73,7 @@ function Navbar() {
       <button
         ref={buttonRef}
         onClick={toggleMenu}
-        className="text-white text-3xl md:hidden focus:outline-none z-30"
+        className="text-sky-50 text-3xl md:hidden focus:outline-none z-30"
       >
         {isOpen ? "✕" : "☰"}
       </button>
@@ -82,7 +82,7 @@ function Navbar() {
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute top-19 right-0 bg-white rounded-b-xl shadow-xl p-4 space-y-3 z-20 w-48 md:hidden">
+          className="absolute top-19 right-0 bg-sky-50 rounded-b-xl shadow-xl p-4 space-y-3 z-20 w-48 md:hidden">
           <MobileLink to="/" label="🏠 Home" toggleMenu={toggleMenu} />
           <MobileLink to="/Hypertrophy" label="Create Workout" toggleMenu={toggleMenu} />
           <MobileLink to="/SavedWorkouts" label="Saved Workouts" toggleMenu={toggleMenu} />

@@ -18,14 +18,14 @@ function TrainingStylePage() {
                 />
                 {/* Uncomment if you want to use the Strength type too */}
                 {/* <WorkoutType
-          to="/Strength"
-          type="Strength"
-          image={StrengthImage}
-          desc="Program designed to build muscle strength and mass."
-        /> */}
+                    to="/Strength"
+                    type="Strength"
+                    image={StrengthImage}
+                    desc="Program designed to build muscle strength and mass."
+                    /> */}
             </div>
 
-            <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-2xl p-10 text-gray-800 space-y-6">
+            <div className="max-w-5xl mx-auto bg-sky-50 rounded-3xl shadow-2xl p-10 text-gray-800 space-y-6">
                 <h3 className="text-2xl font-bold underline mb-4">
                     📌 Key Insights for Optimal Results
                 </h3>
