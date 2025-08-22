@@ -138,12 +138,12 @@ function HypertrophyPage() {
                 <p className="text-lg text-gray-700 italic mb-10">Training program designed to increase muscle size and mass.</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-                    <div className="bg-white rounded-3xl p-6 shadow-lg">
+                    <div className="bg-sky-50 rounded-3xl p-6 shadow-lg">
                         <h2 className="text-2xl font-semibold mb-4">Step 1: Select Muscle Group</h2>
                         <DropDown options={options} value={selection} onChange={handleSelect} />
                     </div>
 
-                    <div className="bg-white rounded-3xl p-6 shadow-lg">
+                    <div className="bg-sky-50 rounded-3xl p-6 shadow-lg">
                         <h2 className="text-2xl font-semibold mb-4">Step 2: Choose Set × Rep Range</h2>
                         <DropDown options={setCountOptions} value={setCountSelection} onChange={repHandleSelect} />
                     </div>
@@ -201,7 +201,7 @@ function HypertrophyPage() {
                     <button
                         onClick={handleSaveWorkout}
                         disabled={isSaving} // disable button while saving
-                        className={`px-6 py-3 rounded-full text-white font-semibold shadow-lg transition-all duration-300
+                        className={`px-6 py-3 rounded-full text-sky-50 font-semibold shadow-lg transition-all duration-300
                                 ${isSaving
                                 ? 'bg-gray-400 cursor-not-allowed'
                                 : 'bg-blue-700 hover:bg-blue-800 active:bg-blue-600 active:scale-95'}`}
@@ -209,7 +209,7 @@ function HypertrophyPage() {
                         {isSaving ? 'Saving...' : 'Save Workout'}
                     </button>
                     <Link to="/SavedWorkouts">
-                        <button className="w-full bg-gray-800 hover:bg-blue-600 px-6 py-3 rounded-full text-white font-semibold shadow-lg transition-all duration-300 active:bg-gray-600 active:scale-95">
+                        <button className="w-full bg-gray-800 hover:bg-blue-600 px-6 py-3 rounded-full text-sky-50 font-semibold shadow-lg transition-all duration-300 active:bg-gray-600 active:scale-95">
                             View Workouts
                         </button>
                     </Link>

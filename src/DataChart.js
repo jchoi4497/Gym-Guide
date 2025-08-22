@@ -128,7 +128,7 @@ function DataChart({ currentData, previousData, monthlyWorkoutData, graphView, e
   }
 
   return (
-    <div className="p-3 border border-gray-300 bg-white rounded-2xl shadow-lg w-full max-w-xs sm:max-w-sm">
+    <div className="p-3 border border-gray-300 bg-sky-50 rounded-2xl shadow-lg w-full max-w-xs sm:max-w-sm">
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={chartData} margin={{ top: 10, right: 10, bottom: 10, left: 0 }}>
           <CartesianGrid strokeDasharray="3 3" />
