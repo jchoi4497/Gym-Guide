@@ -82,49 +82,42 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
       6. One or two actionable suggestions for their next session.
       7. A motivational sentence to encourage the user.
 
-      Please format the response with section titles, and always insert **one blank line** between sections. ** ADD SPACES BETWEEN SECTIONS ** For example:
+      Please format the response with section titles
+       1. Always insert **one blank line** between sections. ** in the text when we begin a new section from above start a new line**
 
-      ##What Went Well
+      For example:
+
+      What Went Well
       [text here]
-      \n
 
 
-      ##Mood/Condition
-      [text here]git
-
-
-
-      ##Comparison with Previous Workout
+      Mood/Condition
       [text here]
-      <span>
-      \n
 
 
 
-      ##Monthly Trends
+      Comparison with Previous Workout
       [text here]
-      <span>
-      \n
 
 
 
-      ##Areas for Improvement
+      Monthly Trends
       [text here]
-      <span>
-      \n
 
 
 
-      ##Actionable Suggestion
+      Areas for Improvement
       [text here]
-      <span>
-      \n
 
 
 
-      ##Motivation
+      Actionable Suggestion
       [text here]
-      \n
+
+
+
+      Motivation
+      [text here]
 
       Personal Notes:
         1. I believe that pushing your muscles to failure is good for muscle growth. So keep in mind seeing a decline in reps is not necessarily something bad or an area to improve on, just something to note.
