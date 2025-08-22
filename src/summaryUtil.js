@@ -84,25 +84,25 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
 
       Please format the response with section titles, and always insert **one blank line** between sections. For example:
 
-      What Went Well
+      ##What Went Well
       [text here]
-      **one blank line**
-      Mood/Condition
+
+      ##Mood/Condition
       [text here]
-      **one blank line**
-      Comparison with Previous Workout
+
+      ##Comparison with Previous Workout
       [text here]
-      **one blank line**
-      Monthly Trends
+
+      ##Monthly Trends
       [text here]
-      **one blank line**
-      Areas for Improvement
+
+      ##Areas for Improvement
       [text here]
-      **one blank line**
-      Actionable Suggestion
+
+      ##Actionable Suggestion
       [text here]
-      **one blank line**
-      Motivation
+
+      ##Motivation
       [text here]
 
       Personal Notes:
