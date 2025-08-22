@@ -86,7 +86,7 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
 
       ##What Went Well
       [text here]
-
+      <span>
 
 
       ##Mood/Condition
@@ -96,21 +96,25 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
 
       ##Comparison with Previous Workout
       [text here]
+      <span>
 
 
 
       ##Monthly Trends
       [text here]
+      <span>
 
 
 
       ##Areas for Improvement
       [text here]
+      <span>
 
 
 
       ##Actionable Suggestion
       [text here]
+      <span>
 
 
 
