@@ -58,16 +58,6 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
 
       You are a helpful fitness AI trainer.
 
-      Given the following workout log and notes, provide a brief analysis including:
-
-      1. What went well in the current workout.
-      2. Areas for improvement based on the exercise performance.
-      3. A detailed comparison between the previous workout and the current workout, explaining the differences and trends clearly.
-      4. A summary of monthly trends, pointing out patterns such as progression, plateau, or regression in performance over time."
-      5. How the user's reported mood or condition may have affected their performance.
-      6. One or two actionable suggestions for their next session.
-      7. A motivational sentence to encourage the user.
-
       The following data is provided:
 
       User Notes:
@@ -82,31 +72,42 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
       Monthly Workout Summary (Most recent first):
       ${monthlySummaryText}
 
-      Personal Notes:
-        1. I believe that pushing your muscles to failure is good for muscle growth. So keep in mind seeing a decline in reps is not necessarily something or an area to improve on.
-        2. Opposite of 1, keep in mind not seeing a decline on reps could mean the weight is too easy. But also, everything is situational per user. For example due to injury maybe the user does not want to push to failure for safety reasons.
+      Given the following workout log and notes, provide a brief analysis including:
 
-      Please provide a concise, 3-4 sentence summary covering all points above. Use clear, conversational language, and explicitly describe the comparison between the current and previous workouts.
-      Provide the sentences so that they are sectioned off with empty lines. where it makes sense, and make sure its in order.
-      Please look at the following example template and follow format and do not copy analysis in brackets below.
+      1. What went well in the current workout.
+      2. How the user's reported mood or condition may have affected their performance.
+      3. A detailed comparison between the previous workout and the current workout, explaining the differences and trends clearly.
+      4. A summary of monthly trends, pointing out patterns such as progression, plateau, or regression in performance over time."
+      5. Areas for improvement based on the exercise performance.
+      6. One or two actionable suggestions for their next session.
+      7. A motivational sentence to encourage the user.
 
-      [What Went Well
-      The current workout was productive, with significant effort and volume achieved across multiple exercises. The user noted having good energy levels, potentially due to proper nutrition and coffee intake. Areas for Improvement While pushing to muscle failure can enhance growth, the decline in reps over sets indicates potential fatigue or improper pacing. Ensuring consistent form and adjusting rest intervals might optimize the workout.
+      Please format the response with section titles, and always insert **one blank line** between sections. For example:
+
+      What Went Well
+      [text here]
+
+      Mood/Condition
+      [text here]
 
       Comparison with Previous Workout
-      This session included exercises not performed in the previous one, such as the Dumbbell Incline Press and Rope Pull Downs, showing an increase in both volume and exercise diversity. The Machine Press volume improved significantly compared to the previous Incline Press work, suggesting strength gains or better energy management.
+      [text here]
 
-      Monthly
-      Trends Without complete monthly data, specific patterns like progression, plateau, or regression can't be fully assessed. However, the current session's high volume and diverse exercises indicate positive progression.
+      Monthly Trends
+      [text here]
 
-      Mood/Condition The reported energy boost from diet and coffee improved performance but also resulted in next-day soreness, indicating effective muscle engagement and potential overreach needing careful management.
+      Areas for Improvement
+      [text here]
 
-      Actionable Suggestions
-      Consider implementing varied rep schemes (e.g., pyramid sets) to manage fatigue, and incorporate more dynamic warm-ups to manage soreness post-workout.
+      Actionable Suggestion
+      [text here]
 
       Motivation
-      Keep pushing forward and harness that energy, as every rep is a step closer to achieving your fitness goals!]
+      [text here]
 
+      Personal Notes:
+        1. I believe that pushing your muscles to failure is good for muscle growth. So keep in mind seeing a decline in reps is not necessarily something bad or an area to improve on, just something to note.
+        2. Opposite of 1, keep in mind not seeing a decline on reps could mean the weight is too easy. But also, everything is situational per user, just something to note. For example due to injury maybe the user does not want to push to failure for safety reasons.
 
       Thank you.
       `;
