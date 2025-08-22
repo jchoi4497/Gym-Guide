@@ -92,7 +92,7 @@ function ListOfWorkouts() {
           return (
             <li
               key={workout.id}
-              className="bg-white p-4 rounded shadow-lg flex items-center justify-between sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl"
+              className="bg-sky-50 p-4 rounded shadow-lg flex items-center justify-between sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl"
             >
               <div>
                 <div className="text-xl font-semibold">{getLabel(workout.target?.label ?? workout.target)}</div>
@@ -110,13 +110,13 @@ function ListOfWorkouts() {
               <div className="flex items-center space-x-2">
                 <Link
                   to={`/SavedWorkout/${workout.id}`}
-                  className="px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+                  className="px-3 py-1 rounded bg-blue-600 text-sky-50 hover:bg-blue-700"
                 >
                   Edit
                 </Link>
                 <button
                   onClick={() => setConfirmDeleteId(workout.id)}
-                  className="ml-4 px-3 py-1 rounded bg-red-600 text-white hover:bg-red-700"
+                  className="ml-4 px-3 py-1 rounded bg-red-600 text-sky-50 hover:bg-red-700"
                   disabled={isDeleting}
                 >
                   Delete
@@ -130,7 +130,7 @@ function ListOfWorkouts() {
       {/* Custom Confirm Modal */}
       {confirmDeleteId && (
         <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-transparent">
-          <div className="bg-white p-6 rounded-2xl shadow-2xl max-w-sm w-full border border-gray-200">
+          <div className="bg-sky-50 p-6 rounded-2xl shadow-2xl max-w-sm w-full border border-gray-200">
             <h2 className="text-2xl font-bold mb-3 text-gray-800">Confirm Delete</h2>
             <p className="text-gray-600 mb-6 text-sm">
               Are you sure you want to delete this workout? This action can’t be undone.
@@ -147,8 +147,8 @@ function ListOfWorkouts() {
                 onClick={() => handleDeleteWorkout(confirmDeleteId)}
                 disabled={isDeleting}
                 className={`px-4 py-2 rounded-full text-sm font-medium shadow ${isDeleting
-                    ? 'bg-red-300 cursor-not-allowed'
-                    : 'bg-red-600 hover:bg-red-700 text-white'
+                  ? 'bg-red-300 cursor-not-allowed'
+                  : 'bg-red-600 hover:bg-red-700 text-sky-50'
                   }`}
               >
                 {isDeleting ? 'Deleting…' : 'Yes, Delete'}

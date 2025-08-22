@@ -6,7 +6,7 @@ function TableRow({ reps, onChange, options, value, rowId, cellInput, inputs }) 
         const cellElements = [];
         for (let i = 0; i < Number(reps); i++) {
             cellElements.push(
-                <td key={i + rowId} className="border border-gray-300 rounded-md px-4 py-2 bg-white shadow-sm">
+                <td key={i + rowId} className="border border-gray-300 rounded-md px-4 py-2 bg-sky-50 shadow-sm">
                     <input
                         id={`${rowId}-cell-${i}`}
                         className="
@@ -29,7 +29,7 @@ function TableRow({ reps, onChange, options, value, rowId, cellInput, inputs }) 
 
     return (
         <tr>
-            <td className="border border-gray-300 rounded-md px-4 py-2 bg-white shadow-sm">
+            <td className="border border-gray-300 rounded-md px-4 py-2 bg-sky-50 shadow-sm">
                 <DropDown
                     options={options}
                     onChange={onChange}

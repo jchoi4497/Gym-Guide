@@ -195,7 +195,7 @@ function SavedWorkout() {
                     <span className="text-lg font-medium text-gray-700">Compare Data:</span>
                     <button
                         onClick={() => setGraphView('previous')}
-                        className={`px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all duration-200 shadow-md active:scale-95
+                        className={`px-4 py-2 rounded-lg text-sky-50 text-sm font-semibold transition-all duration-200 shadow-md active:scale-95
                         ${graphView === 'previous'
                                 ? 'bg-blue-600 hover:bg-blue-700'
                                 : 'bg-gray-500 hover:bg-gray-600'}`}
@@ -204,7 +204,7 @@ function SavedWorkout() {
                     </button>
                     <button
                         onClick={() => setGraphView('monthly')}
-                        className={`px-4 py-2 rounded-lg text-white text-sm font-semibold transition-all duration-200 shadow-md active:scale-95
+                        className={`px-4 py-2 rounded-lg text-sky-50 text-sm font-semibold transition-all duration-200 shadow-md active:scale-95
                         ${graphView === 'monthly'
                                 ? 'bg-blue-600 hover:bg-blue-700'
                                 : 'bg-gray-500 hover:bg-gray-600'}`}
@@ -239,14 +239,14 @@ function SavedWorkout() {
 
             <div className="m-6 flex flex-col justify-end sm:space-x-4 space-y-4 px-4 sm:px-20">
                 <Link to="/SavedWorkouts">
-                    <button className="px-6 py-3 w-full sm:w-auto rounded-3xl shadow-lg text-white bg-gray-800 hover:bg-blue-600 active:bg-gray-600 transition-all duration-300 active:scale-95">
+                    <button className="px-6 py-3 w-full sm:w-auto rounded-3xl shadow-lg text-sky-50 bg-gray-800 hover:bg-blue-600 active:bg-gray-600 transition-all duration-300 active:scale-95">
                         View Workouts
                     </button>
                 </Link>
 
                 <button
                     onClick={() => setIsEditing(!isEditing)}
-                    className={`px-6 py-3 w-full rounded text-white sm:w-auto self-start active:scale-95 transition-all ${isEditing
+                    className={`px-6 py-3 w-full rounded text-sky-50 sm:w-auto self-start active:scale-95 transition-all ${isEditing
                         ? 'bg-red-600 hover:bg-red-700 active:bg-red-400'
                         : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-400'
                         }`}
@@ -258,7 +258,7 @@ function SavedWorkout() {
                     <button
                         onClick={handleSaveChanges}
                         disabled={isSaving}
-                        className={`px-6 py-3 w-full rounded-3xl shadow-lg text-white transition-all duration-300 ${isSaving
+                        className={`px-6 py-3 w-full rounded-3xl shadow-lg text-sky-50 transition-all duration-300 ${isSaving
                             ? 'bg-gray-400 cursor-not-allowed'
                             : 'bg-green-600 hover:bg-green-700 active:bg-green-400'
                             } w-auto sm:w-auto self-start active:scale-95`}
