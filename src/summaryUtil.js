@@ -86,22 +86,22 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
 
       What Went Well
       [text here]
-
+      **one blank line**
       Mood/Condition
       [text here]
-
+      **one blank line**
       Comparison with Previous Workout
       [text here]
-
+      **one blank line**
       Monthly Trends
       [text here]
-
+      **one blank line**
       Areas for Improvement
       [text here]
-
+      **one blank line**
       Actionable Suggestion
       [text here]
-
+      **one blank line**
       Motivation
       [text here]
 
