@@ -83,7 +83,8 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
       7. A motivational sentence to encourage the user.
 
       Please format the response with section titles
-       1. Always insert **one line** between sections. ** in the text when we begin a new section from above start a new line**
+       1. Always insert **one line between sections. ** in the text when we begin a new section from above start a new line.
+          Use double line breaks to separate each paragraph.
 
       For example:
 
