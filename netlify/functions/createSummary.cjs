@@ -9,7 +9,7 @@ exports.handler = async (event, context) => {
 
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-5-mini",
       messages: [{ role: "user", content: prompt }],
     });
 
