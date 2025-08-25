@@ -83,38 +83,37 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
       7. A motivational sentence to encourage the user.
 
       Please format the response with section titles
-       1. Always insert **one empty line** between sections in the Analysis reponse.
-          Use double line breaks to separate each paragraph.
+       1. In the style of the response. Each section is a stanza, seperated by an additional line.
 
       For example:
 
       What Went Well
       [text here]
-      \n\n
+      Line:...\n\n
 
       Mood/Condition
       [text here]
-      \n\n
+      Line:...\n\n
 
       Comparison with Previous Workout
       [text here]
-      \n\n
+      Line:...\n\n
 
       Monthly Trends
       [text here]
-      \n\n
+      Line:...\n\n
 
       Areas for Improvement
       [text here]
-      \n\n
+      Line:...\n\n
 
       Actionable Suggestion
       [text here]
-      \n\n
+      Line:...\n\n\
 
       Motivation
       [text here]
-      \n\n
+      Line:...\n\n
 
       Personal Notes:
         1. I believe that pushing your muscles to failure is good for muscle growth. So keep in mind seeing a decline in reps is not necessarily something bad or an area to improve on, just something to note.
