@@ -90,29 +90,31 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
 
       What Went Well
       [text here]
+      \n\n
 
       Mood/Condition
       [text here]
-
+      \n\n
 
       Comparison with Previous Workout
       [text here]
-
+      \n\n
 
       Monthly Trends
       [text here]
-      
+      \n\n
 
       Areas for Improvement
       [text here]
-      
+      \n\n
 
       Actionable Suggestion
       [text here]
-      
+      \n\n
 
       Motivation
       [text here]
+      \n\n
 
       Personal Notes:
         1. I believe that pushing your muscles to failure is good for muscle growth. So keep in mind seeing a decline in reps is not necessarily something bad or an area to improve on, just something to note.
