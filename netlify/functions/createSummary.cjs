@@ -1,16 +1,24 @@
 
-const { OpenAI } = require("openai");
+const OpenAI = require("openai");
 
-const OpenAi = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY, // make sure this key is in Netlify env vars
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 exports.handler = async (event) => {
-  const { prompt } = JSON.parse(event.body);
-
   try {
-    const completion = await OpenAi.chat.completions.create({
-      model: "gpt-4o",
+    const { prompt } = JSON.parse(event.body || "{}");
+
+    if (!prompt) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: "Prompt is required" }),
+      };
+    }
+
+    // Call GPT-5 via Chat Completions API
+    const completion = await openai.chat.completions.create({
+      model: "gpt-5",
       messages: [{ role: "user", content: prompt }],
     });
 
@@ -18,13 +26,16 @@ exports.handler = async (event) => {
       statusCode: 200,
       body: JSON.stringify({
         message: completion.choices[0].message.content,
+        modelUsed: "gpt-5",
       }),
     };
   } catch (error) {
-    console.error("Error calling OpenAI:", error);
+    console.error("OpenAI error:", error.response?.data || error.message || error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "OpenAI API error" }),
+      body: JSON.stringify({
+        error: error.response?.data || error.message || "OpenAI API error",
+      }),
     };
   }
 };
