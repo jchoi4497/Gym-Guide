@@ -58,6 +58,33 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
 
       You are a helpful fitness AI trainer.
 
+      Below are things to analyze in your response.
+
+      1. What went well in the current workout.
+      2. How the user's reported mood or condition may have affected their performance.
+      3. A detailed comparison between the previous workout and the current workout, explaining the differences and trends clearly.
+      4. A summary of monthly trends, pointing out patterns such as progression, plateau, or regression in performance over time."
+      5. Areas for improvement based on the exercise performance.
+      6. One or two actionable suggestions for their next session.
+      7. A motivational sentence to encourage the user.
+
+      1. In the style of the response. Treat each section like a stanza or paragraph, seperate each section by an additional line. The whole response should be around 8 sentences, doesn't have to be exact.
+      For example:
+
+            Section 1:
+            What Went Well and Areas of Improvement
+
+            Section 2:
+            How Mood/Condition affected workout
+
+            Section 3:
+            Comparison with Previous Workout and Monthly Trends
+
+            Section 4:
+            Actionable Suggestion and Motivation
+
+
+
       The following data is provided:
 
       User Notes:
@@ -71,49 +98,6 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
 
       Monthly Workout Summary (Most recent first):
       ${monthlySummaryText}
-
-      Given the following workout log and notes, provide a brief analysis including:
-
-      1. What went well in the current workout.
-      2. How the user's reported mood or condition may have affected their performance.
-      3. A detailed comparison between the previous workout and the current workout, explaining the differences and trends clearly.
-      4. A summary of monthly trends, pointing out patterns such as progression, plateau, or regression in performance over time."
-      5. Areas for improvement based on the exercise performance.
-      6. One or two actionable suggestions for their next session.
-      7. A motivational sentence to encourage the user.
-
-      Please format the response with section titles
-       1. In the style of the response. Each section is a stanza, seperated by an additional line.
-
-      For example:
-
-      What Went Well
-      [text here]
-      Line:...\n\n
-
-      Mood/Condition
-      [text here]
-      Line:...\n\n
-
-      Comparison with Previous Workout
-      [text here]
-      Line:...\n\n
-
-      Monthly Trends
-      [text here]
-      Line:...\n\n
-
-      Areas for Improvement
-      [text here]
-      Line:...\n\n
-
-      Actionable Suggestion
-      [text here]
-      Line:...\n\n\
-
-      Motivation
-      [text here]
-      Line:...\n\n
 
       Personal Notes:
         1. I believe that pushing your muscles to failure is good for muscle growth. So keep in mind seeing a decline in reps is not necessarily something bad or an area to improve on, just something to note.
