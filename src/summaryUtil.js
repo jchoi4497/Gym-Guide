@@ -60,13 +60,13 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
 
       Below are things to analyze in your response.
 
-      1. What went well in the current workout.
-      2. How the user's reported mood or condition may have affected their performance.
-      3. A detailed comparison between the previous workout and the current workout, explaining the differences and trends clearly.
-      4. A summary of monthly trends, pointing out patterns such as progression, plateau, or regression in performance over time."
-      5. Areas for improvement based on the exercise performance.
-      6. One or two actionable suggestions for their next session.
-      7. A motivational sentence to encourage the user.
+            1. What went well in the current workout.
+            2. How the user's reported mood or condition may have affected their performance.
+            3. A detailed comparison between the previous workout and the current workout, explaining the differences and trends clearly.
+            4. A summary of monthly trends, pointing out patterns such as progression, plateau, or regression in performance over time."
+            5. Areas for improvement based on the exercise performance.
+            6. One or two actionable suggestions for their next session.
+            7. A motivational sentence to encourage the user.
 
       1. In the style of the response. Treat each section like a stanza or paragraph, seperate each section by an additional line. The whole response should be around 8 sentences, doesn't have to be exact.
       For example:
@@ -87,21 +87,22 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
 
       The following data is provided:
 
-      User Notes:
-      ${notesText}
+            User Notes:
+            ${notesText}
 
-      Previous Workout Summary:
-      ${previousSummaryText || "No previous workout data available."}
+            Previous Workout Summary:
+            ${previousSummaryText || "No previous workout data available."}
 
-      Current Workout Summary:
-      ${summaryText}
+            Current Workout Summary:
+            ${summaryText}
 
-      Monthly Workout Summary (Most recent first):
-      ${monthlySummaryText}
+            Monthly Workout Summary (Most recent first):
+            ${monthlySummaryText}
 
-      Personal Notes:
-        1. I believe that pushing your muscles to failure is good for muscle growth. So keep in mind seeing a decline in reps is not necessarily something bad or an area to improve on, just something to note.
-        2. Opposite of 1, keep in mind not seeing a decline on reps could mean the weight is too easy. But also, everything is situational per user, just something to note. For example due to injury maybe the user does not want to push to failure for safety reasons.
+            Personal Notes:
+              1. I believe that pushing your muscles to failure is good for muscle growth. So keep in mind seeing a decline in reps is not necessarily something bad or an area to improve on, just something to note.
+              2. Opposite of 1, keep in mind not seeing a decline on reps could mean the weight is too easy. But also, everything is situational per user, just something to note.
+                 For example due to injury maybe the user does not want to push to failure for safety reasons.
 
       Thank you.
       `;
