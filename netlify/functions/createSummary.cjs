@@ -12,7 +12,7 @@ exports.handler = async (event) => {
     const completion = await OpenAi.chat.completions.create({
       model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 250,
+      max_tokens: 300,
     });
 
     return {
