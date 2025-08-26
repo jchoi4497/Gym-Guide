@@ -72,16 +72,16 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
       For example:
 
             Section 1:
-            What Went Well and Areas of Improvement
+            Talk about What Went Well and Areas of Improvement/n/n
 
             Section 2:
-            How Mood/Condition affected workout
+            Talk about How Mood/Condition affected workout/n/n
 
             Section 3:
-            Comparison with Previous Workout and Monthly Trends
+            Talk about Comparison with Previous Workout and Monthly Trends/n/n
 
             Section 4:
-            Actionable Suggestion and Motivation
+            Talk about Actionable Suggestion and Motivation/n/n
 
 
 
