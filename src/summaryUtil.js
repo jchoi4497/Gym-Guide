@@ -68,7 +68,7 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
             6. One or two actionable suggestions for their next session.
             7. A motivational sentence to encourage the user.
 
-      1. In the style of the response. Treat each section like a stanza or paragraph, seperate each section by an additional line. The whole response should be around 8 sentences, doesn't have to be exact.
+      1. In the style of the response. Treat each section like a stanza or paragraph, seperate each section by an additional line. The whole response should be around 5-6 sentences, doesn't have to be exact.
       For example:
 
             Section 1:
