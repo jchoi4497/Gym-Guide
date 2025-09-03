@@ -92,7 +92,7 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
               1. One or two actionable suggestions for their next session.
               2. A motivational sentence to encourage the user./n/n
 
-            ##Keep in Mind Personal Notes:
+            ##Keep in Mind for Prompt:
               1. I believe that pushing your muscles to failure is good for muscle growth. So keep in mind seeing a decline in reps is not necessarily something bad or an area to improve on, just something to note.
               2. Opposite of 1, keep in mind not seeing a decline on reps could mean the weight is too easy. But also, everything is situational per user, just something to note.
                  For example due to injury maybe the user does not want to push to failure for safety reasons.
