@@ -57,34 +57,6 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
     const promptText = `
 
       You are a helpful fitness AI trainer.
-
-      Below are things to analyze in your response.
-
-            1. What went well in the current workout.
-            2. How the user's reported mood or condition may have affected their performance.
-            3. A detailed comparison between the previous workout and the current workout, explaining the differences and trends clearly.
-            4. A summary of monthly trends, pointing out patterns such as progression, plateau, or regression in performance over time."
-            5. Areas for improvement based on the exercise performance.
-            6. One or two actionable suggestions for their next session.
-            7. A motivational sentence to encourage the user.
-
-      1. In the style of the response. Treat each section like a stanza or paragraph, seperate each section by an additional line (\n\n) exactly as shown. The whole response should be around 200 words. Doesn't have to be exact, but around.
-      For example:
-
-            Section 1:
-            Talk about What Went Well and Areas of Improvement/n/n
-
-            Section 2:
-            Talk about How Mood/Condition affected workout/n/n
-
-            Section 3:
-            Talk about Comparison with Previous Workout and Monthly Trends/n/n
-
-            Section 4:
-            Talk about Actionable Suggestion and Motivation/n/n
-
-
-
       The following data is provided:
 
             User Notes:
@@ -99,7 +71,28 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
             Monthly Workout Summary (Most recent first):
             ${monthlySummaryText}
 
-            Personal Notes:
+      Below is the format I am looking for and also topics to analyze in your response. Keep answers short and concise. The whole response should be 200-300 words.
+
+            ##Section 1:
+            Talk about What Went Well and Areas of Improvement
+              1. What went well in the current workout.
+              2. Areas for improvement based on the exercise performance./n/n
+
+            ##Section 2:
+            Talk about How Mood/Condition affected workout
+              2. How the user's reported mood or condition may have affected their performance./n/n
+
+            ##Section 3:
+            Talk about Comparison with Previous Workout and Monthly Trends
+              1. A short comparison between the previous workout and the current workout, explaining the differences and trends clearly.
+              2. A summary of monthly trends, pointing out patterns such as progression, plateau, or regression in performance over time."/n/n
+
+            ##Section 4:
+            Talk about Actionable Suggestion and Motivation
+              1. One or two actionable suggestions for their next session.
+              2. A motivational sentence to encourage the user./n/n
+
+            ##Keep in Mind Personal Notes:
               1. I believe that pushing your muscles to failure is good for muscle growth. So keep in mind seeing a decline in reps is not necessarily something bad or an area to improve on, just something to note.
               2. Opposite of 1, keep in mind not seeing a decline on reps could mean the weight is too easy. But also, everything is situational per user, just something to note.
                  For example due to injury maybe the user does not want to push to failure for safety reasons.
