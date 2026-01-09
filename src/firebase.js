@@ -8,8 +8,8 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: 'AIzaSyA8-_QrxFfHt86o8eVZWcBlNiozSu8wxE0',
-  authDomain: 'jcsgymguide.firebaseapp.com',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: 'jcsgymguide',
   storageBucket: 'jcsgymguide.firebasestorage.app',
   messagingSenderId: '439544885300',
