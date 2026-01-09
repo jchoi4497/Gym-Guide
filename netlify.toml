@@ -1,2 +1,8 @@
 [build]
   functions = "netlify/functions"
+  publish = "dist"
+
+[dev]
+  command = "npm run start"
+  port = 8888        # The port you will open in your browser
+  targetPort = 3000  # Change this from 3001 to 3000
