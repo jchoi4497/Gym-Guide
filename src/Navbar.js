@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => {
-    console.log("toggle clicked");
+    console.log('toggle clicked');
     setIsOpen(!isOpen);
   };
 
@@ -24,9 +24,9 @@ function Navbar() {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
@@ -58,15 +58,18 @@ function Navbar() {
   return (
     <nav className="flex items-center justify-between p-5 mb-8 bg-gradient-to-r from-sky-500 to-blue-700 shadow-lg">
       {/* Brand */}
-      <div className="text-3xl font-bold italic text-sky-50 tracking-wide">
+      <Link
+        to="/"
+        className="text-3xl font-bold italic text-sky-50 inline-block transition-transform duration-300 hover:scale-110 active:scale-95 origin-left"
+      >
         JC's Gym Guide
-      </div>
+      </Link>
 
       {/* Desktop Nav */}
       <div className="hidden md:flex space-x-6">
-        <NavLink to="/" label="🏠 Home" />
         <NavLink to="/Hypertrophy" label="Create Workout" />
         <NavLink to="/SavedWorkouts" label="Saved Workouts" />
+        <NavLink to="/TrainingStyle" label="More Info" />
       </div>
 
       {/* Mobile Toggle */}
@@ -75,22 +78,22 @@ function Navbar() {
         onClick={toggleMenu}
         className="text-sky-50 text-3xl md:hidden focus:outline-none z-30"
       >
-        {isOpen ? "✕" : "☰"}
+        {isOpen ? '✕' : '☰'}
       </button>
 
       {/* Mobile Menu */}
       {isOpen && (
         <div
           ref={menuRef}
-          className="absolute top-19 right-0 bg-sky-50 rounded-b-xl shadow-xl p-4 space-y-3 z-20 w-48 md:hidden">
-          <MobileLink to="/" label="🏠 Home" toggleMenu={toggleMenu} />
+          className="absolute top-19 right-0 bg-sky-50 rounded-b-xl shadow-xl p-4 space-y-3 z-20 w-48 md:hidden"
+        >
           <MobileLink to="/Hypertrophy" label="Create Workout" toggleMenu={toggleMenu} />
           <MobileLink to="/SavedWorkouts" label="Saved Workouts" toggleMenu={toggleMenu} />
+          <MobileLink to="/TrainingStyle" label="More Info" toggleMenu={toggleMenu} />
         </div>
       )}
     </nav>
   );
 }
-
 
 export default Navbar;
