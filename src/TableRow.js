@@ -38,7 +38,6 @@ function TableRow({
 
   return (
     <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 border border-gray-300 rounded-md p-4 bg-sky-50 shadow-sm mb-4">
-      {/* REMOVE BUTTON: Positioned in top-right corner */}
       {isCustom && (
         <button
           onClick={onRemove}
