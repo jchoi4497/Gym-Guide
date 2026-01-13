@@ -69,12 +69,17 @@ function ChestWorkout({ target, reps, label, inputs, onInput, previousInputs }) 
   };
 
   const handleExerciseChange = (rowId, newExerciseValue) => {
-    const exerciseOptions = exercises.map((exercise) =>
-      exercise.id === rowId ? { ...exercise, selected: newExerciseValue } : exercise,
-    );
+    const name = newExerciseValue; // Just update the state, no alerts here
 
-    setExercises(exerciseOptions);
-    onInput(rowId, newExerciseValue, -1);
+    const updatedExercises = exercises.map((ex) => {
+      if (ex.id === rowId) {
+        return { ...ex, selected: name };
+      }
+      return ex;
+    });
+
+    setExercises(updatedExercises);
+    onInput(rowId, name, -1);
   };
 
   const handleInputChange = (rowId, selected, index, inputValue) => {
