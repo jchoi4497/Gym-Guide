@@ -50,70 +50,41 @@ function SavedWorkout() {
     shoulders: ['reardelt', 'latraise', 'reardelt2', 'latraise2', 'wristcurl', 'reversewristcurl'],
   };
 
-  const fetchPreviousWorkout = async (target, currentDate, graphView) => {
-    const user = auth.currentUser; // Get current logged-in user
-    if (!user) return;
+  const fetchPreviousWorkout = async (target, currentDate) => {
+    const user = auth.currentUser;
+    if (!user || !target || !currentDate) return;
 
     try {
-      // default  limit 1 for previous but if user clicks monthly then limit is 4
-      let fetchLimit = graphView === 'monthly' ? 4 : 1;
-
-      // We want the data of the workout that is before this workout
       const q = query(
         collection(db, 'workoutLogs'),
         where('userId', '==', user.uid),
         where('target', '==', target),
         where('date', '<', currentDate),
         orderBy('date', 'desc'),
-        limit(fetchLimit),
+        limit(4),
       );
-      const querySnapshot = await getDocs(q);
 
-      if (!querySnapshot.empty) {
-        const docs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        if (graphView === 'previous') {
-          const prevWorkout = docs.find((doc) => doc.id !== workoutId);
-          if (prevWorkout) {
-            setPreviousWorkoutData(prevWorkout);
-          } else {
-            console.log('No previous workout found');
-            setPreviousWorkoutData(null);
-          }
-          // one state for one data rule... so prevworkoutdata for previous, monthlyworkoutdata for monthly
-        } else if (graphView === 'monthly') {
-          if (docs.length > 0) {
-            setMonthlyWorkoutData(docs); // store 4 previous workouts
-          } else {
-            console.log('No monthly workout data found');
-            setMonthlyWorkoutData([]); // no workouts found
-          }
-        }
-        // Handle empty snapshot fallback
-      } else {
-        if (graphView === 'previous') {
-          console.log('No previous workout found (query empty)');
-          setPreviousWorkoutData(null);
-        } else if (graphView === 'monthly') {
-          console.log('No monthly workout data found (query empty)');
-          setMonthlyWorkoutData([]);
-        }
-      }
+      const querySnapshot = await getDocs(q);
+      const docs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+      // Update both states immediately
+      setMonthlyWorkoutData(docs);
+      setPreviousWorkoutData(docs[0] || null); // Most recent for 'previous' view
     } catch (error) {
-      console.error('Error fetching previous workout:', error);
-      if (graphView === 'previous') {
-        setPreviousWorkoutData(null);
-      } else if (graphView === 'monthly') {
-        setMonthlyWorkoutData([]);
-      }
+      console.error('Error fetching history:', error);
     }
   };
 
   // Can I add fetchpreviousworkout(workoutdata.date to this useeffect or create new one)
   useEffect(() => {
-    if (workoutData?.target && workoutData?.date && graphView) {
-      fetchPreviousWorkout(workoutData.target, workoutData.date, graphView);
+    // Only fetch if we have the requirements AND we haven't loaded history yet
+    if (workoutData?.target && workoutData?.date) {
+      if (monthlyWorkoutData.length === 0) {
+        fetchPreviousWorkout(workoutData.target, workoutData.date);
+      }
     }
-  }, [workoutData, graphView]);
+  }, [workoutData, monthlyWorkoutData.length]);
+  // Removing graphView here stops the 'double read' when switching tabs
 
   const fetchData = async () => {
     const user = auth.currentUser;
@@ -162,6 +133,20 @@ function SavedWorkout() {
   }, [workoutId]);
 
   const handleSaveChanges = async () => {
+    // 1. Get all names, filter out any undefined/null, and trim them
+    const names = Object.values(editedInputs)
+      .map((ex) => ex.selection?.toLowerCase().trim())
+      .filter((name) => name && name !== ''); // Only check rows that actually have a name
+
+    // 2. Check for duplicates
+    const duplicateNames = names.filter((name, index) => names.indexOf(name) !== index);
+
+    if (duplicateNames.length > 0) {
+      alert(`Duplicate exercise found: "${duplicateNames[0]}". Please use unique names.`);
+      return; // STOP the save process
+    }
+
+    // 3. If no duplicates, proceed with saving
     try {
       setIsSaving(true);
       const newSummary = await generateSummary(editedInputs, note, previousWorkoutData?.inputs);
