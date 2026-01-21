@@ -18,6 +18,7 @@ import { generateSummary } from '../summaryUtil';
 import WorkoutInputs from './WorkoutInputs';
 import WorkoutNotes from './WorkoutNotes';
 import WorkoutAnalysis from './WorkoutAnalysis';
+import AddExerciseButton from '../AddExerciseButton';
 
 function SavedWorkout() {
   const { workoutId } = useParams();
@@ -32,6 +33,7 @@ function SavedWorkout() {
   const [previousWorkoutData, setPreviousWorkoutData] = useState(null);
   const [monthlyWorkoutData, setMonthlyWorkoutData] = useState([]);
   const [graphView, setGraphView] = useState('previous');
+  const [exerciseOrder, setExerciseOrder] = useState([]);
 
   //used to get label of workout on savedworkout page
   const muscleOptions = [
@@ -113,6 +115,15 @@ function SavedWorkout() {
         setEditedInputs(data.inputs);
         setNote(data.note || '');
         setSummary(data.summary || '');
+        // CREATE THE INITIAL ORDER
+        const inputKeys = Object.keys(data.inputs);
+        const orderedKeysFromCategory = categoryOrder[data.target] || [];
+        // Filter existing keys based on your preferred order, then append any extras (custom ones)
+        const sorted = [
+          ...orderedKeysFromCategory.filter((key) => inputKeys.includes(key)),
+          ...inputKeys.filter((key) => !orderedKeysFromCategory.includes(key)),
+        ];
+        setExerciseOrder(sorted);
       } else {
         setError('No such document found.');
       }
@@ -121,6 +132,24 @@ function SavedWorkout() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleAddExercise = () => {
+    const customId = `custom_${Date.now()}`;
+    setExerciseOrder((prev) => [...prev, customId]);
+    setEditedInputs((prev) => ({
+      ...prev,
+      [customId]: { selection: '', input: ['', '', '', ''] },
+    }));
+  };
+
+  const handleRemoveExercise = (rowId) => {
+    setExerciseOrder((prev) => prev.filter((id) => id !== rowId));
+    setEditedInputs((prev) => {
+      const updated = { ...prev };
+      delete updated[rowId];
+      return updated;
+    });
   };
 
   useEffect(() => {
@@ -233,15 +262,22 @@ function SavedWorkout() {
 
         {/* Workout Inputs */}
         <WorkoutInputs
-          order={order}
+          order={exerciseOrder}
           isEditing={isEditing}
           editedInputs={editedInputs}
-          workoutData={workoutData}
           setEditedInputs={setEditedInputs}
+          workoutData={workoutData}
           previousWorkoutData={previousWorkoutData}
           graphView={graphView}
           monthlyWorkoutData={monthlyWorkoutData}
+          onRemove={handleRemoveExercise}
         />
+
+        {isEditing && (
+          <div className="mb-6">
+            <AddExerciseButton onClick={handleAddExercise} />
+          </div>
+        )}
 
         {/* Workout Notes */}
         <WorkoutNotes value={note} onChange={setNote} isEditing={isEditing} />
