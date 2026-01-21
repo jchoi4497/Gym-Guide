@@ -76,7 +76,7 @@ function Navbar() {
       {/* Brand */}
       <Link
         to="/"
-        className="text-3xl font-bold italic text-sky-50 inline-block transition-transform duration-300 hover:scale-110 active:scale-95 origin-left"
+        className="text-xl sm:text-2xl md:text-3xl font-bold italic text-sky-50 inline-block transition-transform duration-300 hover:scale-105 active:scale-95 origin-left truncate max-w-[60%] sm:max-w-none"
       >
         JC's Gym Guide
       </Link>

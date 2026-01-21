@@ -2,13 +2,10 @@ function AddExerciseButton({ onClick }) {
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3
-                 bg-emerald-500 hover:bg-emerald-600 text-white font-bold
-                 rounded-xl shadow-md transition-all duration-200
-                 active:scale-95 mb-10"
+      className="w-full py-4 mt-6 border-2 border-dashed border-sky-400 rounded-2xl text-sky-600 font-bold hover:bg-sky-100 cursor-pointer transition-all duration-200 active:scale-[0.98] flex items-center justify-center gap-2"
     >
       <span className="text-xl">+</span>
-      <span>Add Custom Exercise</span>
+      <span>Add New Exercise</span>
     </button>
   );
 }
