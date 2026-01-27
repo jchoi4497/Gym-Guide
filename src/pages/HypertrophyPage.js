@@ -20,6 +20,54 @@ function HypertrophyPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [previousWorkoutData, setPreviousWorkoutData] = useState(null);
 
+  // RECOVER DRAFT ON LOAD ---
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('active_workout_draft');
+    if (savedDraft) {
+      const parsed = JSON.parse(savedDraft);
+      // Only ask if there's actually meaningful data (like inputs)
+      const hasData = parsed.inputs && Object.keys(parsed.inputs).length > 0;
+
+      if (hasData) {
+        const confirmResume = window.confirm(
+          'We found an unsaved workout from your last session. Would you like to resume it?',
+        );
+
+        if (confirmResume) {
+          if (parsed.selection) setSelection(parsed.selection);
+          if (parsed.setCountSelection) setSetCountSelection(parsed.setCountSelection);
+          if (parsed.inputs) setInputs(parsed.inputs);
+          if (parsed.note) setNote(parsed.note);
+          console.log('Workout draft restored from local storage.');
+        } else {
+          // If they say No, clear the old draft so they start fresh
+          localStorage.removeItem('active_workout_draft');
+        }
+      }
+    }
+  }, []);
+
+  // AUTO-SAVE TO LOCAL STORAGE ---
+  useEffect(() => {
+    // Only save if the user has at least started a workout (selected a muscle group)
+    if (selection) {
+      const draft = { selection, setCountSelection, inputs, note };
+      localStorage.setItem('active_workout_draft', JSON.stringify(draft));
+    }
+  }, [selection, setCountSelection, inputs, note]);
+
+  // PREVENT ACCIDENTAL TAB CLOSING ---
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (Object.keys(inputs).length > 0) {
+        event.preventDefault();
+        event.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [inputs]);
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (!user) {
@@ -120,6 +168,9 @@ function HypertrophyPage() {
         note: note,
         summary: newSummary,
       });
+
+      // CLEAR LOCAL STORAGE ON SUCCESS ---
+      localStorage.removeItem('active_workout_draft');
 
       // Get the document ID
       const workoutId = docRef.id;
