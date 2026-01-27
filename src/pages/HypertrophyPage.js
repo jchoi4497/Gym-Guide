@@ -186,6 +186,27 @@ function HypertrophyPage() {
     }
   };
 
+  const handleReset = () => {
+    const confirmReset = window.confirm(
+      'Are you sure you want to start a new workout? This will clear all current progress.',
+    );
+
+    if (confirmReset) {
+      // 1. Reset all React state
+      setSelection(null);
+      setSetCountSelection(null);
+      setInputs({});
+      setNote('');
+      setPreviousWorkoutData(null);
+
+      // 2. Clear the local storage draft
+      localStorage.removeItem('active_workout_draft');
+
+      // 3. Scroll to top so user sees the "Step 1" section
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const options = [
     { label: 'Chest/Triceps', value: 'chest' },
     { label: 'Back/Biceps', value: 'back' },
@@ -213,6 +234,31 @@ function HypertrophyPage() {
         <p className="text-lg text-gray-700 italic mb-10">
           Training program designed to increase muscle size and mass.
         </p>
+        {/* Only show "Restart" if there is actually data to clear */}
+        {(selection || Object.keys(inputs).length > 0) && (
+          <div className="flex justify-start mb-6">
+            <button
+              onClick={handleReset}
+              className="text-sm font-medium text-gray-500 hover:text-red-600 flex items-center gap-1 transition-colors border border-gray-400 rounded-lg px-3 py-1 bg-white/50 shadow-sm"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Restart Session
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
           <div className="bg-sky-50 rounded-3xl p-6 shadow-lg">
