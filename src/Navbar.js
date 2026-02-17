@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink as RouterNavLink } from 'react-router-dom';
 import { auth } from './firebase'; // Import your auth instance
 import { loginWithGoogle } from './googleAuth'; // Import your function
 import { signOut } from 'firebase/auth';
@@ -49,25 +49,37 @@ function Navbar() {
   // Desktop Nav Link helper component
   function NavLink({ to, label }) {
     return (
-      <Link
+      <RouterNavLink
         to={to}
-        className="text-sky-50 font-medium hover:bg-sky-50 hover:text-blue-600 transition-all px-4 py-2 rounded-lg"
+        className={({ isActive }) =>
+          `font-medium transition-all px-4 py-2 rounded-lg ${
+            isActive
+              ? 'bg-sky-50 text-blue-700 shadow-md' // Highlighted state
+              : 'text-sky-50 hover:bg-sky-50/20' // Normal/Hover state
+          }`
+        }
       >
         {label}
-      </Link>
+      </RouterNavLink>
     );
   }
 
   // Mobile Nav Link helper component
   function MobileLink({ to, label, toggleMenu }) {
     return (
-      <Link
+      <RouterNavLink
         to={to}
         onClick={toggleMenu}
-        className="block text-blue-700 font-semibold rounded-lg px-3 py-2 transition-colors active:bg-blue-200"
+        className={({ isActive }) =>
+          `block rounded-lg px-3 py-2 transition-colors ${
+            isActive
+              ? 'bg-blue-100 text-blue-800 font-bold' // Highlighted state
+              : 'text-blue-700 font-semibold' // Normal state
+          }`
+        }
       >
         {label}
-      </Link>
+      </RouterNavLink>
     );
   }
 
