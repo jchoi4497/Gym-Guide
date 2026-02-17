@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, NavLink as RouterNavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { auth } from './firebase'; // Import your auth instance
 import { loginWithGoogle } from './googleAuth'; // Import your function
 import { signOut } from 'firebase/auth';
@@ -47,9 +47,9 @@ function Navbar() {
   }, []);
 
   // Desktop Nav Link helper component
-  function NavLink({ to, label }) {
+  function NavButton({ to, label }) {
     return (
-      <RouterNavLink
+      <NavLink
         to={to}
         className={({ isActive }) =>
           `font-medium transition-all px-4 py-2 rounded-lg ${
@@ -60,14 +60,14 @@ function Navbar() {
         }
       >
         {label}
-      </RouterNavLink>
+      </NavLink>
     );
   }
 
   // Mobile Nav Link helper component
   function MobileLink({ to, label, toggleMenu }) {
     return (
-      <RouterNavLink
+      <NavLink
         to={to}
         onClick={toggleMenu}
         className={({ isActive }) =>
@@ -79,7 +79,7 @@ function Navbar() {
         }
       >
         {label}
-      </RouterNavLink>
+      </NavLink>
     );
   }
 
@@ -95,9 +95,9 @@ function Navbar() {
 
       {/* Desktop Nav */}
       <div className="hidden md:flex space-x-6">
-        <NavLink to="/Hypertrophy" label="Create Workout" />
-        <NavLink to="/SavedWorkouts" label="Saved Workouts" />
-        <NavLink to="/TrainingStyle" label="More Info" />
+        <NavButton to="/Hypertrophy" label="Create Workout" />
+        <NavButton to="/SavedWorkouts" label="Saved Workouts" />
+        <NavButton to="/TrainingStyle" label="More Info" />
 
         {/* Profile UI */}
         {user ? (
