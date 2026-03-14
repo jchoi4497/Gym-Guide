@@ -9,45 +9,44 @@ import { collection, addDoc } from "firebase/firestore";
 
 
 function StrengthPage() {
-    const [selection, setSelection] = useState(null);
-    const [setCountSelection, setSetCountSelection] = useState(null);
-    const [inputs, setInputs] = useState({});
+    const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(null);
+    const [numberOfSets, setNumberOfSets] = useState(null);
+    const [exerciseData, setExerciseData] = useState({});
 
-    const onInput = (row, exercise, index, input) => {
-        const inputData = { ...inputs };
-        if (!inputData[row]) {
-            const input = new Array(setCountSelection).fill('');
-            inputData[row] = {
-                input,
-                selection: exercise,
+    const handleExerciseDataChange = (categoryKey, exerciseName, setIndex, setInput) => {
+        const updatedExerciseData = { ...exerciseData };
+        if (!updatedExerciseData[categoryKey]) {
+            const setsArray = new Array(numberOfSets).fill('');
+            updatedExerciseData[categoryKey] = {
+                input: setsArray,
+                selection: exerciseName,
             };
         }
 
-        if (index === -1) {
-            inputData[row].selection = exercise;
+        if (setIndex === -1) {
+            updatedExerciseData[categoryKey].selection = exerciseName;
         } else {
-
-            inputData[row].input[index] = input;
+            updatedExerciseData[categoryKey].input[setIndex] = setInput;
         }
 
-        console.log(inputData);
-        setInputs(inputData);
+        console.log(updatedExerciseData);
+        setExerciseData(updatedExerciseData);
     };
 
-    const handleSelect = (option) => {
-        setSelection(option);
+    const handleMuscleGroupSelect = (option) => {
+        setSelectedMuscleGroup(option);
     };
 
-    const repHandleSelect = (option) => {
-        setSetCountSelection(option);
+    const handleSetCountSelect = (option) => {
+        setNumberOfSets(option);
     };
 
     const handleSaveWorkout = async () => {
         const workoutDoc = await addDoc(collection(db, "workoutLogs"), {
-            // target: selection,
-            // reps: setCountSelection,
+            // target: selectedMuscleGroup,
+            // reps: numberOfSets,
             // timestamp: new Date(),
-            inputs: inputs
+            inputs: exerciseData
         });
     };
 
@@ -64,11 +63,11 @@ function StrengthPage() {
         { label: "5x5", value: "5" }
     ];
 
-    const label = useMemo(() => {
+    const setRangeLabel = useMemo(() => {
         return setOptions.find(option => {
-            return option.value === setCountSelection;
+            return option.value === numberOfSets;
         })?.label;
-    });
+    }, [numberOfSets]);
 
     return <div className="bg-sky-100 min-h-screen pt-10 font-serif pb-80 px-20">
         <div className="text-6xl mb-6 ml-10">Strength Training</div>
@@ -76,16 +75,16 @@ function StrengthPage() {
 
         <div className="flex m-10 space-x-12">
             <div className="">STEP 1. Select Muscle Group to Target.
-                <DropDown className="" options={options} value={selection} onChange={handleSelect} />
+                <DropDown className="" options={options} value={selectedMuscleGroup} onChange={handleMuscleGroupSelect} />
             </div>
             <div className="">STEP 2. Select Set x Rep Range
-                <DropDown className="" options={setOptions} value={setCountSelection} onChange={repHandleSelect} />
+                <DropDown className="" options={setOptions} value={numberOfSets} onChange={handleSetCountSelect} />
             </div>
         </div>
-        {selection === "chest" && setCountSelection && <ChestWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
-        {selection === "back" && setCountSelection && <BackWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
-        {selection === "legs" && setCountSelection && <LegsWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
-        {selection === "shoulders" && setCountSelection && <ShouldersWorkout target={selection} reps={setCountSelection} label={label} inputs={inputs} onInput={onInput} />}
+        {selectedMuscleGroup === "chest" && numberOfSets && <ChestWorkout muscleGroup={selectedMuscleGroup} numberOfSets={numberOfSets} setRangeLabel={setRangeLabel} exerciseData={exerciseData} onExerciseDataChange={handleExerciseDataChange} />}
+        {selectedMuscleGroup === "back" && numberOfSets && <BackWorkout muscleGroup={selectedMuscleGroup} numberOfSets={numberOfSets} setRangeLabel={setRangeLabel} exerciseData={exerciseData} onExerciseDataChange={handleExerciseDataChange} />}
+        {selectedMuscleGroup === "legs" && numberOfSets && <LegsWorkout muscleGroup={selectedMuscleGroup} numberOfSets={numberOfSets} setRangeLabel={setRangeLabel} exerciseData={exerciseData} onExerciseDataChange={handleExerciseDataChange} />}
+        {selectedMuscleGroup === "shoulders" && numberOfSets && <ShouldersWorkout muscleGroup={selectedMuscleGroup} numberOfSets={numberOfSets} setRangeLabel={setRangeLabel} exerciseData={exerciseData} onExerciseDataChange={handleExerciseDataChange} />}
 
         <div className="m-6 flex justify-end">
             <button className="px-5 py-2 rounded-3xl shadow-lg text-white
