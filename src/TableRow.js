@@ -1,19 +1,19 @@
 import DropDown from './DropDown';
 
 function TableRow({
-  reps,
+  numberOfSets,
   onChange,
   options,
   value,
   rowId,
   cellInput,
-  inputs,
+  setInputs,
   isCustom,
   onRemove,
 }) {
   const recordInputCells = () => {
     const cellElements = [];
-    for (let i = 0; i < Number(reps); i++) {
+    for (let i = 0; i < Number(numberOfSets); i++) {
       cellElements.push(
         <input
           key={i + rowId}
@@ -28,7 +28,7 @@ function TableRow({
                     "
           type="text"
           placeholder="Weight x Reps"
-          value={(inputs && inputs[i]) || ''}
+          value={(setInputs && setInputs[i]) || ''}
           onChange={(e) => cellInput(i, e.target.value)}
         />,
       );
