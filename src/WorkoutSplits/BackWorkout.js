@@ -2,7 +2,7 @@ import { useState } from 'react';
 import WorkoutTable from '../WorkoutTable';
 import AddExerciseButton from '../AddExerciseButton';
 
-function BackWorkout({ target, reps, label, inputs, onInput }) {
+function BackWorkout({ muscleGroup, numberOfSets, setRangeLabel, exerciseData, onExerciseDataChange }) {
   const pullUpOptions = [
     { label: 'Pull Ups', value: 'pu' },
     { label: 'Assisted Pull Ups', value: 'apu' },
@@ -70,23 +70,23 @@ function BackWorkout({ target, reps, label, inputs, onInput }) {
     );
 
     setExercises(exerciseOptions);
-    onInput(rowId, newExerciseValue, -1);
+    onExerciseDataChange(rowId, newExerciseValue, -1);
   };
 
   const handleInputChange = (rowId, selected, index, inputValue) => {
-    onInput(rowId, selected, index, inputValue);
+    onExerciseDataChange(rowId, selected, index, inputValue);
   };
 
   return (
     <div>
       <WorkoutTable
-        label={label}
-        target={target}
-        reps={reps}
+        setRangeLabel={setRangeLabel}
+        muscleGroup={muscleGroup}
+        numberOfSets={numberOfSets}
         exercises={exercises}
         onExerciseChange={handleExerciseChange}
         onCellInput={handleInputChange}
-        inputs={inputs}
+        exerciseData={exerciseData}
         onRemove={removeExercise}
       />
       <AddExerciseButton onClick={addCustomExercise} />

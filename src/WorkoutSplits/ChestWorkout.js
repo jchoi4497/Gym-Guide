@@ -2,7 +2,7 @@ import { useState } from 'react';
 import WorkoutTable from '../WorkoutTable';
 import AddExerciseButton from '../AddExerciseButton';
 
-function ChestWorkout({ target, reps, label, inputs, onInput, previousInputs }) {
+function ChestWorkout({ muscleGroup, numberOfSets, setRangeLabel, exerciseData, onExerciseDataChange, previousExerciseData }) {
   const inclineExerciseOptions = [
     { label: 'Dumbbell Incline Press', value: 'dip' },
     { label: 'Machine Incline Press', value: 'mip' },
@@ -79,23 +79,23 @@ function ChestWorkout({ target, reps, label, inputs, onInput, previousInputs }) 
     });
 
     setExercises(updatedExercises);
-    onInput(rowId, name, -1);
+    onExerciseDataChange(rowId, name, -1);
   };
 
   const handleInputChange = (rowId, selected, index, inputValue) => {
-    onInput(rowId, selected, index, inputValue);
+    onExerciseDataChange(rowId, selected, index, inputValue);
   };
 
   return (
     <div>
       <WorkoutTable
-        label={label}
-        target={target}
-        reps={reps}
+        setRangeLabel={setRangeLabel}
+        muscleGroup={muscleGroup}
+        numberOfSets={numberOfSets}
         exercises={exercises}
         onExerciseChange={handleExerciseChange}
         onCellInput={handleInputChange}
-        inputs={inputs}
+        exerciseData={exerciseData}
         onRemove={removeExercise}
       />
       <AddExerciseButton onClick={addCustomExercise} />

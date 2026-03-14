@@ -1,19 +1,19 @@
 import TableRow from './TableRow';
 
 function WorkoutTable({
-  label,
-  target,
-  reps,
+  setRangeLabel,
+  muscleGroup,
+  numberOfSets,
   exercises,
   onExerciseChange,
   onCellInput,
-  inputs,
+  exerciseData,
   onRemove,
 }) {
   return (
     <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4">
       <div className="text-xl font-bold mb-4 py-3 bg-blue-50 rounded-md text-center">
-        {label} - {target}
+        {setRangeLabel} - {muscleGroup}
       </div>
 
       <div className="flex flex-col">
@@ -24,8 +24,8 @@ function WorkoutTable({
             value={exercise.selected}
             options={exercise.options}
             isCustom={exercise.isCustom}
-            reps={reps}
-            inputs={inputs[exercise.id]?.input}
+            numberOfSets={numberOfSets}
+            setInputs={exerciseData[exercise.id]?.input}
             onChange={(newOption) => onExerciseChange(exercise.id, newOption)}
             cellInput={(index, inputValue) =>
               onCellInput(exercise.id, exercise.selected, index, inputValue)
