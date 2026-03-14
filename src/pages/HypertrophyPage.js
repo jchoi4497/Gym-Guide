@@ -4,10 +4,7 @@ import { collection, addDoc, query, where, orderBy, limit, getDocs } from 'fireb
 import { auth } from '../firebase'; // Make sure auth is imported
 import db from '../firebase';
 import DropDown from '../DropDown';
-import ChestWorkout from '../WorkoutSplits/ChestWorkout';
-import BackWorkout from '../WorkoutSplits/BackWorkout';
-import LegsWorkout from '../WorkoutSplits/LegsWorkout';
-import ShouldersWorkout from '../WorkoutSplits/ShouldersWorkout';
+import MuscleGroupWorkout from '../components/MuscleGroupWorkout';
 import Navbar from '../Navbar';
 import WorkoutNotesInput from '../WorkoutNotesInput';
 import { generateSummary } from '../summaryUtil';
@@ -279,38 +276,8 @@ function HypertrophyPage() {
         </div>
 
         <div className="mb-10">
-          {selectedMuscleGroup === 'chest' && numberOfSets && (
-            <ChestWorkout
-              muscleGroup={selectedMuscleGroup}
-              numberOfSets={numberOfSets}
-              setRangeLabel={setRangeLabel}
-              exerciseData={exerciseData}
-              onExerciseDataChange={handleExerciseDataChange}
-              previousExerciseData={previousWorkoutData?.inputs}
-            />
-          )}
-          {selectedMuscleGroup === 'back' && numberOfSets && (
-            <BackWorkout
-              muscleGroup={selectedMuscleGroup}
-              numberOfSets={numberOfSets}
-              setRangeLabel={setRangeLabel}
-              exerciseData={exerciseData}
-              onExerciseDataChange={handleExerciseDataChange}
-              previousExerciseData={previousWorkoutData?.inputs}
-            />
-          )}
-          {selectedMuscleGroup === 'legs' && numberOfSets && (
-            <LegsWorkout
-              muscleGroup={selectedMuscleGroup}
-              numberOfSets={numberOfSets}
-              setRangeLabel={setRangeLabel}
-              exerciseData={exerciseData}
-              onExerciseDataChange={handleExerciseDataChange}
-              previousExerciseData={previousWorkoutData?.inputs}
-            />
-          )}
-          {selectedMuscleGroup === 'shoulders' && numberOfSets && (
-            <ShouldersWorkout
+          {selectedMuscleGroup && numberOfSets && (
+            <MuscleGroupWorkout
               muscleGroup={selectedMuscleGroup}
               numberOfSets={numberOfSets}
               setRangeLabel={setRangeLabel}

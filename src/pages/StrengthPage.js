@@ -1,9 +1,6 @@
 import { useState, useMemo } from "react";
 import DropDown from "../DropDown";
-import ChestWorkout from "../WorkoutSplits/ChestWorkout";
-import BackWorkout from "../WorkoutSplits/BackWorkout";
-import LegsWorkout from "../WorkoutSplits/LegsWorkout";
-import ShouldersWorkout from "../WorkoutSplits/ShouldersWorkout";
+import MuscleGroupWorkout from "../components/MuscleGroupWorkout";
 import db from '../firebase';
 import { collection, addDoc } from "firebase/firestore";
 
@@ -81,10 +78,15 @@ function StrengthPage() {
                 <DropDown className="" options={setOptions} value={numberOfSets} onChange={handleSetCountSelect} />
             </div>
         </div>
-        {selectedMuscleGroup === "chest" && numberOfSets && <ChestWorkout muscleGroup={selectedMuscleGroup} numberOfSets={numberOfSets} setRangeLabel={setRangeLabel} exerciseData={exerciseData} onExerciseDataChange={handleExerciseDataChange} />}
-        {selectedMuscleGroup === "back" && numberOfSets && <BackWorkout muscleGroup={selectedMuscleGroup} numberOfSets={numberOfSets} setRangeLabel={setRangeLabel} exerciseData={exerciseData} onExerciseDataChange={handleExerciseDataChange} />}
-        {selectedMuscleGroup === "legs" && numberOfSets && <LegsWorkout muscleGroup={selectedMuscleGroup} numberOfSets={numberOfSets} setRangeLabel={setRangeLabel} exerciseData={exerciseData} onExerciseDataChange={handleExerciseDataChange} />}
-        {selectedMuscleGroup === "shoulders" && numberOfSets && <ShouldersWorkout muscleGroup={selectedMuscleGroup} numberOfSets={numberOfSets} setRangeLabel={setRangeLabel} exerciseData={exerciseData} onExerciseDataChange={handleExerciseDataChange} />}
+        {selectedMuscleGroup && numberOfSets && (
+            <MuscleGroupWorkout
+                muscleGroup={selectedMuscleGroup}
+                numberOfSets={numberOfSets}
+                setRangeLabel={setRangeLabel}
+                exerciseData={exerciseData}
+                onExerciseDataChange={handleExerciseDataChange}
+            />
+        )}
 
         <div className="m-6 flex justify-end">
             <button className="px-5 py-2 rounded-3xl shadow-lg text-white
