@@ -1,0 +1,693 @@
+// ====================================
+// MUSCLE GROUPS
+// ====================================
+export const MUSCLE_GROUPS = {
+  CHEST: 'chest',
+  BACK: 'back',
+  LEGS: 'legs',
+  SHOULDERS: 'shoulders',
+};
+
+// ====================================
+// EXERCISE CATEGORIES
+// ====================================
+export const EXERCISE_CATEGORIES = {
+  // Chest categories
+  INCLINE_PRESS: 'incline',
+  CHEST_PRESS: 'chestpress',
+  CHEST_FLY: 'fly',
+  TRICEP_PRIMARY: 'tri',
+  TRICEP_SECONDARY: 'tri2',
+
+  // Back categories
+  PULLUP: 'pullup',
+  ROW: 'row',
+  LAT_PULLDOWN: 'lat',
+  BICEP_PRIMARY: 'bicep',
+  BICEP_SECONDARY: 'bicep2',
+
+  // Legs categories
+  SQUAT: 'squat',
+  SPLIT_SQUAT: 'splitsquat',
+  BACK_EXTENSION: 'backextension',
+  CALF_RAISE: 'calfraise',
+
+  // Shoulders categories
+  REAR_DELT_PRIMARY: 'reardelt',
+  REAR_DELT_SECONDARY: 'reardelt2',
+  LAT_RAISE_PRIMARY: 'latraise',
+  LAT_RAISE_SECONDARY: 'latraise2',
+  WRIST_CURL: 'wristcurl',
+  REVERSE_WRIST_CURL: 'reversewristcurl',
+};
+
+// ====================================
+// EXERCISES DATABASE
+// ====================================
+export const EXERCISES = {
+  // ========== CHEST EXERCISES ==========
+
+  // Incline Press
+  DUMBBELL_INCLINE_PRESS: {
+    id: 'dip',
+    name: 'Dumbbell Incline Press',
+    category: EXERCISE_CATEGORIES.INCLINE_PRESS,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+  MACHINE_INCLINE_PRESS: {
+    id: 'mip',
+    name: 'Machine Incline Press',
+    category: EXERCISE_CATEGORIES.INCLINE_PRESS,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+  SMITH_MACHINE_INCLINE_PRESS: {
+    id: 'smip',
+    name: 'Smith Machine Incline Press',
+    category: EXERCISE_CATEGORIES.INCLINE_PRESS,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+  BARBELL_INCLINE_PRESS: {
+    id: 'bip',
+    name: 'Barbell Incline Press',
+    category: EXERCISE_CATEGORIES.INCLINE_PRESS,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+
+  // Chest Press
+  DUMBBELL_PRESS: {
+    id: 'dp',
+    name: 'Dumbbell Press',
+    category: EXERCISE_CATEGORIES.CHEST_PRESS,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+  MACHINE_PRESS: {
+    id: 'mp',
+    name: 'Machine Press',
+    category: EXERCISE_CATEGORIES.CHEST_PRESS,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+  SMITH_MACHINE_PRESS: {
+    id: 'smp',
+    name: 'Smith Machine Press',
+    category: EXERCISE_CATEGORIES.CHEST_PRESS,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+  BARBELL_PRESS: {
+    id: 'bp',
+    name: 'Barbell Press',
+    category: EXERCISE_CATEGORIES.CHEST_PRESS,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+
+  // Chest Fly
+  CHEST_FLY_MACHINE: {
+    id: 'cfm',
+    name: 'Chest Fly Machine',
+    category: EXERCISE_CATEGORIES.CHEST_FLY,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+  CABLE_FLYS: {
+    id: 'cf',
+    name: 'Cable Flys',
+    category: EXERCISE_CATEGORIES.CHEST_FLY,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+  DUMBBELL_FLYS: {
+    id: 'df',
+    name: 'Dumbbell Flys',
+    category: EXERCISE_CATEGORIES.CHEST_FLY,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+
+  // Tricep Exercises (used in both primary and secondary)
+  STRAIGHT_BAR_CABLE_PUSH_DOWNS: {
+    id: 'sbcpd',
+    name: 'Straight Bar Cable Push Downs',
+    category: EXERCISE_CATEGORIES.TRICEP_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+  ROPE_PULL_DOWNS: {
+    id: 'rpd',
+    name: 'Rope Pull Downs',
+    category: EXERCISE_CATEGORIES.TRICEP_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+  ONE_ARM_CABLE_PULL_DOWNS_TRICEP: {
+    id: 'oacpd',
+    name: '1 Arm Cable Pull Downs',
+    category: EXERCISE_CATEGORIES.TRICEP_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+  OVERHEAD_BAR_CABLE_EXTENSIONS: {
+    id: 'obce',
+    name: 'Overhead Bar Cable Extensions',
+    category: EXERCISE_CATEGORIES.TRICEP_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+  OVERHEAD_DUMBBELL_EXTENSIONS: {
+    id: 'ode',
+    name: 'Overhead Dumbbell Extensions',
+    category: EXERCISE_CATEGORIES.TRICEP_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+  DIPS: {
+    id: 'd',
+    name: 'Dips',
+    category: EXERCISE_CATEGORIES.TRICEP_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.CHEST,
+  },
+
+  // ========== BACK EXERCISES ==========
+
+  // Pull Ups
+  PULL_UPS: {
+    id: 'pu',
+    name: 'Pull Ups',
+    category: EXERCISE_CATEGORIES.PULLUP,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  ASSISTED_PULL_UPS: {
+    id: 'apu',
+    name: 'Assisted Pull Ups',
+    category: EXERCISE_CATEGORIES.PULLUP,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  LAT_PULL_DOWNS_PULLUP: {
+    id: 'lpd',
+    name: 'Lat Pull Downs',
+    category: EXERCISE_CATEGORIES.PULLUP,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  BAND_ASSIST_PULL_UPS: {
+    id: 'bapu',
+    name: 'Band Assist Pull Ups',
+    category: EXERCISE_CATEGORIES.PULLUP,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  NEGATIVE_PULL_UPS: {
+    id: 'npu',
+    name: 'Negative Pull Ups',
+    category: EXERCISE_CATEGORIES.PULLUP,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+
+  // Rows
+  MACHINE_ROWS: {
+    id: 'mr',
+    name: 'Machine Rows',
+    category: EXERCISE_CATEGORIES.ROW,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  BENT_OVER_ROWS_BARBELL: {
+    id: 'borb',
+    name: 'Bent Over Rows Barbell',
+    category: EXERCISE_CATEGORIES.ROW,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  BENT_OVER_ROWS_DUMBBELL: {
+    id: 'bord',
+    name: 'Bent Over Rows Dumbbell',
+    category: EXERCISE_CATEGORIES.ROW,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  ONE_ARM_BENT_OVER_ROWS: {
+    id: 'oabor',
+    name: '1 Arm Bent Over Rows',
+    category: EXERCISE_CATEGORIES.ROW,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  T_BAR_ROW: {
+    id: 'tbr',
+    name: 'T-bar row',
+    category: EXERCISE_CATEGORIES.ROW,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  CABLE_ROWS_ONE_ARM: {
+    id: 'croa',
+    name: 'Cable Rows 1 Arm',
+    category: EXERCISE_CATEGORIES.ROW,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  CABLE_ROWS_BAR: {
+    id: 'crb',
+    name: 'Cable Rows w/ Bar',
+    category: EXERCISE_CATEGORIES.ROW,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+
+  // Lat Pulldowns
+  LAT_PULL_DOWNS: {
+    id: 'lpdt',
+    name: 'Lat Pull Downs',
+    category: EXERCISE_CATEGORIES.LAT_PULLDOWN,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  ASSISTED_PULL_UPS_LAT: {
+    id: 'aput',
+    name: 'Assisted Pull Ups',
+    category: EXERCISE_CATEGORIES.LAT_PULLDOWN,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  V_BAR_PULL_DOWNS: {
+    id: 'vbpd',
+    name: 'V-bar Pull Downs',
+    category: EXERCISE_CATEGORIES.LAT_PULLDOWN,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  NEUTRAL_GRIP_LAT_PULL_DOWNS: {
+    id: 'nglpd',
+    name: 'Neutral Grip Lat Pull Downs',
+    category: EXERCISE_CATEGORIES.LAT_PULLDOWN,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  STRAIGHT_ARM_PULL_DOWNS: {
+    id: 'sapd',
+    name: 'Straight Arm Pull Downs',
+    category: EXERCISE_CATEGORIES.LAT_PULLDOWN,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+
+  // Bicep Exercises
+  DUMBBELL_BICEP_CURLS: {
+    id: 'dbc',
+    name: 'Dumbbell Bicep Curls',
+    category: EXERCISE_CATEGORIES.BICEP_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  STRAIGHT_BAR_BICEP_CURLS: {
+    id: 'sbbc',
+    name: 'Straight Bar Bicep Curls',
+    category: EXERCISE_CATEGORIES.BICEP_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  STRAIGHT_BAR_PREACHER_CURLS: {
+    id: 'sbpc',
+    name: 'Straight Bar Preacher Curls',
+    category: EXERCISE_CATEGORIES.BICEP_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  DUMBBELL_PREACHER_CURLS: {
+    id: 'dpc',
+    name: 'Dumbbell Preacher Curls',
+    category: EXERCISE_CATEGORIES.BICEP_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  CABLE_CURLS_BAR_GRIP: {
+    id: 'ccbg',
+    name: 'Cable Curls w/ Bar Grip',
+    category: EXERCISE_CATEGORIES.BICEP_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+  MACHINE_BICEP_CURLS: {
+    id: 'mbc',
+    name: 'Machine Bicep Curls',
+    category: EXERCISE_CATEGORIES.BICEP_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+  },
+
+  // ========== LEGS EXERCISES ==========
+
+  // Squats
+  BARBELL_SQUATS: {
+    id: 'bs',
+    name: 'Barbell Squats',
+    category: EXERCISE_CATEGORIES.SQUAT,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  SMITH_MACHINE_SQUATS: {
+    id: 'sms',
+    name: 'Smith Machine Squats',
+    category: EXERCISE_CATEGORIES.SQUAT,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  MACHINE_LEG_PRESS: {
+    id: 'mlp',
+    name: 'Machine Leg Press',
+    category: EXERCISE_CATEGORIES.SQUAT,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  GOBLET_SQUATS: {
+    id: 'gs',
+    name: 'Goblet Squats',
+    category: EXERCISE_CATEGORIES.SQUAT,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  LEG_EXTENSIONS: {
+    id: 'le',
+    name: 'Leg Extensions',
+    category: EXERCISE_CATEGORIES.SQUAT,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+
+  // Split Squats
+  DUMBBELL_BULGARIAN_SPLIT_SQUATS: {
+    id: 'dbss',
+    name: 'Dumbbell Bulgarian Split Squats',
+    category: EXERCISE_CATEGORIES.SPLIT_SQUAT,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  SMITH_MACHINE_BULGARIAN_SPLIT_SQUATS: {
+    id: 'smbss',
+    name: 'Smith Machine Bulgarian Split Squats',
+    category: EXERCISE_CATEGORIES.SPLIT_SQUAT,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  HACK_SQUATS: {
+    id: 'hs',
+    name: 'Hack Squats',
+    category: EXERCISE_CATEGORIES.SPLIT_SQUAT,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  LEG_CURLS: {
+    id: 'lc',
+    name: 'Leg Curls',
+    category: EXERCISE_CATEGORIES.SPLIT_SQUAT,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+
+  // Back Extensions
+  BACK_EXTENSIONS: {
+    id: 'be',
+    name: 'Back Extensions',
+    category: EXERCISE_CATEGORIES.BACK_EXTENSION,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  ROMANIAN_DEADLIFT: {
+    id: 'rdl',
+    name: 'Romanian Deadlift (RDL)',
+    category: EXERCISE_CATEGORIES.BACK_EXTENSION,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  DUMBBELL_RDL: {
+    id: 'dbrdl',
+    name: 'Dumbbell RDL',
+    category: EXERCISE_CATEGORIES.BACK_EXTENSION,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  DEADLIFT: {
+    id: 'dl',
+    name: 'Deadlift',
+    category: EXERCISE_CATEGORIES.BACK_EXTENSION,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  GOOD_MORNINGS: {
+    id: 'gm',
+    name: 'Good Mornings',
+    category: EXERCISE_CATEGORIES.BACK_EXTENSION,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+
+  // Calf Raises
+  CALF_RAISE_MACHINE: {
+    id: 'crm',
+    name: 'Calf Raise Machine',
+    category: EXERCISE_CATEGORIES.CALF_RAISE,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  SEATED_CALF_RAISES: {
+    id: 'scr',
+    name: 'Seated Calf Raises',
+    category: EXERCISE_CATEGORIES.CALF_RAISE,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  SMITH_MACHINE_CALF_RAISES: {
+    id: 'smcr',
+    name: 'Smith Machine Calf Raises',
+    category: EXERCISE_CATEGORIES.CALF_RAISE,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+  BARBELL_CALF_RAISES: {
+    id: 'bcr',
+    name: 'Barbell Calf Raises',
+    category: EXERCISE_CATEGORIES.CALF_RAISE,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+  },
+
+  // ========== SHOULDERS EXERCISES ==========
+
+  // Rear Delt
+  REAR_DELT_MACHINE: {
+    id: 'rdm',
+    name: 'Rear Delt Machine',
+    category: EXERCISE_CATEGORIES.REAR_DELT_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  ONE_ARM_REAR_DELT_MACHINE: {
+    id: 'oardm',
+    name: '1 Arm Rear Delt Machine',
+    category: EXERCISE_CATEGORIES.REAR_DELT_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  CABLE_REAR_DELT_FLYS: {
+    id: 'crdf',
+    name: 'Cable Rear Delt Flys',
+    category: EXERCISE_CATEGORIES.REAR_DELT_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  ONE_ARM_CABLE_REAR_DELT_FLYS: {
+    id: 'oacrdf',
+    name: '1 Arm Cable Rear Delt Flys',
+    category: EXERCISE_CATEGORIES.REAR_DELT_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  DUMBBELL_REAR_DELT_FLYS: {
+    id: 'drdf',
+    name: 'Dumbbell Rear Delt Flys',
+    category: EXERCISE_CATEGORIES.REAR_DELT_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  CABLE_FACE_PULLS: {
+    id: 'cfp',
+    name: 'Cable Face Pulls',
+    category: EXERCISE_CATEGORIES.REAR_DELT_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+
+  // Lateral Raises
+  DUMBBELL_LAT_RAISES: {
+    id: 'dlr',
+    name: 'Dumbbell Lat Raises',
+    category: EXERCISE_CATEGORIES.LAT_RAISE_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  ONE_ARM_CABLE_LAT_RAISES: {
+    id: 'oacdlr',
+    name: '1 Arm Cable Lat Raises',
+    category: EXERCISE_CATEGORIES.LAT_RAISE_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  MACHINE_LAT_RAISES: {
+    id: 'mlr',
+    name: 'Machine Lat Raises',
+    category: EXERCISE_CATEGORIES.LAT_RAISE_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+
+  // Wrist Curls
+  CABLE_WRIST_CURLS: {
+    id: 'cwc',
+    name: 'Cable Wrist Curls w/ Bar',
+    category: EXERCISE_CATEGORIES.WRIST_CURL,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  BARBELL_BEHIND_BACK_WRIST_CURLS: {
+    id: 'bbbwc',
+    name: 'Barbell Behind Back Wrist Curls',
+    category: EXERCISE_CATEGORIES.WRIST_CURL,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  DUMBBELL_WRIST_CURLS: {
+    id: 'dbwc',
+    name: 'Dumbbell Wrist Curls',
+    category: EXERCISE_CATEGORIES.WRIST_CURL,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+
+  // Reverse Wrist Curls
+  REVERSE_DUMBBELL_WRIST_CURLS: {
+    id: 'rdbwc',
+    name: 'Reverse Dumbbell Wrist Curls',
+    category: EXERCISE_CATEGORIES.REVERSE_WRIST_CURL,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  FOREARM_CURLS_EASY_BAR: {
+    id: 'fc',
+    name: 'Forearm Curls w/ Easy Bar',
+    category: EXERCISE_CATEGORIES.REVERSE_WRIST_CURL,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+};
+
+// ====================================
+// HELPER FUNCTIONS
+// ====================================
+
+/**
+ * Get all exercises for a specific category
+ * Returns array of {label, value} for dropdown options
+ */
+export function getExercisesByCategory(category) {
+  return Object.values(EXERCISES)
+    .filter(exercise => exercise.category === category)
+    .map(exercise => ({
+      label: exercise.name,
+      value: exercise.id,
+    }));
+}
+
+/**
+ * Get all exercises for a specific muscle group
+ * Returns array of {label, value} for dropdown options
+ */
+export function getExercisesByMuscleGroup(muscleGroup) {
+  return Object.values(EXERCISES)
+    .filter(exercise => exercise.muscleGroup === muscleGroup)
+    .map(exercise => ({
+      label: exercise.name,
+      value: exercise.id,
+    }));
+}
+
+/**
+ * Get exercise by ID
+ */
+export function getExerciseById(exerciseId) {
+  return Object.values(EXERCISES).find(exercise => exercise.id === exerciseId);
+}
+
+/**
+ * Get exercise name by ID
+ */
+export function getExerciseName(exerciseId) {
+  const exercise = getExerciseById(exerciseId);
+  return exercise ? exercise.name : exerciseId; // Fallback to ID if not found
+}
+
+// ====================================
+// DEFAULT EXERCISE CONFIGURATIONS
+// ====================================
+
+/**
+ * Default exercise setup for each muscle group
+ * These match the original defaults from the workout components
+ */
+export const DEFAULT_EXERCISES = {
+  [MUSCLE_GROUPS.CHEST]: [
+    {
+      id: EXERCISE_CATEGORIES.INCLINE_PRESS,
+      selected: 'dip', // Dumbbell Incline Press
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.INCLINE_PRESS),
+    },
+    {
+      id: EXERCISE_CATEGORIES.CHEST_PRESS,
+      selected: 'mp', // Machine Press
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.CHEST_PRESS),
+    },
+    {
+      id: EXERCISE_CATEGORIES.CHEST_FLY,
+      selected: 'cfm', // Chest Fly Machine
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.CHEST_FLY),
+    },
+    {
+      id: EXERCISE_CATEGORIES.TRICEP_PRIMARY,
+      selected: 'sbcpd', // Straight Bar Cable Push Downs
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.TRICEP_PRIMARY),
+    },
+    {
+      id: EXERCISE_CATEGORIES.TRICEP_SECONDARY,
+      selected: 'oacpd', // 1 Arm Cable Pull Downs (using same exercises as primary)
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.TRICEP_PRIMARY),
+    },
+  ],
+
+  [MUSCLE_GROUPS.BACK]: [
+    {
+      id: EXERCISE_CATEGORIES.PULLUP,
+      selected: 'pu', // Pull Ups
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.PULLUP),
+    },
+    {
+      id: EXERCISE_CATEGORIES.ROW,
+      selected: 'mr', // Machine Rows
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.ROW),
+    },
+    {
+      id: EXERCISE_CATEGORIES.LAT_PULLDOWN,
+      selected: 'lpdt', // Lat Pull Downs
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.LAT_PULLDOWN),
+    },
+    {
+      id: EXERCISE_CATEGORIES.BICEP_PRIMARY,
+      selected: 'dbc', // Dumbbell Bicep Curls
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.BICEP_PRIMARY),
+    },
+    {
+      id: EXERCISE_CATEGORIES.BICEP_SECONDARY,
+      selected: 'sbpc', // Straight Bar Preacher Curls (using same exercises as primary)
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.BICEP_PRIMARY),
+    },
+  ],
+
+  [MUSCLE_GROUPS.LEGS]: [
+    {
+      id: EXERCISE_CATEGORIES.SQUAT,
+      selected: 'bs', // Barbell Squats
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.SQUAT),
+    },
+    {
+      id: EXERCISE_CATEGORIES.SPLIT_SQUAT,
+      selected: 'dbss', // Dumbbell Bulgarian Split Squats
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.SPLIT_SQUAT),
+    },
+    {
+      id: EXERCISE_CATEGORIES.BACK_EXTENSION,
+      selected: 'be', // Back Extensions
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.BACK_EXTENSION),
+    },
+    {
+      id: EXERCISE_CATEGORIES.CALF_RAISE,
+      selected: 'crm', // Calf Raise Machine
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.CALF_RAISE),
+    },
+  ],
+
+  [MUSCLE_GROUPS.SHOULDERS]: [
+    {
+      id: EXERCISE_CATEGORIES.REAR_DELT_PRIMARY,
+      selected: 'rdm', // Rear Delt Machine
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.REAR_DELT_PRIMARY),
+    },
+    {
+      id: EXERCISE_CATEGORIES.LAT_RAISE_PRIMARY,
+      selected: 'dlr', // Dumbbell Lat Raises
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.LAT_RAISE_PRIMARY),
+    },
+    {
+      id: EXERCISE_CATEGORIES.REAR_DELT_SECONDARY,
+      selected: 'oacrdf', // 1 Arm Cable Rear Delt Flys (using same exercises as primary)
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.REAR_DELT_PRIMARY),
+    },
+    {
+      id: EXERCISE_CATEGORIES.LAT_RAISE_SECONDARY,
+      selected: 'oacdlr', // 1 Arm Cable Lat Raises (using same exercises as primary)
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.LAT_RAISE_PRIMARY),
+    },
+    {
+      id: EXERCISE_CATEGORIES.WRIST_CURL,
+      selected: 'cwc', // Cable Wrist Curls w/ Bar
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.WRIST_CURL),
+    },
+    {
+      id: EXERCISE_CATEGORIES.REVERSE_WRIST_CURL,
+      selected: 'rdbwc', // Reverse Dumbbell Wrist Curls
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.REVERSE_WRIST_CURL),
+    },
+  ],
+};
+
+/**
+ * Get default exercises for a muscle group
+ */
+export function getDefaultExercises(muscleGroup) {
+  return DEFAULT_EXERCISES[muscleGroup] || [];
+}
