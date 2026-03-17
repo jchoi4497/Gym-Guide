@@ -16,8 +16,11 @@ function WorkoutInputs({
   return (
     <div className="mb-8">
       {order.map((key) => {
-        const data = isEditing ? editedInputs[key] : workoutData.inputs[key];
-        const prevData = previousWorkoutData?.inputs[key];
+        // Handle both old (inputs) and new (exerciseData) field names
+        const workoutExercises = isEditing ? editedInputs : (workoutData.exerciseData || workoutData.inputs);
+        const data = workoutExercises[key];
+        const prevWorkoutExercises = previousWorkoutData?.exerciseData || previousWorkoutData?.inputs;
+        const prevData = prevWorkoutExercises?.[key];
         if (!data) return null;
 
         return (
@@ -38,31 +41,34 @@ function WorkoutInputs({
                 <input
                   type="text"
                   placeholder="Exercise Name"
-                  value={exerciseNames[data.selection] || data.selection}
+                  value={exerciseNames[data.exerciseName || data.selection] || data.exerciseName || data.selection}
                   onChange={(e) => {
                     const newInputs = { ...editedInputs };
-                    newInputs[key].selection = e.target.value;
+                    newInputs[key].exerciseName = e.target.value;
+                    newInputs[key].selection = e.target.value; // Keep for backward compatibility
                     setEditedInputs(newInputs);
                   }}
                   className="bg-transparent border-b-2 border-sky-200 focus:border-sky-500 outline-none px-1"
                 />
               ) : (
-                exerciseNames[data.selection] || data.selection
+                exerciseNames[data.exerciseName || data.selection] || data.exerciseName || data.selection
               )}
             </div>
 
             <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 sm:space-y-0">
               <div className="flex-1 flex flex-wrap gap-3">
-                {data.input?.map((weight, idx) => (
+                {(data.sets || data.input || []).map((weight, idx) => (
                   <div key={idx}>
                     {isEditing ? (
                       <input
                         type="text"
-                        value={editedInputs[key]?.input?.[idx] || ''}
+                        value={(editedInputs[key]?.sets || editedInputs[key]?.input)?.[idx] || ''}
                         onChange={(e) => {
                           const newInputs = { ...editedInputs };
-                          if (!newInputs[key].input) newInputs[key].input = [];
-                          newInputs[key].input[idx] = e.target.value;
+                          if (!newInputs[key].sets) newInputs[key].sets = [];
+                          if (!newInputs[key].input) newInputs[key].input = []; // Keep for backward compatibility
+                          newInputs[key].sets[idx] = e.target.value;
+                          newInputs[key].input[idx] = e.target.value; // Keep for backward compatibility
                           setEditedInputs(newInputs);
                         }}
                         className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl border min-w-[60px] text-center"

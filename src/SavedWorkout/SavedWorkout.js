@@ -19,6 +19,7 @@ import WorkoutInputs from './WorkoutInputs';
 import WorkoutNotes from './WorkoutNotes';
 import WorkoutAnalysis from './WorkoutAnalysis';
 import AddExerciseButton from '../AddExerciseButton';
+import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from '../constants';
 
 function SavedWorkout() {
   const { workoutId } = useParams();
@@ -36,14 +37,8 @@ function SavedWorkout() {
   const [exerciseOrder, setExerciseOrder] = useState([]);
 
   //used to get label of workout on savedworkout page
-  const muscleOptions = [
-    { label: 'Chest/Triceps', value: 'chest' },
-    { label: 'Back/Biceps', value: 'back' },
-    { label: 'Legs', value: 'legs' },
-    { label: 'Shoulders/Forearms', value: 'shoulders' },
-  ];
   const getLabel = (value) =>
-    muscleOptions.find((option) => option.value === value)?.label || value;
+    MUSCLE_GROUP_OPTIONS.find((option) => option.value === value)?.label || value;
 
   const categoryOrder = {
     chest: ['incline', 'chestpress', 'fly', 'tri', 'tri2'],
@@ -52,21 +47,36 @@ function SavedWorkout() {
     shoulders: ['reardelt', 'latraise', 'reardelt2', 'latraise2', 'wristcurl', 'reversewristcurl'],
   };
 
-  const fetchPreviousWorkout = async (target, currentDate) => {
+  const fetchPreviousWorkout = async (muscleGroup, currentDate) => {
     const user = auth.currentUser;
-    if (!user || !target || !currentDate) return;
+    if (!user || !muscleGroup || !currentDate) return;
 
     try {
-      const q = query(
+      // Try with new field name first
+      let q = query(
         collection(db, 'workoutLogs'),
-        where('userId', '==', user.uid),
-        where('target', '==', target),
-        where('date', '<', currentDate),
-        orderBy('date', 'desc'),
+        where(FIREBASE_FIELDS.USER_ID, '==', user.uid),
+        where(FIREBASE_FIELDS.MUSCLE_GROUP, '==', muscleGroup),
+        where(FIREBASE_FIELDS.DATE, '<', currentDate),
+        orderBy(FIREBASE_FIELDS.DATE, 'desc'),
         limit(4),
       );
 
-      const querySnapshot = await getDocs(q);
+      let querySnapshot = await getDocs(q);
+
+      // If no results, try with old field name (backward compatibility)
+      if (querySnapshot.empty) {
+        q = query(
+          collection(db, 'workoutLogs'),
+          where(FIREBASE_FIELDS.USER_ID, '==', user.uid),
+          where(FIREBASE_FIELDS.LEGACY_TARGET, '==', muscleGroup),
+          where(FIREBASE_FIELDS.DATE, '<', currentDate),
+          orderBy(FIREBASE_FIELDS.DATE, 'desc'),
+          limit(4),
+        );
+        querySnapshot = await getDocs(q);
+      }
+
       const docs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 
       // Update both states immediately
@@ -80,9 +90,11 @@ function SavedWorkout() {
   // Can I add fetchpreviousworkout(workoutdata.date to this useeffect or create new one)
   useEffect(() => {
     // Only fetch if we have the requirements AND we haven't loaded history yet
-    if (workoutData?.target && workoutData?.date) {
+    // Handle both old (target) and new (muscleGroup) field names
+    const muscleGroup = workoutData?.muscleGroup || workoutData?.target;
+    if (muscleGroup && workoutData?.date) {
       if (monthlyWorkoutData.length === 0) {
-        fetchPreviousWorkout(workoutData.target, workoutData.date);
+        fetchPreviousWorkout(muscleGroup, workoutData.date);
       }
     }
   }, [workoutData, monthlyWorkoutData.length]);
@@ -112,12 +124,15 @@ function SavedWorkout() {
         }
 
         setWorkoutData(data);
-        setEditedInputs(data.inputs);
+        // Handle both old (inputs) and new (exerciseData) field names
+        const exerciseData = data.exerciseData || data.inputs || {};
+        setEditedInputs(exerciseData);
         setNote(data.note || '');
         setSummary(data.summary || '');
         // CREATE THE INITIAL ORDER
-        const inputKeys = Object.keys(data.inputs);
-        const orderedKeysFromCategory = categoryOrder[data.target] || [];
+        const inputKeys = Object.keys(exerciseData);
+        const muscleGroup = data.muscleGroup || data.target;
+        const orderedKeysFromCategory = categoryOrder[muscleGroup] || [];
         // Filter existing keys based on your preferred order, then append any extras (custom ones)
         const sorted = [
           ...orderedKeysFromCategory.filter((key) => inputKeys.includes(key)),
@@ -139,7 +154,13 @@ function SavedWorkout() {
     setExerciseOrder((prev) => [...prev, customId]);
     setEditedInputs((prev) => ({
       ...prev,
-      [customId]: { selection: '', input: ['', '', '', ''] },
+      [customId]: {
+        exerciseName: '',
+        sets: ['', '', '', ''],
+        // Keep old field names for backward compatibility
+        selection: '',
+        input: ['', '', '', '']
+      },
     }));
   };
 
@@ -164,7 +185,7 @@ function SavedWorkout() {
   const handleSaveChanges = async () => {
     // 1. Get all names, filter out any undefined/null, and trim them
     const names = Object.values(editedInputs)
-      .map((ex) => ex.selection?.toLowerCase().trim())
+      .map((ex) => (ex.exerciseName || ex.selection)?.toLowerCase().trim())
       .filter((name) => name && name !== ''); // Only check rows that actually have a name
 
     // 2. Check for duplicates
@@ -178,20 +199,24 @@ function SavedWorkout() {
     // 3. If no duplicates, proceed with saving
     try {
       setIsSaving(true);
-      const newSummary = await generateSummary(editedInputs, note, previousWorkoutData?.inputs);
+      const prevExerciseData = previousWorkoutData?.exerciseData || previousWorkoutData?.inputs;
+      const newSummary = await generateSummary(editedInputs, note, prevExerciseData);
       const docRef = doc(db, 'workoutLogs', workoutId);
 
+      // Update with new field name, but keep old for backward compatibility
       await updateDoc(docRef, {
-        inputs: editedInputs,
-        note: note,
-        summary: newSummary,
+        [FIREBASE_FIELDS.EXERCISE_DATA]: editedInputs,
+        [FIREBASE_FIELDS.LEGACY_INPUTS]: editedInputs, // Keep for backward compatibility
+        [FIREBASE_FIELDS.NOTE]: note,
+        [FIREBASE_FIELDS.SUMMARY]: newSummary,
       });
 
       setWorkoutData((prev) => ({
         ...prev,
-        inputs: editedInputs,
-        note: note,
-        summary: newSummary,
+        [FIREBASE_FIELDS.EXERCISE_DATA]: editedInputs,
+        [FIREBASE_FIELDS.LEGACY_INPUTS]: editedInputs, // Keep for backward compatibility
+        [FIREBASE_FIELDS.NOTE]: note,
+        [FIREBASE_FIELDS.SUMMARY]: newSummary,
       }));
 
       setSummary(newSummary);
@@ -206,12 +231,14 @@ function SavedWorkout() {
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
-  if (!workoutData || !workoutData.inputs) return <div>No workout data found.</div>;
+  // Handle both old and new field names
+  const exerciseData = workoutData?.exerciseData || workoutData?.inputs;
+  if (!workoutData || !exerciseData) return <div>No workout data found.</div>;
 
-  const targetValue = workoutData.target;
+  const muscleGroup = workoutData.muscleGroup || workoutData.target;
 
-  const orderedKeys = categoryOrder[targetValue] || [];
-  const inputKeys = Object.keys(workoutData.inputs);
+  const orderedKeys = categoryOrder[muscleGroup] || [];
+  const inputKeys = Object.keys(exerciseData);
   const orderedInputs = orderedKeys.filter((key) => inputKeys.includes(key));
   const remainingInputs = inputKeys.filter((key) => !orderedKeys.includes(key));
   const order = [...orderedInputs, ...remainingInputs];
@@ -221,7 +248,7 @@ function SavedWorkout() {
       <Navbar />
       <div className="px-4 sm:px-20">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-          <div className="text-5xl">{getLabel(workoutData.target)} Workout</div>
+          <div className="text-5xl">{getLabel(muscleGroup)} Workout</div>
           <div className="flex items-center space-x-4">
             {workoutData.date && (
               <div className="text-5xl text-gray-600">

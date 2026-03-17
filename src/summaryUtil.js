@@ -8,8 +8,12 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
   const buildExerciseSummaryText = (inputs) => {
     return Object.entries(inputs)
       .map(([key, data]) => {
-        const exerciseName = exerciseNames[data.selection] || data.selection;
-        const sets = data.input
+        // Handle both old (selection) and new (exerciseName) field names
+        const exerciseName = exerciseNames[data.exerciseName || data.selection] || data.exerciseName || data.selection;
+
+        // Handle both old (input) and new (sets) field names
+        const setsData = data.sets || data.input || [];
+        const sets = setsData
           .filter(set => set.trim() !== "")
           .map(set => {
             const parsed = parseWeightReps(set);
@@ -29,7 +33,9 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
       const dateLabel = workout.date
         ? new Date(workout.date.seconds * 1000).toLocaleDateString()
         : "Unknown Date";
-      return `${dateLabel} - ${buildExerciseSummaryText(workout.inputs || {})}`;
+      // Handle both old (inputs) and new (exerciseData) field names
+      const workoutExercises = workout.exerciseData || workout.inputs || {};
+      return `${dateLabel} - ${buildExerciseSummaryText(workoutExercises)}`;
     })
       .join('/n');
   };

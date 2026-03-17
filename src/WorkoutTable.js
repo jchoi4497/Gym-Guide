@@ -25,7 +25,7 @@ function WorkoutTable({
             options={exercise.options}
             isCustom={exercise.isCustom}
             numberOfSets={numberOfSets}
-            setInputs={exerciseData[exercise.id]?.input}
+            setInputs={exerciseData[exercise.id]?.sets}
             onChange={(newOption) => onExerciseChange(exercise.id, newOption)}
             cellInput={(index, inputValue) =>
               onCellInput(exercise.id, exercise.selected, index, inputValue)
