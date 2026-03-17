@@ -4,6 +4,7 @@ import db, { auth } from './firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, query, orderBy, deleteDoc, doc, where } from 'firebase/firestore';
 import Navbar from './Navbar';
+import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from './constants';
 
 function ListOfWorkouts() {
   const [workouts, setWorkouts] = useState([]);
@@ -11,13 +12,6 @@ function ListOfWorkouts() {
   const [error, setError] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null); // modal state
   const [isDeleting, setIsDeleting] = useState(false); // loading state for deletion
-
-  const options = [
-    { label: 'Chest/Triceps', value: 'chest' },
-    { label: 'Back/Biceps', value: 'back' },
-    { label: 'Legs', value: 'legs' },
-    { label: 'Shoulders/Forearms', value: 'shoulders' },
-  ];
 
   const handleDeleteWorkout = async (id) => {
     setIsDeleting(true);
@@ -33,7 +27,7 @@ function ListOfWorkouts() {
   };
 
   function getLabel(value) {
-    return options.find((option) => option.value === value)?.label || value;
+    return MUSCLE_GROUP_OPTIONS.find((option) => option.value === value)?.label || value;
   }
 
   const fetchWorkouts = async (user) => {
@@ -42,8 +36,8 @@ function ListOfWorkouts() {
 
       const q = query(
         collection(db, 'workoutLogs'),
-        where('userId', '==', user.uid),
-        orderBy('date', 'desc'),
+        where(FIREBASE_FIELDS.USER_ID, '==', user.uid),
+        orderBy(FIREBASE_FIELDS.DATE, 'desc'),
       );
 
       const querySnapshot = await getDocs(q);
@@ -115,7 +109,7 @@ function ListOfWorkouts() {
             >
               <div>
                 <div className="text-xl font-semibold">
-                  {getLabel(workout.target?.label ?? workout.target)}
+                  {getLabel((workout.muscleGroup || workout.target)?.label ?? (workout.muscleGroup || workout.target))}
                 </div>
                 <div className="text-gray-600">Date: {dateFormat}</div>
                 <button>

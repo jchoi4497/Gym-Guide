@@ -8,6 +8,7 @@ import MuscleGroupWorkout from '../components/MuscleGroupWorkout';
 import Navbar from '../Navbar';
 import WorkoutNotesInput from '../WorkoutNotesInput';
 import { generateSummary } from '../summaryUtil';
+import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS, STORAGE_KEYS, FIREBASE_FIELDS } from '../constants';
 
 function HypertrophyPage() {
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(null);
@@ -19,11 +20,12 @@ function HypertrophyPage() {
 
   // RECOVER DRAFT ON LOAD ---
   useEffect(() => {
-    const savedDraft = localStorage.getItem('active_workout_draft');
+    const savedDraft = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
     if (savedDraft) {
       const parsed = JSON.parse(savedDraft);
-      // Only ask if there's actually meaningful data (like inputs)
-      const hasData = parsed.inputs && Object.keys(parsed.inputs).length > 0;
+      // Check for data in both old and new format
+      const hasData = (parsed.inputs && Object.keys(parsed.inputs).length > 0) ||
+                      (parsed.exerciseData && Object.keys(parsed.exerciseData).length > 0);
 
       if (hasData) {
         const confirmResume = window.confirm(
@@ -31,14 +33,38 @@ function HypertrophyPage() {
         );
 
         if (confirmResume) {
-          if (parsed.selection) setSelectedMuscleGroup(parsed.selection);
-          if (parsed.setCountSelection) setNumberOfSets(parsed.setCountSelection);
-          if (parsed.inputs) setExerciseData(parsed.inputs);
+          // Handle muscle group (old: selection, new: selectedMuscleGroup)
+          if (parsed.selectedMuscleGroup || parsed.selection) {
+            setSelectedMuscleGroup(parsed.selectedMuscleGroup || parsed.selection);
+          }
+
+          // Handle set count (old: setCountSelection, new: numberOfSets)
+          if (parsed.numberOfSets || parsed.setCountSelection) {
+            setNumberOfSets(parsed.numberOfSets || parsed.setCountSelection);
+          }
+
+          // Handle exercise data (old: inputs, new: exerciseData)
+          if (parsed.exerciseData || parsed.inputs) {
+            const dataToRestore = parsed.exerciseData || parsed.inputs;
+
+            // Convert old format to new format if needed
+            const convertedData = {};
+            Object.keys(dataToRestore).forEach(key => {
+              const exercise = dataToRestore[key];
+              convertedData[key] = {
+                sets: exercise.sets || exercise.input || [],
+                exerciseName: exercise.exerciseName || exercise.selection || '',
+              };
+            });
+
+            setExerciseData(convertedData);
+          }
+
           if (parsed.note) setNote(parsed.note);
           console.log('Workout draft restored from local storage.');
         } else {
           // If they say No, clear the old draft so they start fresh
-          localStorage.removeItem('active_workout_draft');
+          localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
         }
       }
     }
@@ -48,8 +74,13 @@ function HypertrophyPage() {
   useEffect(() => {
     // Only save if the user has at least started a workout (selected a muscle group)
     if (selectedMuscleGroup) {
-      const draft = { selection: selectedMuscleGroup, setCountSelection: numberOfSets, inputs: exerciseData, note };
-      localStorage.setItem('active_workout_draft', JSON.stringify(draft));
+      const draft = {
+        selectedMuscleGroup,
+        numberOfSets,
+        exerciseData,
+        note
+      };
+      localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT, JSON.stringify(draft));
     }
   }, [selectedMuscleGroup, numberOfSets, exerciseData, note]);
 
@@ -86,15 +117,31 @@ function HypertrophyPage() {
     if (!user) return null;
 
     try {
-      const q = query(
+      // Try querying with new field name first
+      let q = query(
         collection(db, 'workoutLogs'),
-        where('userId', '==', user.uid),
-        where('target', '==', selectedMuscleGroup),
-        where('date', '<', currentDate),
-        orderBy('date', 'desc'),
-        limit(1), // get 2 most recent workouts
+        where(FIREBASE_FIELDS.USER_ID, '==', user.uid),
+        where(FIREBASE_FIELDS.MUSCLE_GROUP, '==', selectedMuscleGroup),
+        where(FIREBASE_FIELDS.DATE, '<', currentDate),
+        orderBy(FIREBASE_FIELDS.DATE, 'desc'),
+        limit(1),
       );
-      const querySnapshot = await getDocs(q);
+
+      let querySnapshot = await getDocs(q);
+
+      // If no results with new field name, try old field name (backward compatibility)
+      if (querySnapshot.empty) {
+        q = query(
+          collection(db, 'workoutLogs'),
+          where(FIREBASE_FIELDS.USER_ID, '==', user.uid),
+          where(FIREBASE_FIELDS.LEGACY_TARGET, '==', selectedMuscleGroup),
+          where(FIREBASE_FIELDS.DATE, '<', currentDate),
+          orderBy(FIREBASE_FIELDS.DATE, 'desc'),
+          limit(1),
+        );
+        querySnapshot = await getDocs(q);
+      }
+
       if (!querySnapshot.empty) {
         const doc = querySnapshot.docs[0];
         return { id: doc.id, ...doc.data() }; // Return previous workout
@@ -112,17 +159,17 @@ function HypertrophyPage() {
     if (!updatedExerciseData[categoryKey]) {
       const setsArray = new Array(numberOfSets).fill('');
       updatedExerciseData[categoryKey] = {
-        input: setsArray,
-        selection: exerciseName,
+        sets: setsArray,
+        exerciseName: exerciseName,
       };
     }
 
     if (setIndex === -1) {
       // -1 means changing the exercise selection
-      updatedExerciseData[categoryKey].selection = exerciseName;
+      updatedExerciseData[categoryKey].exerciseName = exerciseName;
     } else {
       // Otherwise updating a specific set
-      updatedExerciseData[categoryKey].input[setIndex] = setInput;
+      updatedExerciseData[categoryKey].sets[setIndex] = setInput;
     }
 
     console.log(updatedExerciseData);
@@ -154,22 +201,25 @@ function HypertrophyPage() {
       console.log(workoutDate);
       const prevWorkout = await fetchPreviousWorkout(workoutDate);
       console.log('fetch prev workout:', prevWorkout);
-      // Generate New Summary
-      const newSummary = await generateSummary(exerciseData, note, prevWorkout?.inputs);
+      // Get previous workout data in the right format for summary generation
+      const prevExerciseData = prevWorkout?.exerciseData || prevWorkout?.inputs;
 
-      // Save WorkoutLog with ai summary (keeping Firebase field names for now)
+      // Generate New Summary
+      const newSummary = await generateSummary(exerciseData, note, prevExerciseData);
+
+      // Save WorkoutLog with new field names
       const docRef = await addDoc(collection(db, 'workoutLogs'), {
-        userId: user.uid,
-        target: selectedMuscleGroup,
-        reps: numberOfSets,
-        date: workoutDate,
-        inputs: exerciseData,
-        note: note,
-        summary: newSummary,
+        [FIREBASE_FIELDS.USER_ID]: user.uid,
+        [FIREBASE_FIELDS.MUSCLE_GROUP]: selectedMuscleGroup,
+        [FIREBASE_FIELDS.NUMBER_OF_SETS]: numberOfSets,
+        [FIREBASE_FIELDS.DATE]: workoutDate,
+        [FIREBASE_FIELDS.EXERCISE_DATA]: exerciseData,
+        [FIREBASE_FIELDS.NOTE]: note,
+        [FIREBASE_FIELDS.SUMMARY]: newSummary,
       });
 
       // CLEAR LOCAL STORAGE ON SUCCESS ---
-      localStorage.removeItem('active_workout_draft');
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
 
       // Get the document ID
       const workoutId = docRef.id;
@@ -199,29 +249,15 @@ function HypertrophyPage() {
       setPreviousWorkoutData(null);
 
       // 2. Clear the local storage draft
-      localStorage.removeItem('active_workout_draft');
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
 
       // 3. Scroll to top so user sees the "Step 1" section
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const options = [
-    { label: 'Chest/Triceps', value: 'chest' },
-    { label: 'Back/Biceps', value: 'back' },
-    { label: 'Legs', value: 'legs' },
-    { label: 'Shoulders/Forearms', value: 'shoulders' },
-  ];
-
-  //reps
-  const setCountOptions = [
-    { label: '3x15', value: 3 },
-    { label: '4x12', value: 4 },
-    { label: '5x8', value: 5 },
-  ];
-
   const setRangeLabel = useMemo(() => {
-    return setCountOptions.find((option) => option.value === numberOfSets)?.label;
+    return SET_RANGE_OPTIONS.find((option) => option.value === numberOfSets)?.label;
   }, [numberOfSets]);
 
   return (
@@ -262,13 +298,13 @@ function HypertrophyPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
           <div className="bg-sky-50 rounded-3xl p-6 shadow-lg">
             <h2 className="text-2xl font-semibold mb-4">Step 1: Select Muscle Group</h2>
-            <DropDown options={options} value={selectedMuscleGroup} onChange={handleMuscleGroupSelect} />
+            <DropDown options={MUSCLE_GROUP_OPTIONS} value={selectedMuscleGroup} onChange={handleMuscleGroupSelect} />
           </div>
 
           <div className="bg-sky-50 rounded-3xl p-6 shadow-lg">
             <h2 className="text-2xl font-semibold mb-4">Step 2: Choose Set × Rep Range</h2>
             <DropDown
-              options={setCountOptions}
+              options={SET_RANGE_OPTIONS}
               value={numberOfSets}
               onChange={handleSetCountSelect}
             />
@@ -283,7 +319,7 @@ function HypertrophyPage() {
               setRangeLabel={setRangeLabel}
               exerciseData={exerciseData}
               onExerciseDataChange={handleExerciseDataChange}
-              previousExerciseData={previousWorkoutData?.inputs}
+              previousExerciseData={previousWorkoutData?.exerciseData || previousWorkoutData?.inputs}
             />
           )}
         </div>
