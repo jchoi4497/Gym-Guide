@@ -12,17 +12,32 @@ import { parseWeightReps } from './parsing';
 import { format } from 'date-fns';
 
 function DataChart({ currentData, monthlyWorkoutData, graphView, exerciseKey }) {
-  const currentInput = currentData.input || [];
-  const currentSelectionName = currentData.selection;
+  // Handle both old and new data formats
+  const currentInput = currentData.sets || currentData.input || [];
+  const currentSelectionName = currentData.exerciseName || currentData.selection;
 
   // Helper to find data in historical logs
   const getMatch = (workout) => {
-    if (!workout || !workout.inputs) return [];
-    if (workout.inputs[exerciseKey]) return workout.inputs[exerciseKey].input || [];
+    // Handle both old (inputs) and new (exerciseData) field names
+    const workoutExercises = workout?.exerciseData || workout?.inputs;
+    if (!workoutExercises) return [];
+
+    // Try to find by exercise key first
+    if (workoutExercises[exerciseKey]) {
+      return workoutExercises[exerciseKey].sets || workoutExercises[exerciseKey].input || [];
+    }
+
+    // Fall back to finding by exercise name
     return (
-      Object.values(workout.inputs).find(
-        (e) => e.selection?.toLowerCase().trim() === currentSelectionName?.toLowerCase().trim(),
-      )?.input || []
+      Object.values(workoutExercises).find((e) => {
+        const exerciseName = e.exerciseName || e.selection;
+        return exerciseName?.toLowerCase().trim() === currentSelectionName?.toLowerCase().trim();
+      })?.sets ||
+      Object.values(workoutExercises).find((e) => {
+        const exerciseName = e.exerciseName || e.selection;
+        return exerciseName?.toLowerCase().trim() === currentSelectionName?.toLowerCase().trim();
+      })?.input ||
+      []
     );
   };
 
