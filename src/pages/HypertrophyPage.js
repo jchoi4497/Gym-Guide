@@ -16,7 +16,9 @@ function HypertrophyPage() {
   const [exerciseData, setExerciseData] = useState({});
   const [note, setNote] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [previousWorkoutData, setPreviousWorkoutData] = useState(null);
+  const [previousCustomExercises, setPreviousCustomExercises] = useState([]);
 
   // RECOVER DRAFT ON LOAD ---
   useEffect(() => {
@@ -96,6 +98,47 @@ function HypertrophyPage() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [exerciseData]);
 
+  // Fetch all custom exercises from user's workout history
+  const fetchPreviousCustomExercises = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      const q = query(
+        collection(db, 'workoutLogs'),
+        where(FIREBASE_FIELDS.USER_ID, '==', user.uid)
+      );
+
+      const querySnapshot = await getDocs(q);
+      const customExercises = new Map(); // Use Map to deduplicate by name
+
+      querySnapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        const exerciseData = data.exerciseData || data.inputs || {};
+
+        Object.entries(exerciseData).forEach(([key, exercise]) => {
+          const exerciseName = exercise.exerciseName || exercise.selection;
+
+          // Only include custom exercises (those with custom_ prefix or not in presets)
+          if (exerciseName && (key.startsWith('custom_') || !exerciseName.match(/^[a-z]+$/))) {
+            const normalizedName = exerciseName.toLowerCase().trim();
+
+            if (!customExercises.has(normalizedName)) {
+              customExercises.set(normalizedName, {
+                name: exerciseName,
+                id: key,
+              });
+            }
+          }
+        });
+      });
+
+      setPreviousCustomExercises(Array.from(customExercises.values()));
+    } catch (error) {
+      console.error('Error fetching custom exercises:', error);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (!user) {
@@ -103,6 +146,7 @@ function HypertrophyPage() {
         // navigate("/");
       } else {
         // Once we have a user, fetch their data
+        fetchPreviousCustomExercises();
         if (selectedMuscleGroup) {
           fetchPreviousWorkout(new Date()).then((data) => setPreviousWorkoutData(data));
         }
@@ -204,8 +248,10 @@ function HypertrophyPage() {
       // Get previous workout data in the right format for summary generation
       const prevExerciseData = prevWorkout?.exerciseData || prevWorkout?.inputs;
 
-      // Generate New Summary
-      const newSummary = await generateSummary(exerciseData, note, prevExerciseData);
+      // Generate New Summary (no monthly data on initial save, only has previous workout)
+      setIsGeneratingSummary(true);
+      const newSummary = await generateSummary(exerciseData, note, prevExerciseData, []);
+      setIsGeneratingSummary(false);
 
       // Save WorkoutLog with new field names
       const docRef = await addDoc(collection(db, 'workoutLogs'), {
@@ -232,6 +278,7 @@ function HypertrophyPage() {
       alert('Error saving workout. Please try again.');
     } finally {
       setIsSaving(false); // End loading
+      setIsGeneratingSummary(false);
     }
   };
 
@@ -311,7 +358,7 @@ function HypertrophyPage() {
           </div>
         </div>
 
-        <div className="mb-10">
+        <div className={`mb-10 ${isSaving ? 'pointer-events-none opacity-50' : ''}`}>
           {selectedMuscleGroup && numberOfSets && (
             <MuscleGroupWorkout
               muscleGroup={selectedMuscleGroup}
@@ -320,17 +367,23 @@ function HypertrophyPage() {
               exerciseData={exerciseData}
               onExerciseDataChange={handleExerciseDataChange}
               previousExerciseData={previousWorkoutData?.exerciseData || previousWorkoutData?.inputs}
+              previousCustomExercises={previousCustomExercises}
             />
           )}
         </div>
 
         {selectedMuscleGroup && numberOfSets && (
-          <div className="mb-10">
+          <div className={`mb-10 ${isSaving ? 'pointer-events-none opacity-50' : ''}`}>
             <WorkoutNotesInput value={note} onChange={setNote} />
           </div>
         )}
 
-        <div className="flex flex-col md:flex-row justify-end space-y-4 md:space-y-0 md:space-x-4">
+        <div className="flex flex-col md:flex-row justify-end space-y-4 md:space-y-0 md:space-x-4 items-end">
+          {isGeneratingSummary && (
+            <div className="text-blue-600 font-semibold animate-pulse">
+              🤖 Generating AI summary...
+            </div>
+          )}
           <button
             onClick={handleSaveWorkout}
             disabled={isSaving} // disable button while saving
@@ -341,10 +394,17 @@ function HypertrophyPage() {
                                     : 'bg-blue-700 hover:bg-blue-800 active:bg-blue-600 active:scale-95'
                                 }`}
           >
-            {isSaving ? 'Saving...' : 'Save Workout'}
+            {isSaving ? (isGeneratingSummary ? 'Generating Summary...' : 'Saving...') : 'Save Workout'}
           </button>
           <Link to="/SavedWorkouts">
-            <button className="w-full bg-gray-800 hover:bg-blue-600 px-6 py-3 rounded-full text-sky-50 font-semibold shadow-lg transition-all duration-300 active:bg-gray-600 active:scale-95">
+            <button
+              disabled={isSaving}
+              className={`w-full px-6 py-3 rounded-full text-sky-50 font-semibold shadow-lg transition-all duration-300 ${
+                isSaving
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-gray-800 hover:bg-blue-600 active:bg-gray-600 active:scale-95'
+              }`}
+            >
               View Workouts
             </button>
           </Link>

@@ -1,4 +1,5 @@
 import DropDown from './DropDown';
+import ExerciseAutocomplete from './components/ExerciseAutocomplete';
 
 function TableRow({
   numberOfSets,
@@ -10,6 +11,7 @@ function TableRow({
   setInputs,
   isCustom,
   onRemove,
+  previousCustomExercises = [],
 }) {
   const recordInputCells = () => {
     const cellElements = [];
@@ -50,12 +52,15 @@ function TableRow({
       {/* Conditional Rendering: Dropdown vs Text Input */}
       <div className="w-full sm:w-1/3">
         {isCustom ? (
-          <input
-            type="text"
+          <ExerciseAutocomplete
+            value={value}
+            onChange={onChange}
+            onSelect={(exercise) => {
+              onChange(exercise.name);
+            }}
+            previousCustomExercises={previousCustomExercises}
             placeholder="Enter exercise name..."
             className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
           />
         ) : (
           <DropDown options={options} onChange={onChange} value={value} />

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   collection,
   query,
@@ -19,14 +19,17 @@ import WorkoutInputs from './WorkoutInputs';
 import WorkoutNotes from './WorkoutNotes';
 import WorkoutAnalysis from './WorkoutAnalysis';
 import AddExerciseButton from '../AddExerciseButton';
+import OptionalWorkoutSections from '../components/OptionalWorkoutSections';
 import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from '../constants';
 
 function SavedWorkout() {
   const { workoutId } = useParams();
+  const navigate = useNavigate();
   const [workoutData, setWorkoutData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
   const [editedInputs, setEditedInputs] = useState({});
   const [error, setError] = useState(null);
   const [note, setNote] = useState('');
@@ -35,6 +38,8 @@ function SavedWorkout() {
   const [monthlyWorkoutData, setMonthlyWorkoutData] = useState([]);
   const [graphView, setGraphView] = useState('previous');
   const [exerciseOrder, setExerciseOrder] = useState([]);
+  const [previousCustomExercises, setPreviousCustomExercises] = useState([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   //used to get label of workout on savedworkout page
   const getLabel = (value) =>
@@ -84,6 +89,47 @@ function SavedWorkout() {
       setPreviousWorkoutData(docs[0] || null); // Most recent for 'previous' view
     } catch (error) {
       console.error('Error fetching history:', error);
+    }
+  };
+
+  // Fetch all custom exercises from user's workout history
+  const fetchPreviousCustomExercises = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      const q = query(
+        collection(db, 'workoutLogs'),
+        where(FIREBASE_FIELDS.USER_ID, '==', user.uid)
+      );
+
+      const querySnapshot = await getDocs(q);
+      const customExercises = new Map(); // Use Map to deduplicate by name
+
+      querySnapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        const exerciseData = data.exerciseData || data.inputs || {};
+
+        Object.entries(exerciseData).forEach(([key, exercise]) => {
+          const exerciseName = exercise.exerciseName || exercise.selection;
+
+          // Only include custom exercises (those with custom_ prefix or not in presets)
+          if (exerciseName && (key.startsWith('custom_') || !exerciseName.match(/^[a-z]+$/))) {
+            const normalizedName = exerciseName.toLowerCase().trim();
+
+            if (!customExercises.has(normalizedName)) {
+              customExercises.set(normalizedName, {
+                name: exerciseName,
+                id: key,
+              });
+            }
+          }
+        });
+      });
+
+      setPreviousCustomExercises(Array.from(customExercises.values()));
+    } catch (error) {
+      console.error('Error fetching custom exercises:', error);
     }
   };
 
@@ -171,16 +217,132 @@ function SavedWorkout() {
       delete updated[rowId];
       return updated;
     });
+    setHasUnsavedChanges(true);
+  };
+
+  const handleReorderExercises = (newOrder) => {
+    setExerciseOrder(newOrder);
+    setHasUnsavedChanges(true);
+  };
+
+  // Handler for optional sections (cardio/abs)
+  const handleOptionalExerciseChange = (categoryKey, exerciseName, setIndex, setInput) => {
+    const updatedInputs = { ...editedInputs };
+    const numberOfSets = workoutData?.numberOfSets || 4;
+
+    if (!updatedInputs[categoryKey]) {
+      const setsArray = new Array(numberOfSets).fill('');
+      updatedInputs[categoryKey] = {
+        sets: setsArray,
+        exerciseName: exerciseName,
+      };
+    }
+
+    if (setIndex === -1) {
+      // -1 means changing the exercise selection
+      updatedInputs[categoryKey].exerciseName = exerciseName;
+    } else {
+      // Otherwise updating a specific set
+      updatedInputs[categoryKey].sets[setIndex] = setInput;
+    }
+
+    setEditedInputs(updatedInputs);
+    setHasUnsavedChanges(true);
   };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         fetchData();
+        fetchPreviousCustomExercises();
       }
     });
     return () => unsubscribe();
   }, [workoutId]);
+
+  // Track changes to editedInputs and note
+  useEffect(() => {
+    if (isEditing && workoutData) {
+      const originalExerciseData = workoutData.exerciseData || workoutData.inputs || {};
+      const originalNote = workoutData.note || '';
+
+      const inputsChanged = JSON.stringify(editedInputs) !== JSON.stringify(originalExerciseData);
+      const noteChanged = note !== originalNote;
+      const orderChanged = JSON.stringify(exerciseOrder) !== JSON.stringify(
+        Object.keys(originalExerciseData)
+      );
+
+      if (inputsChanged || noteChanged || orderChanged) {
+        setHasUnsavedChanges(true);
+      }
+    }
+  }, [editedInputs, note, exerciseOrder, isEditing, workoutData]);
+
+  // Warn before leaving page with unsaved changes (browser close/refresh)
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isEditing && hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = ''; // Required for Chrome
+        return '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isEditing, hasUnsavedChanges]);
+
+  // Block navigation within the app (Link clicks, back button)
+  useEffect(() => {
+    const handleLinkClick = (e) => {
+      // Check if user is editing with unsaved changes
+      if (isEditing && hasUnsavedChanges) {
+        // Check if the click target is a link or inside a link
+        const link = e.target.closest('a');
+        if (link && link.href) {
+          const confirmed = window.confirm(
+            'You have unsaved changes. Are you sure you want to leave? All changes will be lost.'
+          );
+          if (!confirmed) {
+            e.preventDefault();
+            e.stopPropagation();
+          } else {
+            // User confirmed, allow navigation and clear unsaved flag
+            setHasUnsavedChanges(false);
+          }
+        }
+      }
+    };
+
+    // Handle browser back/forward buttons
+    const handlePopState = (e) => {
+      if (isEditing && hasUnsavedChanges) {
+        const confirmed = window.confirm(
+          'You have unsaved changes. Are you sure you want to leave? All changes will be lost.'
+        );
+        if (!confirmed) {
+          // Push state back to stay on current page
+          window.history.pushState(null, '', window.location.href);
+        } else {
+          setHasUnsavedChanges(false);
+        }
+      }
+    };
+
+    // Push initial state to enable popstate detection
+    if (isEditing && hasUnsavedChanges) {
+      window.history.pushState(null, '', window.location.href);
+    }
+
+    // Attach to document to catch all link clicks
+    document.addEventListener('click', handleLinkClick, true);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      document.removeEventListener('click', handleLinkClick, true);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [isEditing, hasUnsavedChanges]);
 
   const handleSaveChanges = async () => {
     // 1. Get all names, filter out any undefined/null, and trim them
@@ -199,8 +361,10 @@ function SavedWorkout() {
     // 3. If no duplicates, proceed with saving
     try {
       setIsSaving(true);
+      setIsGeneratingSummary(true);
       const prevExerciseData = previousWorkoutData?.exerciseData || previousWorkoutData?.inputs;
-      const newSummary = await generateSummary(editedInputs, note, prevExerciseData);
+      const newSummary = await generateSummary(editedInputs, note, prevExerciseData, monthlyWorkoutData);
+      setIsGeneratingSummary(false);
       const docRef = doc(db, 'workoutLogs', workoutId);
 
       // Update with new field name, but keep old for backward compatibility
@@ -221,12 +385,43 @@ function SavedWorkout() {
 
       setSummary(newSummary);
       setIsEditing(false);
+      setHasUnsavedChanges(false); // Reset unsaved changes flag
     } catch (error) {
       console.error('Error updating workout:', error);
       // Optionally show an inline error message here instead of alert
     } finally {
       setIsSaving(false);
+      setIsGeneratingSummary(false);
     }
+  };
+
+  const handleCancelEdit = () => {
+    if (hasUnsavedChanges) {
+      const confirmCancel = window.confirm(
+        'You have unsaved changes. Are you sure you want to cancel? All changes will be lost.'
+      );
+      if (!confirmCancel) {
+        return; // Don't cancel if user clicks "Cancel" on confirmation
+      }
+    }
+
+    // Reset to original data
+    const originalExerciseData = workoutData.exerciseData || workoutData.inputs || {};
+    setEditedInputs(originalExerciseData);
+    setNote(workoutData.note || '');
+
+    // Reset order
+    const inputKeys = Object.keys(originalExerciseData);
+    const muscleGroup = workoutData.muscleGroup || workoutData.target;
+    const orderedKeysFromCategory = categoryOrder[muscleGroup] || [];
+    const sorted = [
+      ...orderedKeysFromCategory.filter((key) => inputKeys.includes(key)),
+      ...inputKeys.filter((key) => !orderedKeysFromCategory.includes(key)),
+    ];
+    setExerciseOrder(sorted);
+
+    setIsEditing(false);
+    setHasUnsavedChanges(false);
   };
 
   if (isLoading) return <div>Loading...</div>;
@@ -261,10 +456,11 @@ function SavedWorkout() {
 
       <div className="sm:px-20 px-4">
         {/* Chart View Buttons */}
-        <div className="flex flex-wrap items-center justify-end gap-2 mb-6 sm:mb-8 px-4 sm:px-0">
+        <div className={`flex flex-wrap items-center justify-end gap-2 mb-6 sm:mb-8 px-4 sm:px-0 ${isSaving ? 'pointer-events-none opacity-50' : ''}`}>
           <span className="text-lg font-medium text-gray-700">Compare Data:</span>
           <button
             onClick={() => setGraphView('previous')}
+            disabled={isSaving}
             className={`px-4 py-2 rounded-lg text-sky-50 text-sm font-semibold transition-all duration-200 shadow-md active:scale-95
                         ${
                           graphView === 'previous'
@@ -276,6 +472,7 @@ function SavedWorkout() {
           </button>
           <button
             onClick={() => setGraphView('monthly')}
+            disabled={isSaving}
             className={`px-4 py-2 rounded-lg text-sky-50 text-sm font-semibold transition-all duration-200 shadow-md active:scale-95
                         ${
                           graphView === 'monthly'
@@ -288,26 +485,42 @@ function SavedWorkout() {
         </div>
 
         {/* Workout Inputs */}
-        <WorkoutInputs
-          order={exerciseOrder}
-          isEditing={isEditing}
-          editedInputs={editedInputs}
-          setEditedInputs={setEditedInputs}
-          workoutData={workoutData}
-          previousWorkoutData={previousWorkoutData}
-          graphView={graphView}
-          monthlyWorkoutData={monthlyWorkoutData}
-          onRemove={handleRemoveExercise}
-        />
+        <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
+          <WorkoutInputs
+            order={exerciseOrder}
+            isEditing={isEditing}
+            editedInputs={editedInputs}
+            setEditedInputs={setEditedInputs}
+            workoutData={workoutData}
+            previousWorkoutData={previousWorkoutData}
+            graphView={graphView}
+            monthlyWorkoutData={monthlyWorkoutData}
+            onRemove={handleRemoveExercise}
+            onReorder={handleReorderExercises}
+            previousCustomExercises={previousCustomExercises}
+          />
+        </div>
 
         {isEditing && (
           <div className="mb-6">
-            <AddExerciseButton onClick={handleAddExercise} />
+            <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
+              <AddExerciseButton onClick={handleAddExercise} />
+
+              {/* Optional Cardio & Abs Sections */}
+              <OptionalWorkoutSections
+                numberOfSets={workoutData?.numberOfSets || 4}
+                setRangeLabel=""
+                exerciseData={editedInputs}
+                onExerciseDataChange={handleOptionalExerciseChange}
+              />
+            </div>
           </div>
         )}
 
         {/* Workout Notes */}
-        <WorkoutNotes value={note} onChange={setNote} isEditing={isEditing} />
+        <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
+          <WorkoutNotes value={note} onChange={setNote} isEditing={isEditing} />
+        </div>
 
         {/* OpenAI Analysis */}
         <WorkoutAnalysis summary={summary} />
@@ -315,34 +528,60 @@ function SavedWorkout() {
 
       <div className="m-6 flex flex-col justify-end sm:space-x-4 space-y-4 px-4 sm:px-20">
         <Link to="/SavedWorkouts">
-          <button className="px-6 py-3 w-full sm:w-auto rounded-3xl shadow-lg text-sky-50 bg-gray-800 hover:bg-blue-600 active:bg-gray-600 transition-all duration-300 active:scale-95">
+          <button
+            disabled={isSaving}
+            className={`px-6 py-3 w-full sm:w-auto rounded-3xl shadow-lg text-sky-50 transition-all duration-300 ${
+              isSaving
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-gray-800 hover:bg-blue-600 active:bg-gray-600 active:scale-95'
+            }`}
+          >
             View Workouts
           </button>
         </Link>
 
         <button
-          onClick={() => setIsEditing(!isEditing)}
-          className={`px-6 py-3 w-full rounded text-sky-50 sm:w-auto self-start active:scale-95 transition-all ${
-            isEditing
-              ? 'bg-red-600 hover:bg-red-700 active:bg-red-400'
-              : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-400'
+          onClick={() => {
+            if (isEditing) {
+              handleCancelEdit();
+            } else {
+              // Scroll to top when entering edit mode
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              setIsEditing(true);
+              setHasUnsavedChanges(false); // Reset when entering edit mode
+            }
+          }}
+          disabled={isSaving}
+          className={`px-6 py-3 w-full rounded text-sky-50 sm:w-auto self-start transition-all ${
+            isSaving
+              ? 'bg-gray-400 cursor-not-allowed'
+              : isEditing
+                ? 'bg-red-600 hover:bg-red-700 active:bg-red-400 active:scale-95'
+                : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-400 active:scale-95'
           }`}
         >
           {isEditing ? 'Cancel' : 'Edit Workout'}
         </button>
 
         {isEditing && (
-          <button
-            onClick={handleSaveChanges}
-            disabled={isSaving}
-            className={`px-6 py-3 w-full rounded-3xl shadow-lg text-sky-50 transition-all duration-300 ${
-              isSaving
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-green-600 hover:bg-green-700 active:bg-green-400'
-            } w-auto sm:w-auto self-start active:scale-95`}
-          >
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
+          <div className="flex flex-col gap-2">
+            {isGeneratingSummary && (
+              <div className="text-blue-600 font-semibold animate-pulse">
+                🤖 Generating AI summary...
+              </div>
+            )}
+            <button
+              onClick={handleSaveChanges}
+              disabled={isSaving}
+              className={`px-6 py-3 w-full rounded-3xl shadow-lg text-sky-50 transition-all duration-300 ${
+                isSaving
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-green-600 hover:bg-green-700 active:bg-green-400'
+              } w-auto sm:w-auto self-start active:scale-95`}
+            >
+              {isSaving ? (isGeneratingSummary ? 'Generating Summary...' : 'Saving...') : 'Save Changes'}
+            </button>
+          </div>
         )}
       </div>
     </div>
