@@ -9,6 +9,7 @@ function WorkoutTable({
   onCellInput,
   exerciseData,
   onRemove,
+  previousCustomExercises = [],
 }) {
   return (
     <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4">
@@ -31,6 +32,7 @@ function WorkoutTable({
               onCellInput(exercise.id, exercise.selected, index, inputValue)
             }
             onRemove={() => onRemove(exercise.id)}
+            previousCustomExercises={previousCustomExercises}
           />
         ))}
       </div>

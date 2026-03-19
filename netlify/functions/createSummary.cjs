@@ -10,7 +10,7 @@ exports.handler = async (event) => {
 
   try {
     const completion = await OpenAi.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini", // Faster and 80% cheaper than gpt-4o
       messages: [{ role: "user", content: prompt }],
     });
 

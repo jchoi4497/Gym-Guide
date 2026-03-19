@@ -5,6 +5,14 @@ import { parseWeightReps } from './parsing';
 export async function generateSummary(inputs, note, previousInputs, monthlyWorkoutData = []) {
   console.log("generateSummary called");
 
+  // Cardio exercises list (case-insensitive matching)
+  const cardioExercises = ['treadmill', 'bike', 'stationary bike', 'elliptical', 'stairmaster'];
+
+  const isCardioExercise = (exerciseName) => {
+    const name = (exerciseName || '').toLowerCase();
+    return cardioExercises.some(cardio => name.includes(cardio));
+  };
+
   const buildExerciseSummaryText = (inputs) => {
     return Object.entries(inputs)
       .map(([key, data]) => {
@@ -13,6 +21,17 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
 
         // Handle both old (input) and new (sets) field names
         const setsData = data.sets || data.input || [];
+
+        // Check if this is a cardio exercise
+        if (isCardioExercise(exerciseName)) {
+          // For cardio, just show the raw values (time, distance, etc.)
+          const cardioSets = setsData
+            .filter(set => set.trim() !== "")
+            .join(", ");
+          return `${exerciseName}: ${cardioSets || "no data"}`;
+        }
+
+        // For strength training exercises, parse weight x reps
         const sets = setsData
           .filter(set => set.trim() !== "")
           .map(set => {
@@ -60,51 +79,35 @@ export async function generateSummary(inputs, note, previousInputs, monthlyWorko
       : `"${note}"`;
 
 
-    const promptText = `
+    const promptText = `You are a fitness AI analyzing workout performance. Keep your response under 250 words.
 
-      You are a helpful fitness AI trainer.
-      The following data is provided:
+USER NOTES: ${notesText}
 
-            User Notes:
-            ${notesText}
+PREVIOUS WORKOUT: ${previousSummaryText || "No previous data"}
 
-            Previous Workout Summary:
-            ${previousSummaryText || "No previous workout data available."}
+CURRENT WORKOUT: ${summaryText}
 
-            Current Workout Summary:
-            ${summaryText}
+MONTHLY TREND: ${monthlySummaryText || "Not enough history"}
 
-            Monthly Workout Summary (Most recent first):
-            ${monthlySummaryText}
+Format your response with section headers in ALL CAPS on their own line, followed by clean paragraphs. No asterisks, bullets, or symbols. Use this exact structure:
 
-      Below is the format I am looking for and also topics to analyze in your response. Keep answers short and concise. The whole response should be 200-300 words.
+HIGHLIGHTS & AREAS FOR IMPROVEMENT
+[What went well and what needs work in 2-3 sentences]
 
-            ##Section 1:
-            Talk about What Went Well and Areas of Improvement
-              1. What went well in the current workout.
-              2. Areas for improvement based on the exercise performance./n/n
+MOOD & CONDITION
+[How condition affected performance in 1-2 sentences]
 
-            ##Section 2:
-            Talk about How Mood/Condition affected workout
-              2. How the user's reported mood or condition may have affected their performance./n/n
+PROGRESS ANALYSIS
+[Compare to previous workout and note monthly trends in 2-3 sentences]
 
-            ##Section 3:
-            Talk about Comparison with Previous Workout and Monthly Trends
-              1. A short comparison between the previous workout and the current workout, explaining the differences and trends clearly.
-              2. A summary of monthly trends, pointing out patterns such as progression, plateau, or regression in performance over time."/n/n
+NEXT STEPS
+[1-2 actionable tips and motivational close in 2-3 sentences]
 
-            ##Section 4:
-            Talk about Actionable Suggestion and Motivation
-              1. One or two actionable suggestions for their next session.
-              2. A motivational sentence to encourage the user./n/n
-
-            ##Keep in Mind for Prompt:
-              1. I believe that pushing your muscles to failure is good for muscle growth. So keep in mind seeing a decline in reps is not necessarily something bad or an area to improve on, just something to note.
-              2. Opposite of 1, keep in mind not seeing a decline on reps could mean the weight is too easy. But also, everything is situational per user, just something to note.
-                 For example due to injury maybe the user does not want to push to failure for safety reasons.
-
-      Thank you.
-      `;
+IMPORTANT CONTEXT:
+Rep decline = good (training to failure aids growth)
+No rep decline = possibly too light
+Cardio (Treadmill, Bike, Elliptical, StairMaster): Analyze time/distance/intensity, NOT weight/reps
+Abs: Treat like strength exercises (weight x reps)`;
 
     const response = await fetch("/.netlify/functions/createSummary", {
       method: "POST",

@@ -2,16 +2,16 @@
 
 const exerciseNames = {
   // incline
-  dip: "Dumbbell Incline Press",
-  mip: "Machine Incline Press",
-  smip: "Smith Machine Incline Press",
-  bip: "Barbell Incline Press",
+  dip: "Dumbbell Incline Bench Press",
+  mip: "Machine Incline Chest Press",
+  smip: "Smith Machine Incline Bench Press",
+  bip: "Barbell Incline Bench Press",
 
   // chest press
-  dp: "Dumbbell Press",
-  mp: "Machine Press",
-  smp: "Smith Machine Press",
-  bp: "Barbell Press",
+  dp: "Dumbbell Bench Press",
+  mp: "Machine Chest Press",
+  smp: "Smith Machine Bench Press",
+  bp: "Barbell Bench Press",
 
   // flies
   cfm: "Chest Fly Machine",
@@ -19,19 +19,19 @@ const exerciseNames = {
   df: "Dumbbell Flys",
 
   // triceps1
-  sbcpd: "Straight Bar Cable Push Downs",
-  rpd: "Rope Pull Downs",
-  oacpd: "1 Arm Cable Pull Downs",
-  obce: "Overhead Bar Cable Extensions",
-  ode: "Overhead Dumbbell Extensions",
+  sbcpd: "Straight Bar Tricep Pushdown",
+  rpd: "Rope Tricep Pushdown",
+  oacpd: "1 Arm Cable Tricep Pushdown",
+  obce: "Overhead Cable Tricep Extension",
+  ode: "Overhead Dumbbell Tricep Extension",
   d: "Dips",
 
   // triceps2
-  oacpdt: "1 Arm Cable Pull Downs",
-  rpdt: "Rope Pull Downs",
-  sbcpdt: "Straight Bar Cable Push Downs",
-  obcet: "Overhead Bar Cable Extensions",
-  odet: "Overhead Dumbbell Extensions",
+  oacpdt: "1 Arm Cable Tricep Pushdown",
+  rpdt: "Rope Tricep Pushdown",
+  sbcpdt: "Straight Bar Tricep Pushdown",
+  obcet: "Overhead Cable Tricep Extension",
+  odet: "Overhead Dumbbell Tricep Extension",
   dt: "Dips",
 
   // pullups
@@ -43,12 +43,12 @@ const exerciseNames = {
 
   // rows
   mr: "Machine Rows",
-  borb: "Bent Over Rows Barbell",
-  bord: "Bent Over Rows Dumbbell",
-  oabor: "1 Arm Bent Over Rows",
-  tbr: "T-bar row",
-  croa: "Cable Rows 1 Arm",
-  crb: "Cable Rows w/ Bar",
+  borb: "Barbell Bent Over Rows",
+  bord: "Dumbbell Bent Over Rows",
+  oabor: "1 Arm Dumbbell Bent Over Rows",
+  tbr: "T-Bar Row",
+  croa: "1 Arm Cable Rows",
+  crb: "Seated Cable Rows",
 
   // lats
   lpdt: "Lat Pull Downs",
@@ -116,14 +116,14 @@ const exerciseNames = {
   cfpt: "Cable Face Pulls",
 
   // lat raises
-  dlr: "Dumbbell Lat Raises",
-  oacdlr: "1 Arm Cable Lat Raises",
-  mlr: "Machine Lat Raises",
+  dlr: "Dumbbell Lateral Raises",
+  oacdlr: "1 Arm Cable Lateral Raises",
+  mlr: "Machine Lateral Raises",
 
   // lat raises two
-  oaclrt: "1 Arm Cable Lat Raises",
-  dlrt: "Dumbbell Lat Raises",
-  mlrt: "Machine Lat Raises",
+  oaclrt: "1 Arm Cable Lateral Raises",
+  dlrt: "Dumbbell Lateral Raises",
+  mlrt: "Machine Lateral Raises",
 
   // wrist curls
   cwc: "Cable Wrist Curls w/ Bar",
@@ -133,6 +133,16 @@ const exerciseNames = {
   // reverse wrist curls
   rdbwc: "Reverse Dumbbell Wrist Curls",
   fc: "Forearm Curls w/ Easy Bar",
+
+  // cardio
+  treadmill: "Treadmill",
+  bike: "Stationary Bike",
+  elliptical: "Elliptical",
+  stairmaster: "StairMaster",
+
+  // abs/core
+  abcrunchmachine: "Ab Crunch Machine",
+  declinesitup: "Decline Sit-Up Bench",
 
 };
 
