@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import WorkoutTable from '../WorkoutTable';
 import AddExerciseButton from '../AddExerciseButton';
+import OptionalWorkoutSections from './OptionalWorkoutSections';
 import { getDefaultExercises } from '../config/exerciseConfig';
 
 function MuscleGroupWorkout({
@@ -9,7 +10,8 @@ function MuscleGroupWorkout({
   setRangeLabel,
   exerciseData,
   onExerciseDataChange,
-  previousExerciseData
+  previousExerciseData,
+  previousCustomExercises = []
 }) {
   // Initialize exercises based on muscle group
   const [exercises, setExercises] = useState(() =>
@@ -61,8 +63,17 @@ function MuscleGroupWorkout({
         onCellInput={handleInputChange}
         exerciseData={exerciseData}
         onRemove={removeExercise}
+        previousCustomExercises={previousCustomExercises}
       />
       <AddExerciseButton onClick={addCustomExercise} />
+
+      {/* Optional Cardio & Abs Sections */}
+      <OptionalWorkoutSections
+        numberOfSets={numberOfSets}
+        setRangeLabel={setRangeLabel}
+        exerciseData={exerciseData}
+        onExerciseDataChange={onExerciseDataChange}
+      />
     </div>
   );
 }

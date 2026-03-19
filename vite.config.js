@@ -21,6 +21,9 @@ export default defineConfig({
   css: {postcss: {plugins: [tailwindcss, autoprefixer]}},
   server: {
     port: 3000,
+    proxy: {
+      '/.netlify/functions': 'http://localhost:8888',
+    },
   },
   optimizeDeps: {
     force: true,

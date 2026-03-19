@@ -6,6 +6,8 @@ export const MUSCLE_GROUPS = {
   BACK: 'back',
   LEGS: 'legs',
   SHOULDERS: 'shoulders',
+  CARDIO: 'cardio',
+  CORE: 'core',
 };
 
 // ====================================
@@ -39,6 +41,12 @@ export const EXERCISE_CATEGORIES = {
   LAT_RAISE_SECONDARY: 'latraise2',
   WRIST_CURL: 'wristcurl',
   REVERSE_WRIST_CURL: 'reversewristcurl',
+
+  // Cardio categories
+  CARDIO: 'cardio',
+
+  // Abs/Core categories
+  ABS: 'abs',
 };
 
 // ====================================
@@ -50,25 +58,25 @@ export const EXERCISES = {
   // Incline Press
   DUMBBELL_INCLINE_PRESS: {
     id: 'dip',
-    name: 'Dumbbell Incline Press',
+    name: 'Dumbbell Incline Bench Press',
     category: EXERCISE_CATEGORIES.INCLINE_PRESS,
     muscleGroup: MUSCLE_GROUPS.CHEST,
   },
   MACHINE_INCLINE_PRESS: {
     id: 'mip',
-    name: 'Machine Incline Press',
+    name: 'Machine Incline Chest Press',
     category: EXERCISE_CATEGORIES.INCLINE_PRESS,
     muscleGroup: MUSCLE_GROUPS.CHEST,
   },
   SMITH_MACHINE_INCLINE_PRESS: {
     id: 'smip',
-    name: 'Smith Machine Incline Press',
+    name: 'Smith Machine Incline Bench Press',
     category: EXERCISE_CATEGORIES.INCLINE_PRESS,
     muscleGroup: MUSCLE_GROUPS.CHEST,
   },
   BARBELL_INCLINE_PRESS: {
     id: 'bip',
-    name: 'Barbell Incline Press',
+    name: 'Barbell Incline Bench Press',
     category: EXERCISE_CATEGORIES.INCLINE_PRESS,
     muscleGroup: MUSCLE_GROUPS.CHEST,
   },
@@ -76,25 +84,25 @@ export const EXERCISES = {
   // Chest Press
   DUMBBELL_PRESS: {
     id: 'dp',
-    name: 'Dumbbell Press',
+    name: 'Dumbbell Bench Press',
     category: EXERCISE_CATEGORIES.CHEST_PRESS,
     muscleGroup: MUSCLE_GROUPS.CHEST,
   },
   MACHINE_PRESS: {
     id: 'mp',
-    name: 'Machine Press',
+    name: 'Machine Chest Press',
     category: EXERCISE_CATEGORIES.CHEST_PRESS,
     muscleGroup: MUSCLE_GROUPS.CHEST,
   },
   SMITH_MACHINE_PRESS: {
     id: 'smp',
-    name: 'Smith Machine Press',
+    name: 'Smith Machine Bench Press',
     category: EXERCISE_CATEGORIES.CHEST_PRESS,
     muscleGroup: MUSCLE_GROUPS.CHEST,
   },
   BARBELL_PRESS: {
     id: 'bp',
-    name: 'Barbell Press',
+    name: 'Barbell Bench Press',
     category: EXERCISE_CATEGORIES.CHEST_PRESS,
     muscleGroup: MUSCLE_GROUPS.CHEST,
   },
@@ -122,31 +130,31 @@ export const EXERCISES = {
   // Tricep Exercises (used in both primary and secondary)
   STRAIGHT_BAR_CABLE_PUSH_DOWNS: {
     id: 'sbcpd',
-    name: 'Straight Bar Cable Push Downs',
+    name: 'Straight Bar Tricep Pushdown',
     category: EXERCISE_CATEGORIES.TRICEP_PRIMARY,
     muscleGroup: MUSCLE_GROUPS.CHEST,
   },
   ROPE_PULL_DOWNS: {
     id: 'rpd',
-    name: 'Rope Pull Downs',
+    name: 'Rope Tricep Pushdown',
     category: EXERCISE_CATEGORIES.TRICEP_PRIMARY,
     muscleGroup: MUSCLE_GROUPS.CHEST,
   },
   ONE_ARM_CABLE_PULL_DOWNS_TRICEP: {
     id: 'oacpd',
-    name: '1 Arm Cable Pull Downs',
+    name: '1 Arm Cable Tricep Pushdown',
     category: EXERCISE_CATEGORIES.TRICEP_PRIMARY,
     muscleGroup: MUSCLE_GROUPS.CHEST,
   },
   OVERHEAD_BAR_CABLE_EXTENSIONS: {
     id: 'obce',
-    name: 'Overhead Bar Cable Extensions',
+    name: 'Overhead Cable Tricep Extension',
     category: EXERCISE_CATEGORIES.TRICEP_PRIMARY,
     muscleGroup: MUSCLE_GROUPS.CHEST,
   },
   OVERHEAD_DUMBBELL_EXTENSIONS: {
     id: 'ode',
-    name: 'Overhead Dumbbell Extensions',
+    name: 'Overhead Dumbbell Tricep Extension',
     category: EXERCISE_CATEGORIES.TRICEP_PRIMARY,
     muscleGroup: MUSCLE_GROUPS.CHEST,
   },
@@ -200,37 +208,37 @@ export const EXERCISES = {
   },
   BENT_OVER_ROWS_BARBELL: {
     id: 'borb',
-    name: 'Bent Over Rows Barbell',
+    name: 'Barbell Bent Over Rows',
     category: EXERCISE_CATEGORIES.ROW,
     muscleGroup: MUSCLE_GROUPS.BACK,
   },
   BENT_OVER_ROWS_DUMBBELL: {
     id: 'bord',
-    name: 'Bent Over Rows Dumbbell',
+    name: 'Dumbbell Bent Over Rows',
     category: EXERCISE_CATEGORIES.ROW,
     muscleGroup: MUSCLE_GROUPS.BACK,
   },
   ONE_ARM_BENT_OVER_ROWS: {
     id: 'oabor',
-    name: '1 Arm Bent Over Rows',
+    name: '1 Arm Dumbbell Bent Over Rows',
     category: EXERCISE_CATEGORIES.ROW,
     muscleGroup: MUSCLE_GROUPS.BACK,
   },
   T_BAR_ROW: {
     id: 'tbr',
-    name: 'T-bar row',
+    name: 'T-Bar Row',
     category: EXERCISE_CATEGORIES.ROW,
     muscleGroup: MUSCLE_GROUPS.BACK,
   },
   CABLE_ROWS_ONE_ARM: {
     id: 'croa',
-    name: 'Cable Rows 1 Arm',
+    name: '1 Arm Cable Rows',
     category: EXERCISE_CATEGORIES.ROW,
     muscleGroup: MUSCLE_GROUPS.BACK,
   },
   CABLE_ROWS_BAR: {
     id: 'crb',
-    name: 'Cable Rows w/ Bar',
+    name: 'Seated Cable Rows',
     category: EXERCISE_CATEGORIES.ROW,
     muscleGroup: MUSCLE_GROUPS.BACK,
   },
@@ -466,19 +474,19 @@ export const EXERCISES = {
   // Lateral Raises
   DUMBBELL_LAT_RAISES: {
     id: 'dlr',
-    name: 'Dumbbell Lat Raises',
+    name: 'Dumbbell Lateral Raises',
     category: EXERCISE_CATEGORIES.LAT_RAISE_PRIMARY,
     muscleGroup: MUSCLE_GROUPS.SHOULDERS,
   },
   ONE_ARM_CABLE_LAT_RAISES: {
     id: 'oacdlr',
-    name: '1 Arm Cable Lat Raises',
+    name: '1 Arm Cable Lateral Raises',
     category: EXERCISE_CATEGORIES.LAT_RAISE_PRIMARY,
     muscleGroup: MUSCLE_GROUPS.SHOULDERS,
   },
   MACHINE_LAT_RAISES: {
     id: 'mlr',
-    name: 'Machine Lat Raises',
+    name: 'Machine Lateral Raises',
     category: EXERCISE_CATEGORIES.LAT_RAISE_PRIMARY,
     muscleGroup: MUSCLE_GROUPS.SHOULDERS,
   },
@@ -515,6 +523,48 @@ export const EXERCISES = {
     name: 'Forearm Curls w/ Easy Bar',
     category: EXERCISE_CATEGORIES.REVERSE_WRIST_CURL,
     muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+
+  // ========== CARDIO EXERCISES ==========
+
+  TREADMILL: {
+    id: 'treadmill',
+    name: 'Treadmill',
+    category: EXERCISE_CATEGORIES.CARDIO,
+    muscleGroup: MUSCLE_GROUPS.CARDIO,
+  },
+  STATIONARY_BIKE: {
+    id: 'bike',
+    name: 'Stationary Bike',
+    category: EXERCISE_CATEGORIES.CARDIO,
+    muscleGroup: MUSCLE_GROUPS.CARDIO,
+  },
+  ELLIPTICAL: {
+    id: 'elliptical',
+    name: 'Elliptical',
+    category: EXERCISE_CATEGORIES.CARDIO,
+    muscleGroup: MUSCLE_GROUPS.CARDIO,
+  },
+  STAIRMASTER: {
+    id: 'stairmaster',
+    name: 'StairMaster',
+    category: EXERCISE_CATEGORIES.CARDIO,
+    muscleGroup: MUSCLE_GROUPS.CARDIO,
+  },
+
+  // ========== ABS/CORE EXERCISES ==========
+
+  AB_CRUNCH_MACHINE: {
+    id: 'abcrunchmachine',
+    name: 'Ab Crunch Machine',
+    category: EXERCISE_CATEGORIES.ABS,
+    muscleGroup: MUSCLE_GROUPS.CORE,
+  },
+  DECLINE_SITUP_BENCH: {
+    id: 'declinesitup',
+    name: 'Decline Sit-Up Bench',
+    category: EXERCISE_CATEGORIES.ABS,
+    muscleGroup: MUSCLE_GROUPS.CORE,
   },
 };
 
