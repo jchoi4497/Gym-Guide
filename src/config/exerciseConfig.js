@@ -173,30 +173,42 @@ export const EXERCISES = {
     name: 'Pull Ups',
     category: EXERCISE_CATEGORIES.PULLUP,
     muscleGroup: MUSCLE_GROUPS.BACK,
+    metricType: 'bodyweight',
   },
   ASSISTED_PULL_UPS: {
     id: 'apu',
     name: 'Assisted Pull Ups',
     category: EXERCISE_CATEGORIES.PULLUP,
     muscleGroup: MUSCLE_GROUPS.BACK,
+    metricType: 'weighted',
   },
   LAT_PULL_DOWNS_PULLUP: {
     id: 'lpd',
     name: 'Lat Pull Downs',
     category: EXERCISE_CATEGORIES.PULLUP,
     muscleGroup: MUSCLE_GROUPS.BACK,
+    metricType: 'weighted',
   },
   BAND_ASSIST_PULL_UPS: {
     id: 'bapu',
     name: 'Band Assist Pull Ups',
     category: EXERCISE_CATEGORIES.PULLUP,
     muscleGroup: MUSCLE_GROUPS.BACK,
+    metricType: 'bodyweight',
   },
   NEGATIVE_PULL_UPS: {
     id: 'npu',
     name: 'Negative Pull Ups',
     category: EXERCISE_CATEGORIES.PULLUP,
     muscleGroup: MUSCLE_GROUPS.BACK,
+    metricType: 'bodyweight',
+  },
+  WEIGHTED_PULL_UPS: {
+    id: 'wpu',
+    name: 'Weighted Pull Ups',
+    category: EXERCISE_CATEGORIES.PULLUP,
+    muscleGroup: MUSCLE_GROUPS.BACK,
+    metricType: 'weighted',
   },
 
   // Rows
@@ -551,6 +563,12 @@ export const EXERCISES = {
     category: EXERCISE_CATEGORIES.CARDIO,
     muscleGroup: MUSCLE_GROUPS.CARDIO,
   },
+  RUNNING: {
+    id: 'running',
+    name: 'Running',
+    category: EXERCISE_CATEGORIES.CARDIO,
+    muscleGroup: MUSCLE_GROUPS.CARDIO,
+  },
 
   // ========== ABS/CORE EXERCISES ==========
 
@@ -559,12 +577,35 @@ export const EXERCISES = {
     name: 'Ab Crunch Machine',
     category: EXERCISE_CATEGORIES.ABS,
     muscleGroup: MUSCLE_GROUPS.CORE,
+    metricType: 'weighted',
   },
   DECLINE_SITUP_BENCH: {
     id: 'declinesitup',
     name: 'Decline Sit-Up Bench',
     category: EXERCISE_CATEGORIES.ABS,
     muscleGroup: MUSCLE_GROUPS.CORE,
+    metricType: 'weighted',
+  },
+  CRUNCHES: {
+    id: 'crunches',
+    name: 'Crunches',
+    category: EXERCISE_CATEGORIES.ABS,
+    muscleGroup: MUSCLE_GROUPS.CORE,
+    metricType: 'bodyweight',
+  },
+  LEG_RAISES: {
+    id: 'legraises',
+    name: 'Leg Raises',
+    category: EXERCISE_CATEGORIES.ABS,
+    muscleGroup: MUSCLE_GROUPS.CORE,
+    metricType: 'bodyweight',
+  },
+  PLANK: {
+    id: 'plank',
+    name: 'Plank',
+    category: EXERCISE_CATEGORIES.ABS,
+    muscleGroup: MUSCLE_GROUPS.CORE,
+    metricType: 'timed',
   },
 };
 
@@ -596,6 +637,27 @@ export function getExercisesByMuscleGroup(muscleGroup) {
       label: exercise.name,
       value: exercise.id,
     }));
+}
+
+/**
+ * Get placeholder text based on exercise metric type
+ */
+export function getPlaceholderForExercise(exerciseId) {
+  const exercise = Object.values(EXERCISES).find(ex => ex.id === exerciseId);
+
+  if (!exercise || !exercise.metricType) {
+    return 'Weight x Reps'; // Default
+  }
+
+  switch (exercise.metricType) {
+    case 'bodyweight':
+      return 'Reps';
+    case 'timed':
+      return 'Duration (sec)';
+    case 'weighted':
+    default:
+      return 'Weight x Reps';
+  }
 }
 
 /**
