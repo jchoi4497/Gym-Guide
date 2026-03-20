@@ -10,6 +10,7 @@ function MuscleGroupWorkout({
   setRangeLabel,
   exerciseData,
   onExerciseDataChange,
+  onRemoveSet,
   previousExerciseData,
   previousCustomExercises = []
 }) {
@@ -63,6 +64,7 @@ function MuscleGroupWorkout({
         onCellInput={handleInputChange}
         exerciseData={exerciseData}
         onRemove={removeExercise}
+        onRemoveSet={onRemoveSet}
         previousCustomExercises={previousCustomExercises}
       />
       <AddExerciseButton onClick={addCustomExercise} />
