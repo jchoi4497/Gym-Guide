@@ -212,11 +212,34 @@ function HypertrophyPage() {
       // -1 means changing the exercise selection
       updatedExerciseData[categoryKey].exerciseName = exerciseName;
     } else {
-      // Otherwise updating a specific set
+      // Auto-expand array if user is adding a set beyond current length
+      const currentSets = updatedExerciseData[categoryKey].sets;
+      while (currentSets.length <= setIndex) {
+        currentSets.push('');
+      }
+      // Update the specific set
       updatedExerciseData[categoryKey].sets[setIndex] = setInput;
     }
 
     console.log(updatedExerciseData);
+    setExerciseData(updatedExerciseData);
+  };
+
+  // Remove a specific set from an exercise
+  const handleRemoveSet = (categoryKey, setIndex) => {
+    const updatedExerciseData = { ...exerciseData };
+
+    // Initialize if doesn't exist yet
+    if (!updatedExerciseData[categoryKey]) {
+      const setsArray = new Array(numberOfSets).fill('');
+      updatedExerciseData[categoryKey] = {
+        sets: setsArray,
+        exerciseName: '',
+      };
+    }
+
+    // Now remove the set
+    updatedExerciseData[categoryKey].sets = updatedExerciseData[categoryKey].sets.filter((_, i) => i !== setIndex);
     setExerciseData(updatedExerciseData);
   };
 
@@ -366,6 +389,7 @@ function HypertrophyPage() {
               setRangeLabel={setRangeLabel}
               exerciseData={exerciseData}
               onExerciseDataChange={handleExerciseDataChange}
+              onRemoveSet={handleRemoveSet}
               previousExerciseData={previousWorkoutData?.exerciseData || previousWorkoutData?.inputs}
               previousCustomExercises={previousCustomExercises}
             />
