@@ -9,6 +9,7 @@ function WorkoutTable({
   onCellInput,
   exerciseData,
   onRemove,
+  onRemoveSet,
   previousCustomExercises = [],
 }) {
   return (
@@ -32,6 +33,7 @@ function WorkoutTable({
               onCellInput(exercise.id, exercise.selected, index, inputValue)
             }
             onRemove={() => onRemove(exercise.id)}
+            onRemoveSet={(index) => onRemoveSet(exercise.id, index)}
             previousCustomExercises={previousCustomExercises}
           />
         ))}
