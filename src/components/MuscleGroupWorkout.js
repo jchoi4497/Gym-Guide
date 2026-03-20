@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import WorkoutTable from '../WorkoutTable';
 import AddExerciseButton from '../AddExerciseButton';
 import OptionalWorkoutSections from './OptionalWorkoutSections';
@@ -18,6 +18,11 @@ function MuscleGroupWorkout({
   const [exercises, setExercises] = useState(() =>
     getDefaultExercises(muscleGroup)
   );
+
+  // Reset exercises when muscle group changes
+  useEffect(() => {
+    setExercises(getDefaultExercises(muscleGroup));
+  }, [muscleGroup]);
 
   // Add a custom exercise row
   const addCustomExercise = () => {
@@ -75,6 +80,7 @@ function MuscleGroupWorkout({
         setRangeLabel={setRangeLabel}
         exerciseData={exerciseData}
         onExerciseDataChange={onExerciseDataChange}
+        onRemoveSet={onRemoveSet}
       />
     </div>
   );

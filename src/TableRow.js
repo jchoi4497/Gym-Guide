@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import DropDown from './DropDown';
 import ExerciseAutocomplete from './components/ExerciseAutocomplete';
+import { getPlaceholderForExercise } from './config/exerciseConfig';
 
 function TableRow({
   numberOfSets,
@@ -41,6 +42,8 @@ function TableRow({
 
   const recordInputCells = () => {
     const cellElements = [];
+    // Get dynamic placeholder based on exercise type
+    const placeholder = getPlaceholderForExercise(value);
 
     for (let i = 0; i < currentSetCount; i++) {
       cellElements.push(
@@ -56,7 +59,7 @@ function TableRow({
                         mb-2 sm:mb-0
                     "
           type="text"
-          placeholder="Weight x Reps"
+          placeholder={placeholder}
           value={(setInputs && setInputs[i]) || ''}
           onChange={(e) => cellInput(i, e.target.value)}
         />,
