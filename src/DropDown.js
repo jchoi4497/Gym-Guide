@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Panel from "./Panel";
 
 
-function DropDown({ options, value, onChange }) {
+function DropDown({ options, value, onChange, favorites = [], onToggleFavorite }) {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef();
 
@@ -33,14 +33,39 @@ function DropDown({ options, value, onChange }) {
         onChange(option);
     };
 
-    const renderedOptions = options?.map((option) => {
+    const handleStarClick = (e, optionValue) => {
+        e.stopPropagation(); // Prevent dropdown from selecting the option
+        if (onToggleFavorite) {
+            onToggleFavorite(optionValue);
+        }
+    };
+
+    // Sort options: favorites first, then rest
+    const sortedOptions = useMemo(() => {
+        if (!options) return [];
+        const favorited = options.filter(opt => favorites.includes(opt.value));
+        const notFavorited = options.filter(opt => !favorites.includes(opt.value));
+        return [...favorited, ...notFavorited];
+    }, [options, favorites]);
+
+    const renderedOptions = sortedOptions?.map((option) => {
+        const isFavorite = favorites.includes(option.value);
         return <div
             className="hover:bg-gradient-to-r hover:from-blue-100 hover:to-blue-200 rounded-md cursor-pointer p-3 italic font-serif
-                       active:bg-blue-300 transition-colors duration-200"
+                       active:bg-blue-300 transition-colors duration-200 flex justify-between items-center"
             onClick={() => handleOptionClick(option.value)}
             key={option.value}
         >
-            {option.label}
+            <span>{option.label}</span>
+            {onToggleFavorite && (
+                <button
+                    onClick={(e) => handleStarClick(e, option.value)}
+                    className="ml-2 text-xl hover:scale-110 transition-transform"
+                    title={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                >
+                    {isFavorite ? '★' : '☆'}
+                </button>
+            )}
         </div>;
     });
     const label = useMemo(() => {
