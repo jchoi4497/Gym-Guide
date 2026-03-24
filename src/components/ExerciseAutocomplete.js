@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { EXERCISES } from '../config/exerciseConfig';
+import { detectCategoryFromName } from '../utils/categoryDetection';
 
 /**
  * Autocomplete input for exercise names
@@ -44,6 +45,26 @@ function ExerciseAutocomplete({
   // Normalize string for better matching (remove spaces, lowercase, remove special chars)
   const normalize = (str) => {
     return str.toLowerCase().replace(/[\s-_]/g, '');
+  };
+
+  // Find best matching preset exercise for auto-linking
+  const findBestPresetMatch = (inputValue) => {
+    const normalized = normalize(inputValue);
+
+    // First, try exact normalized match
+    const exactMatch = uniqueExercises.find(ex =>
+      ex.isPreset && normalize(ex.name) === normalized
+    );
+    if (exactMatch) return exactMatch;
+
+    // Then, try if input is contained in preset name or vice versa
+    const partialMatch = uniqueExercises.find(ex => {
+      if (!ex.isPreset) return false;
+      const exNormalized = normalize(ex.name);
+      return exNormalized.includes(normalized) || normalized.includes(exNormalized);
+    });
+
+    return partialMatch;
   };
 
   // Handle input change
@@ -97,6 +118,30 @@ function ExerciseAutocomplete({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Handle blur - detect category for custom exercises
+  const handleBlur = () => {
+    if (value.trim().length > 0) {
+      // Check if this is a custom exercise (not in presets)
+      const isPresetExercise = uniqueExercises.some(ex =>
+        ex.isPreset && normalize(ex.name) === normalize(value)
+      );
+
+      if (!isPresetExercise) {
+        // Detect category for custom exercise
+        const detectedCategory = detectCategoryFromName(value);
+        if (detectedCategory) {
+          // Call onSelect with detected category info
+          onSelect({
+            name: value,
+            id: value,
+            isPreset: false,
+            category: detectedCategory,
+          });
+        }
+      }
+    }
+  };
+
   return (
     <div ref={wrapperRef} className="relative w-full">
       <input
@@ -104,6 +149,7 @@ function ExerciseAutocomplete({
         placeholder={placeholder}
         value={value}
         onChange={handleInputChange}
+        onBlur={handleBlur}
         onFocus={() => {
           if (value.trim().length > 0) {
             const normalizedInput = normalize(value);
@@ -149,22 +195,30 @@ function ExerciseAutocomplete({
       )}
 
       {/* No matches found */}
-      {showSuggestions && value.trim().length > 0 && filteredSuggestions.length === 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-green-300 rounded-lg shadow-lg px-4 py-3">
-          <div className="flex items-start gap-2">
-            <span className="text-green-600 text-lg">✓</span>
-            <div>
-              <p className="text-gray-800 font-medium text-sm">
-                Creating new custom exercise:
-              </p>
-              <p className="text-green-700 font-bold">"{value}"</p>
-              <p className="text-gray-500 text-xs mt-1">
-                Click anywhere to confirm or keep typing to modify
-              </p>
+      {showSuggestions && value.trim().length > 0 && filteredSuggestions.length === 0 && (() => {
+        const detectedCategory = detectCategoryFromName(value);
+        return (
+          <div className="absolute z-50 w-full mt-1 bg-white border border-green-300 rounded-lg shadow-lg px-4 py-3">
+            <div className="flex items-start gap-2">
+              <span className="text-green-600 text-lg">✓</span>
+              <div>
+                <p className="text-gray-800 font-medium text-sm">
+                  Creating new custom exercise:
+                </p>
+                <p className="text-green-700 font-bold">"{value}"</p>
+                {detectedCategory && (
+                  <p className="text-blue-600 text-xs mt-1">
+                    🏷️ Auto-detected category: {detectedCategory}
+                  </p>
+                )}
+                <p className="text-gray-500 text-xs mt-1">
+                  Click anywhere to confirm or keep typing to modify
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 }

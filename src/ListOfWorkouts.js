@@ -41,10 +41,26 @@ function ListOfWorkouts() {
       );
 
       const querySnapshot = await getDocs(q);
-      const workoutArray = querySnapshot.docs.map((doc) => ({
+      let workoutArray = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }));
+
+      // Secondary sort by createdAt for workouts on the same day
+      workoutArray.sort((a, b) => {
+        const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date?.seconds * 1000);
+        const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date?.seconds * 1000);
+
+        // First compare by date
+        const dateDiff = dateB - dateA;
+        if (dateDiff !== 0) return dateDiff;
+
+        // If same date, compare by createdAt timestamp
+        const createdA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt?.seconds * 1000 || 0);
+        const createdB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt?.seconds * 1000 || 0);
+        return createdB - createdA;
+      });
+
       setWorkouts(workoutArray);
     } catch (error) {
       setError('Error fetching workouts: ' + error.message);

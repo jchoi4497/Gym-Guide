@@ -18,17 +18,23 @@ const getCardioFields = (exerciseId) => {
 };
 
 /**
- * Optional workout sections (Cardio & Abs) that appear below main workout
+ * Optional workout sections (Cardio & Abs) that can appear above or below main workout
  */
 function OptionalWorkoutSections({
   numberOfSets,
-  setRangeLabel,
   exerciseData,
   onExerciseDataChange,
   onRemoveSet,
+  cardioAtTop,
+  absAtTop,
+  onToggleCardioPosition,
+  onToggleAbsPosition,
+  showCardio,
+  setShowCardio,
+  showAbs,
+  setShowAbs,
+  position, // "top" or "bottom"
 }) {
-  const [showCardio, setShowCardio] = useState(false);
-  const [showAbs, setShowAbs] = useState(false);
   const [absEditMode, setAbsEditMode] = useState({}); // Track edit mode per abs exercise
 
   // Warn user if they try to refresh/leave while in abs edit mode
@@ -107,19 +113,19 @@ function OptionalWorkoutSections({
   };
 
   const handleCardioChange = (rowId, newValue) => {
-    onExerciseDataChange(rowId, newValue, -1);
+    onExerciseDataChange(rowId, newValue, -1, null, null);
   };
 
   const handleAbsChange = (rowId, newValue) => {
-    onExerciseDataChange(rowId, newValue, -1);
+    onExerciseDataChange(rowId, newValue, -1, null, null);
   };
 
   const handleCardioInput = (rowId, selected, index, inputValue) => {
-    onExerciseDataChange(rowId, selected, index, inputValue);
+    onExerciseDataChange(rowId, selected, index, inputValue, null);
   };
 
   const handleAbsInput = (rowId, selected, index, inputValue) => {
-    onExerciseDataChange(rowId, selected, index, inputValue);
+    onExerciseDataChange(rowId, selected, index, inputValue, null);
   };
 
   const toggleAbsEditMode = (exerciseId) => {
@@ -132,7 +138,7 @@ function OptionalWorkoutSections({
   const handleAbsAddSet = (rowId, selected) => {
     const currentSets = exerciseData[rowId]?.sets || [];
     const currentSetCount = currentSets.length || Number(numberOfSets);
-    onExerciseDataChange(rowId, selected, currentSetCount, '');
+    onExerciseDataChange(rowId, selected, currentSetCount, '', null);
   };
 
   const handleAbsRemoveSet = (rowId) => {
@@ -143,21 +149,42 @@ function OptionalWorkoutSections({
     }
   };
 
+  // Determine which sections to show based on position
+  const showCardioHere = (position === "top" && cardioAtTop) || (position === "bottom" && !cardioAtTop);
+  const showAbsHere = (position === "top" && absAtTop) || (position === "bottom" && !absAtTop);
+
+  // Don't render anything if no sections should appear at this position
+  if (!showCardioHere && !showAbsHere) {
+    return null;
+  }
+
   return (
     <div className="mt-8 space-y-6">
       {/* Cardio Section Toggle */}
-      <div className="border-t-2 border-gray-300 pt-6">
-        <label className="flex items-center gap-3 cursor-pointer group">
-          <input
-            type="checkbox"
-            checked={showCardio}
-            onChange={(e) => setShowCardio(e.target.checked)}
-            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
-          />
-          <span className="text-xl font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">
-            Add Cardio
-          </span>
-        </label>
+      {showCardioHere && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={showCardio}
+                onChange={(e) => setShowCardio(e.target.checked)}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              />
+              <span className="text-xl font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">
+                Add Cardio
+              </span>
+            </label>
+            {showCardio && (
+              <button
+                onClick={onToggleCardioPosition}
+                className="px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium transition-colors"
+                title={cardioAtTop ? "Move to bottom" : "Move to top"}
+              >
+                {cardioAtTop ? "↓ Move to Bottom" : "↑ Move to Top"}
+              </button>
+            )}
+          </div>
 
         {showCardio && (
           <div className="mt-4">
@@ -227,21 +254,34 @@ function OptionalWorkoutSections({
             </div>
           </div>
         )}
-      </div>
+        </div>
+      )}
 
       {/* Abs Section Toggle */}
-      <div>
-        <label className="flex items-center gap-3 cursor-pointer group">
-          <input
-            type="checkbox"
-            checked={showAbs}
-            onChange={(e) => setShowAbs(e.target.checked)}
-            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
-          />
-          <span className="text-xl font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">
-            Add Abs/Core
-          </span>
-        </label>
+      {showAbsHere && (
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={showAbs}
+                onChange={(e) => setShowAbs(e.target.checked)}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              />
+              <span className="text-xl font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">
+                Add Abs/Core
+              </span>
+            </label>
+            {showAbs && (
+              <button
+                onClick={onToggleAbsPosition}
+                className="px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium transition-colors"
+                title={absAtTop ? "Move to bottom" : "Move to top"}
+              >
+                {absAtTop ? "↓ Move to Bottom" : "↑ Move to Top"}
+              </button>
+            )}
+          </div>
 
         {showAbs && (
           <div className="mt-4">
@@ -356,7 +396,8 @@ function OptionalWorkoutSections({
             </div>
           </div>
         )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

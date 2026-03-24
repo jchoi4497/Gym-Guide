@@ -97,6 +97,7 @@ function Navbar() {
       <div className="hidden md:flex space-x-6">
         <NavButton to="/Hypertrophy" label="Create Workout" />
         <NavButton to="/SavedWorkouts" label="Saved Workouts" />
+        <NavButton to="/MyExercises" label="My Exercises" />
         <NavButton to="/TrainingStyle" label="More Info" />
 
         {/* Profile UI */}
@@ -155,6 +156,7 @@ function Navbar() {
 
           <MobileLink to="/Hypertrophy" label="Create Workout" toggleMenu={toggleMenu} />
           <MobileLink to="/SavedWorkouts" label="Saved Workouts" toggleMenu={toggleMenu} />
+          <MobileLink to="/MyExercises" label="My Exercises" toggleMenu={toggleMenu} />
           <MobileLink to="/TrainingStyle" label="More Info" toggleMenu={toggleMenu} />
 
           {/* 3. Conditional Auth Button (Sign In OR Sign Out) */}
