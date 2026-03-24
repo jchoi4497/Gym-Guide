@@ -49,7 +49,7 @@ function SavedWorkout() {
   const categoryOrder = {
     chest: ['incline', 'chestpress', 'fly', 'tri', 'tri2'],
     back: ['pullup', 'row', 'lat', 'bicep', 'bicep2'],
-    legs: ['squat', 'splitsquat', 'backextension', 'calfraise'],
+    legs: ['squat', 'splitsquat', 'backextension', 'backextension2', 'calfraise'],
     shoulders: ['shoulderpress', 'reardelt', 'latraise', 'reardelt2', 'latraise2', 'frontraise', 'wristcurl', 'reversewristcurl'],
   };
 
