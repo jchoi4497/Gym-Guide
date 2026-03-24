@@ -87,6 +87,7 @@ const exerciseNames = {
   lc: "Leg Curls",
 
   // back extensions
+  ibe: "Isometric Back Extension",
   be: "Back Extensions",
   rdl: "Romanian Deadlift (RDL)",
   dbrdl: "Dumbbell RDL",
