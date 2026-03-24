@@ -90,6 +90,9 @@ function SortableExerciseItem({
               newInputs[exerciseKey].exerciseName = exercise.name;
               newInputs[exerciseKey].selection = exercise.isPreset ? exercise.id : exercise.name; // Link to preset ID if preset
               newInputs[exerciseKey].linkedExerciseId = exercise.id; // Store linked ID for data comparison
+              if (exercise.category) {
+                newInputs[exerciseKey].detectedCategory = exercise.category; // Store detected category
+              }
               setEditedInputs(newInputs);
             }}
             previousCustomExercises={previousCustomExercises}

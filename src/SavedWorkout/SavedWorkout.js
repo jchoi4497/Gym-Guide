@@ -40,6 +40,7 @@ function SavedWorkout() {
   const [exerciseOrder, setExerciseOrder] = useState([]);
   const [previousCustomExercises, setPreviousCustomExercises] = useState([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [editedDate, setEditedDate] = useState('');
 
   //used to get label of workout on savedworkout page
   const getLabel = (value) =>
@@ -49,44 +50,67 @@ function SavedWorkout() {
     chest: ['incline', 'chestpress', 'fly', 'tri', 'tri2'],
     back: ['pullup', 'row', 'lat', 'bicep', 'bicep2'],
     legs: ['squat', 'splitsquat', 'backextension', 'calfraise'],
-    shoulders: ['reardelt', 'latraise', 'reardelt2', 'latraise2', 'wristcurl', 'reversewristcurl'],
+    shoulders: ['shoulderpress', 'reardelt', 'latraise', 'reardelt2', 'latraise2', 'frontraise', 'wristcurl', 'reversewristcurl'],
   };
 
   const fetchPreviousWorkout = async (muscleGroup, currentDate) => {
     const user = auth.currentUser;
     if (!user || !muscleGroup || !currentDate) return;
 
+    // Check if this is a preset muscle group or custom
+    const isPresetMuscleGroup = ['chest', 'back', 'legs', 'shoulders'].includes(muscleGroup);
+
     try {
-      // Try with new field name first
-      let q = query(
-        collection(db, 'workoutLogs'),
-        where(FIREBASE_FIELDS.USER_ID, '==', user.uid),
-        where(FIREBASE_FIELDS.MUSCLE_GROUP, '==', muscleGroup),
-        where(FIREBASE_FIELDS.DATE, '<', currentDate),
-        orderBy(FIREBASE_FIELDS.DATE, 'desc'),
-        limit(4),
-      );
+      let q;
 
-      let querySnapshot = await getDocs(q);
-
-      // If no results, try with old field name (backward compatibility)
-      if (querySnapshot.empty) {
+      if (isPresetMuscleGroup) {
+        // For preset muscle groups, filter by muscle group for targeted comparison
+        // Try with new field name first
         q = query(
           collection(db, 'workoutLogs'),
           where(FIREBASE_FIELDS.USER_ID, '==', user.uid),
-          where(FIREBASE_FIELDS.LEGACY_TARGET, '==', muscleGroup),
+          where(FIREBASE_FIELDS.MUSCLE_GROUP, '==', muscleGroup),
           where(FIREBASE_FIELDS.DATE, '<', currentDate),
           orderBy(FIREBASE_FIELDS.DATE, 'desc'),
           limit(4),
         );
-        querySnapshot = await getDocs(q);
+
+        let querySnapshot = await getDocs(q);
+
+        // If no results, try with old field name (backward compatibility)
+        if (querySnapshot.empty) {
+          q = query(
+            collection(db, 'workoutLogs'),
+            where(FIREBASE_FIELDS.USER_ID, '==', user.uid),
+            where(FIREBASE_FIELDS.LEGACY_TARGET, '==', muscleGroup),
+            where(FIREBASE_FIELDS.DATE, '<', currentDate),
+            orderBy(FIREBASE_FIELDS.DATE, 'desc'),
+            limit(4),
+          );
+          querySnapshot = await getDocs(q);
+        }
+
+        const docs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setMonthlyWorkoutData(docs);
+        setPreviousWorkoutData(docs[0] || null);
+      } else {
+        // For custom muscle groups, fetch recent workouts across ALL muscle groups
+        // This allows exercise-level comparison (e.g., "Push Day" can compare with "Chest/Triceps")
+        q = query(
+          collection(db, 'workoutLogs'),
+          where(FIREBASE_FIELDS.USER_ID, '==', user.uid),
+          where(FIREBASE_FIELDS.DATE, '<', currentDate),
+          orderBy(FIREBASE_FIELDS.DATE, 'desc'),
+          limit(20), // Fetch more workouts for exercise matching across different splits
+        );
+
+        const querySnapshot = await getDocs(q);
+        const docs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+        // For custom groups, use all docs for comparison (DataChart will match by exercise name)
+        setMonthlyWorkoutData(docs);
+        setPreviousWorkoutData(docs[0] || null);
       }
-
-      const docs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-
-      // Update both states immediately
-      setMonthlyWorkoutData(docs);
-      setPreviousWorkoutData(docs[0] || null); // Most recent for 'previous' view
     } catch (error) {
       console.error('Error fetching history:', error);
     }
@@ -175,6 +199,16 @@ function SavedWorkout() {
         setEditedInputs(exerciseData);
         setNote(data.note || '');
         setSummary(data.summary || '');
+
+        // Set the date for editing (convert Firebase timestamp to YYYY-MM-DD)
+        if (data.date) {
+          const workoutDate = data.date.toDate ? data.date.toDate() : new Date(data.date.seconds * 1000);
+          const year = workoutDate.getFullYear();
+          const month = String(workoutDate.getMonth() + 1).padStart(2, '0');
+          const day = String(workoutDate.getDate()).padStart(2, '0');
+          setEditedDate(`${year}-${month}-${day}`);
+        }
+
         // CREATE THE INITIAL ORDER
         const inputKeys = Object.keys(exerciseData);
         const muscleGroup = data.muscleGroup || data.target;
@@ -260,23 +294,34 @@ function SavedWorkout() {
     return () => unsubscribe();
   }, [workoutId]);
 
-  // Track changes to editedInputs and note
+  // Track changes to editedInputs, note, and date
   useEffect(() => {
     if (isEditing && workoutData) {
       const originalExerciseData = workoutData.exerciseData || workoutData.inputs || {};
       const originalNote = workoutData.note || '';
 
+      // Check if date changed
+      let originalDateString = '';
+      if (workoutData.date) {
+        const workoutDate = workoutData.date.toDate ? workoutData.date.toDate() : new Date(workoutData.date.seconds * 1000);
+        const year = workoutDate.getFullYear();
+        const month = String(workoutDate.getMonth() + 1).padStart(2, '0');
+        const day = String(workoutDate.getDate()).padStart(2, '0');
+        originalDateString = `${year}-${month}-${day}`;
+      }
+
       const inputsChanged = JSON.stringify(editedInputs) !== JSON.stringify(originalExerciseData);
       const noteChanged = note !== originalNote;
+      const dateChanged = editedDate !== originalDateString;
       const orderChanged = JSON.stringify(exerciseOrder) !== JSON.stringify(
         Object.keys(originalExerciseData)
       );
 
-      if (inputsChanged || noteChanged || orderChanged) {
+      if (inputsChanged || noteChanged || dateChanged || orderChanged) {
         setHasUnsavedChanges(true);
       }
     }
-  }, [editedInputs, note, exerciseOrder, isEditing, workoutData]);
+  }, [editedInputs, note, editedDate, exerciseOrder, isEditing, workoutData]);
 
   // Warn before leaving page with unsaved changes (browser close/refresh)
   useEffect(() => {
@@ -367,23 +412,22 @@ function SavedWorkout() {
       setIsGeneratingSummary(false);
       const docRef = doc(db, 'workoutLogs', workoutId);
 
+      // Convert edited date string to Date object
+      const [year, month, day] = editedDate.split('-');
+      const updatedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
+
       // Update with new field name, but keep old for backward compatibility
       await updateDoc(docRef, {
         [FIREBASE_FIELDS.EXERCISE_DATA]: editedInputs,
         [FIREBASE_FIELDS.LEGACY_INPUTS]: editedInputs, // Keep for backward compatibility
         [FIREBASE_FIELDS.NOTE]: note,
         [FIREBASE_FIELDS.SUMMARY]: newSummary,
+        [FIREBASE_FIELDS.DATE]: updatedDate,
       });
 
-      setWorkoutData((prev) => ({
-        ...prev,
-        [FIREBASE_FIELDS.EXERCISE_DATA]: editedInputs,
-        [FIREBASE_FIELDS.LEGACY_INPUTS]: editedInputs, // Keep for backward compatibility
-        [FIREBASE_FIELDS.NOTE]: note,
-        [FIREBASE_FIELDS.SUMMARY]: newSummary,
-      }));
+      // Refetch data from Firebase to ensure UI is in sync with database
+      await fetchData();
 
-      setSummary(newSummary);
       setIsEditing(false);
       setHasUnsavedChanges(false); // Reset unsaved changes flag
     } catch (error) {
@@ -444,11 +488,33 @@ function SavedWorkout() {
       <div className="px-4 sm:px-20">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
           <div className="text-5xl">{getLabel(muscleGroup)} Workout</div>
-          <div className="flex items-center space-x-4">
-            {workoutData.date && (
-              <div className="text-5xl text-gray-600">
-                {new Date(workoutData.date.seconds * 1000).toLocaleDateString()}
+          <div className="flex flex-col items-end gap-2">
+            {isEditing ? (
+              <div className="flex flex-col">
+                <label className="text-sm font-medium text-gray-700 mb-1">Workout Date:</label>
+                <input
+                  type="date"
+                  value={editedDate}
+                  onChange={(e) => {
+                    setEditedDate(e.target.value);
+                    setHasUnsavedChanges(true);
+                  }}
+                  max={(() => {
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = String(today.getMonth() + 1).padStart(2, '0');
+                    const day = String(today.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                  })()}
+                  className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                />
               </div>
+            ) : (
+              workoutData.date && (
+                <div className="text-5xl text-gray-600">
+                  {new Date(workoutData.date.seconds * 1000).toLocaleDateString()}
+                </div>
+              )
             )}
           </div>
         </div>

@@ -7,6 +7,7 @@ import HypertrophyPage from './pages/HypertrophyPage';
 import ColorDesignPage from './pages/ColorDesignPage';
 import SavedWorkout from './SavedWorkout/SavedWorkout';
 import ListOfWorkouts from './ListOfWorkouts';
+import MyExercisesPage from './pages/MyExercisesPage';
 
 function Main() {
     return (
@@ -19,6 +20,7 @@ function Main() {
                 <Route exact path="ColorDesign" element={<ColorDesignPage />} />
                 <Route exact path="/SavedWorkout/:workoutId" element={<SavedWorkout />} />
                 <Route exact path="/SavedWorkouts" element={<ListOfWorkouts />} />
+                <Route exact path="/MyExercises" element={<MyExercisesPage />} />
             </Routes>
         </BrowserRouter>
     );
