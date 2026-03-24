@@ -16,6 +16,8 @@ function TableRow({
   onRemoveSet,
   previousCustomExercises = [],
   isEditingSets = false,
+  favoriteExercises = [],
+  onToggleFavorite,
 }) {
 
   // Calculate current set count consistently
@@ -90,6 +92,8 @@ function TableRow({
             options={[...options, { label: 'Custom', value: 'custom' }]}
             onChange={onChange}
             value={value}
+            favorites={favoriteExercises}
+            onToggleFavorite={onToggleFavorite}
           />
         )}
       </div>

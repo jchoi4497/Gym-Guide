@@ -11,7 +11,9 @@ function MuscleGroupWorkout({
   onExerciseDataChange,
   onRemoveSet,
   previousExerciseData,
-  previousCustomExercises = []
+  previousCustomExercises = [],
+  favoriteExercises = [],
+  onToggleFavorite
 }) {
   // State to track if user is editing sets (add/remove functionality)
   const [isEditingSets, setIsEditingSets] = useState(false);
@@ -107,6 +109,8 @@ function MuscleGroupWorkout({
         previousCustomExercises={previousCustomExercises}
         isEditingSets={isEditingSets}
         onReorder={handleReorder}
+        favoriteExercises={favoriteExercises}
+        onToggleFavorite={onToggleFavorite}
       />
       <AddExerciseButton onClick={addCustomExercise} />
     </div>
