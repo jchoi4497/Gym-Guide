@@ -64,6 +64,8 @@ function WorkoutTable({
   previousCustomExercises = [],
   isEditingSets = false,
   onReorder,
+  favoriteExercises = [],
+  onToggleFavorite,
 }) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -122,6 +124,8 @@ function WorkoutTable({
                 onRemoveSet={(index) => onRemoveSet(exercise.id, index)}
                 previousCustomExercises={previousCustomExercises}
                 isEditingSets={isEditingSets}
+                favoriteExercises={favoriteExercises}
+                onToggleFavorite={onToggleFavorite}
               />
             ))}
           </div>

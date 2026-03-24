@@ -37,6 +37,9 @@ function HypertrophyPage() {
   const [showCardio, setShowCardio] = useState(false);
   const [showAbs, setShowAbs] = useState(false);
 
+  // Favorite exercises
+  const [favoriteExercises, setFavoriteExercises] = useState([]);
+
   // Workout date (default to today in local timezone)
   const [workoutDate, setWorkoutDate] = useState(() => {
     const today = new Date();
@@ -253,6 +256,40 @@ function HypertrophyPage() {
     }
   };
 
+  // Fetch user's favorite exercises from Firebase
+  const fetchFavorites = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+      const favDoc = await getDoc(doc(db, 'userFavorites', user.uid));
+      if (favDoc.exists()) {
+        setFavoriteExercises(favDoc.data().favorites || []);
+      }
+    } catch (error) {
+      console.error('Error fetching favorites:', error);
+    }
+  };
+
+  // Toggle favorite status for an exercise
+  const toggleFavorite = async (exerciseId) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const newFavorites = favoriteExercises.includes(exerciseId)
+      ? favoriteExercises.filter(id => id !== exerciseId)
+      : [...favoriteExercises, exerciseId];
+
+    setFavoriteExercises(newFavorites);
+
+    // Save to Firebase
+    try {
+      await setDoc(doc(db, 'userFavorites', user.uid), { favorites: newFavorites });
+    } catch (error) {
+      console.error('Error saving favorites:', error);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (!user) {
@@ -261,6 +298,7 @@ function HypertrophyPage() {
       } else {
         // Once we have a user, fetch their data
         fetchPreviousCustomExercises();
+        fetchFavorites();
         if (actualMuscleGroup) {
           // For custom muscle groups that aren't in presets, fetch recent workouts across all groups
           const isPresetMuscleGroup = ['chest', 'back', 'legs', 'shoulders'].includes(actualMuscleGroup);
@@ -714,6 +752,8 @@ function HypertrophyPage() {
               onRemoveSet={handleRemoveSet}
               previousExerciseData={previousWorkoutData?.exerciseData || previousWorkoutData?.inputs}
               previousCustomExercises={previousCustomExercises}
+              favoriteExercises={favoriteExercises}
+              onToggleFavorite={toggleFavorite}
             />
           )}
         </div>
