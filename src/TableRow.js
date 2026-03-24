@@ -62,7 +62,7 @@ function TableRow({
 
   return (
     <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 border border-gray-300 rounded-md p-4 bg-sky-50 shadow-sm mb-4">
-      {isCustom && (
+      {(isCustom || isEditingSets) && (
         <button
           onClick={onRemove}
           className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90 z-10 cursor-pointer"

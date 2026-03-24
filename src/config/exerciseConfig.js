@@ -388,6 +388,13 @@ export const EXERCISES = {
   },
 
   // Back Extensions
+  ISOMETRIC_BACK_EXTENSION: {
+    id: 'ibe',
+    name: 'Isometric Back Extension',
+    category: EXERCISE_CATEGORIES.BACK_EXTENSION,
+    muscleGroup: MUSCLE_GROUPS.LEGS,
+    metricType: 'timed',
+  },
   BACK_EXTENSIONS: {
     id: 'be',
     name: 'Back Extensions',
@@ -801,6 +808,11 @@ export const DEFAULT_EXERCISES = {
     },
     {
       id: EXERCISE_CATEGORIES.BACK_EXTENSION,
+      selected: 'ibe', // Isometric Back Extension
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.BACK_EXTENSION),
+    },
+    {
+      id: 'backextension2',
       selected: 'be', // Back Extensions
       options: getExercisesByCategory(EXERCISE_CATEGORIES.BACK_EXTENSION),
     },
@@ -812,11 +824,6 @@ export const DEFAULT_EXERCISES = {
   ],
 
   [MUSCLE_GROUPS.SHOULDERS]: [
-    {
-      id: EXERCISE_CATEGORIES.SHOULDER_PRESS,
-      selected: 'dsp', // Dumbbell Shoulder Press
-      options: getExercisesByCategory(EXERCISE_CATEGORIES.SHOULDER_PRESS),
-    },
     {
       id: EXERCISE_CATEGORIES.REAR_DELT_PRIMARY,
       selected: 'rdm', // Rear Delt Machine
