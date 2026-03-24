@@ -35,10 +35,12 @@ export const EXERCISE_CATEGORIES = {
   CALF_RAISE: 'calfraise',
 
   // Shoulders categories
+  SHOULDER_PRESS: 'shoulderpress',
   REAR_DELT_PRIMARY: 'reardelt',
   REAR_DELT_SECONDARY: 'reardelt2',
   LAT_RAISE_PRIMARY: 'latraise',
   LAT_RAISE_SECONDARY: 'latraise2',
+  FRONT_RAISE: 'frontraise',
   WRIST_CURL: 'wristcurl',
   REVERSE_WRIST_CURL: 'reversewristcurl',
 
@@ -445,6 +447,32 @@ export const EXERCISES = {
 
   // ========== SHOULDERS EXERCISES ==========
 
+  // Shoulder Press
+  DUMBBELL_SHOULDER_PRESS: {
+    id: 'dsp',
+    name: 'Dumbbell Shoulder Press',
+    category: EXERCISE_CATEGORIES.SHOULDER_PRESS,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  BARBELL_SHOULDER_PRESS: {
+    id: 'bsp',
+    name: 'Barbell Shoulder Press',
+    category: EXERCISE_CATEGORIES.SHOULDER_PRESS,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  SMITH_MACHINE_SHOULDER_PRESS: {
+    id: 'smsp',
+    name: 'Smith Machine Shoulder Press',
+    category: EXERCISE_CATEGORIES.SHOULDER_PRESS,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  MACHINE_SHOULDER_PRESS: {
+    id: 'msp',
+    name: 'Machine Shoulder Press',
+    category: EXERCISE_CATEGORIES.SHOULDER_PRESS,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+
   // Rear Delt
   REAR_DELT_MACHINE: {
     id: 'rdm',
@@ -500,6 +528,26 @@ export const EXERCISES = {
     id: 'mlr',
     name: 'Machine Lateral Raises',
     category: EXERCISE_CATEGORIES.LAT_RAISE_PRIMARY,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+
+  // Front Raises
+  DUMBBELL_FRONT_RAISES: {
+    id: 'dfr',
+    name: 'Dumbbell Front Raises',
+    category: EXERCISE_CATEGORIES.FRONT_RAISE,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  BARBELL_FRONT_RAISES: {
+    id: 'bfr',
+    name: 'Barbell Front Raises',
+    category: EXERCISE_CATEGORIES.FRONT_RAISE,
+    muscleGroup: MUSCLE_GROUPS.SHOULDERS,
+  },
+  CABLE_FRONT_RAISES: {
+    id: 'cfr',
+    name: 'Cable Front Raises',
+    category: EXERCISE_CATEGORIES.FRONT_RAISE,
     muscleGroup: MUSCLE_GROUPS.SHOULDERS,
   },
 
@@ -764,6 +812,11 @@ export const DEFAULT_EXERCISES = {
   ],
 
   [MUSCLE_GROUPS.SHOULDERS]: [
+    {
+      id: EXERCISE_CATEGORIES.SHOULDER_PRESS,
+      selected: 'dsp', // Dumbbell Shoulder Press
+      options: getExercisesByCategory(EXERCISE_CATEGORIES.SHOULDER_PRESS),
+    },
     {
       id: EXERCISE_CATEGORIES.REAR_DELT_PRIMARY,
       selected: 'rdm', // Rear Delt Machine

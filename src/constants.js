@@ -12,6 +12,7 @@ export const MUSCLE_GROUPS = {
   BACK: 'back',
   LEGS: 'legs',
   SHOULDERS: 'shoulders',
+  CUSTOM: 'custom',
 };
 
 // ====================================
@@ -26,6 +27,7 @@ export const MUSCLE_GROUP_OPTIONS = [
   { label: 'Back/Biceps', value: MUSCLE_GROUPS.BACK },
   { label: 'Legs', value: MUSCLE_GROUPS.LEGS },
   { label: 'Shoulders/Forearms', value: MUSCLE_GROUPS.SHOULDERS },
+  { label: 'Custom', value: MUSCLE_GROUPS.CUSTOM },
 ];
 
 /**
@@ -35,6 +37,7 @@ export const SET_RANGE_OPTIONS = [
   { label: '3x15', value: 3, reps: 15 },
   { label: '4x12', value: 4, reps: 12 },
   { label: '5x8', value: 5, reps: 8 },
+  { label: 'Custom', value: 'custom', reps: null },
 ];
 
 // ====================================

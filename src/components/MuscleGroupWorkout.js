@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import WorkoutTable from '../WorkoutTable';
 import AddExerciseButton from '../AddExerciseButton';
-import OptionalWorkoutSections from './OptionalWorkoutSections';
 import { getDefaultExercises } from '../config/exerciseConfig';
 
 function MuscleGroupWorkout({
@@ -14,10 +13,26 @@ function MuscleGroupWorkout({
   previousExerciseData,
   previousCustomExercises = []
 }) {
+  // State to track if user is editing sets (add/remove functionality)
+  const [isEditingSets, setIsEditingSets] = useState(false);
+
   // Initialize exercises based on muscle group
-  const [exercises, setExercises] = useState(() =>
-    getDefaultExercises(muscleGroup)
-  );
+  const [exercises, setExercises] = useState(() => {
+    // Check if this is a preset muscle group
+    const isPreset = ['chest', 'back', 'legs', 'shoulders'].includes(muscleGroup);
+
+    if (isPreset) {
+      return getDefaultExercises(muscleGroup);
+    } else {
+      // Custom muscle group - start with one empty custom exercise
+      return [{
+        id: `custom_${Date.now()}`,
+        selected: '',
+        options: [],
+        isCustom: true,
+      }];
+    }
+  });
 
   // Reset exercises when muscle group changes
   useEffect(() => {
@@ -44,22 +59,41 @@ function MuscleGroupWorkout({
   };
 
   // Handle exercise selection change
-  const handleExerciseChange = (rowId, newExerciseValue) => {
+  const handleExerciseChange = (rowId, newExerciseValue, detectedCategory) => {
     const updatedExercises = exercises.map((ex) =>
       ex.id === rowId ? { ...ex, selected: newExerciseValue } : ex
     );
 
     setExercises(updatedExercises);
-    onExerciseDataChange(rowId, newExerciseValue, -1);
+    onExerciseDataChange(rowId, newExerciseValue, -1, null, detectedCategory);
   };
 
   // Handle set data input change
   const handleInputChange = (rowId, selected, index, inputValue) => {
-    onExerciseDataChange(rowId, selected, index, inputValue);
+    onExerciseDataChange(rowId, selected, index, inputValue, null);
+  };
+
+  // Handle reordering exercises
+  const handleReorder = (newOrderedExercises) => {
+    setExercises(newOrderedExercises);
   };
 
   return (
     <div>
+      {/* Edit Sets Toggle Button */}
+      <div className="mb-4 flex justify-end">
+        <button
+          onClick={() => setIsEditingSets(!isEditingSets)}
+          className={`px-4 py-2 rounded-lg text-white font-semibold shadow-md transition-all active:scale-95 ${
+            isEditingSets
+              ? 'bg-orange-500 hover:bg-orange-600'
+              : 'bg-blue-500 hover:bg-blue-600'
+          }`}
+        >
+          {isEditingSets ? '✓ Done Editing Sets' : '✎ Edit Sets'}
+        </button>
+      </div>
+
       <WorkoutTable
         setRangeLabel={setRangeLabel}
         muscleGroup={muscleGroup}
@@ -71,17 +105,10 @@ function MuscleGroupWorkout({
         onRemove={removeExercise}
         onRemoveSet={onRemoveSet}
         previousCustomExercises={previousCustomExercises}
+        isEditingSets={isEditingSets}
+        onReorder={handleReorder}
       />
       <AddExerciseButton onClick={addCustomExercise} />
-
-      {/* Optional Cardio & Abs Sections */}
-      <OptionalWorkoutSections
-        numberOfSets={numberOfSets}
-        setRangeLabel={setRangeLabel}
-        exerciseData={exerciseData}
-        onExerciseDataChange={onExerciseDataChange}
-        onRemoveSet={onRemoveSet}
-      />
     </div>
   );
 }
