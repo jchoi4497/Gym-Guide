@@ -1,1 +1,35 @@
 @import "tailwindcss";
+
+/* Ensure smooth scrolling and proper overflow */
+html {
+  scroll-behavior: smooth;
+  overflow-y: scroll; /* Always show scrollbar track */
+  height: 100%;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 100vh;
+  height: 100%;
+  /* Enable momentum scrolling on mobile and smooth on desktop */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom scrollbar for desktop - looks nicer */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(229, 231, 235, 0.5); /* Light gray */
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.6); /* Blue */
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.8); /* Darker blue on hover */
+}

@@ -9,8 +9,8 @@ function LandingPage() {
       const user = await loginWithGoogle();
       if (user) {
         console.log('Logged in as:', user.displayName);
-        // 3. Redirect user to dashboard programmatically
-        navigate('/Hypertrophy');
+        // Redirect user to templates page
+        navigate('/Templates');
       }
     } catch (error) {
       console.error('Login failed:', error);
@@ -25,9 +25,9 @@ function LandingPage() {
           An in-depth fitness guide built from real-world experience & research.
         </p>
         <div className="flex items-center justify-center gap-8">
-          <Link to="/TrainingStyle">
+          <Link to="/Templates">
             <button className="px-8 py-3 rounded-full bg-blue-600 text-sky-50 text-lg font-semibold shadow-lg transition-all duration-300 hover:bg-blue-700 active:bg-blue-600 active:scale-95">
-              Guide
+              Get Started
             </button>
           </Link>
           <div>
