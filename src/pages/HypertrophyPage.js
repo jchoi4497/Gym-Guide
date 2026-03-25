@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { collection, addDoc, query, where, orderBy, limit, getDocs, getDoc, doc, setDoc } from 'firebase/firestore';
 import { auth } from '../firebase'; // Make sure auth is imported
 import db from '../firebase';
@@ -7,13 +7,18 @@ import DropDown from '../DropDown';
 import MuscleGroupWorkout from '../components/MuscleGroupWorkout';
 import OptionalWorkoutSections from '../components/OptionalWorkoutSections';
 import MuscleGroupAutocomplete from '../components/MuscleGroupAutocomplete';
+import TemplateSelector from '../components/TemplateSelector';
 import Navbar from '../Navbar';
 import WorkoutNotesInput from '../WorkoutNotesInput';
 import { generateSummary } from '../summaryUtil';
 import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS, STORAGE_KEYS, FIREBASE_FIELDS } from '../constants';
 import { getMuscleGroupFromCategory } from '../utils/categoryDetection';
+import { loadTemplate, templateToExerciseData, updateTemplateLastUsed } from '../utils/templateHelpers';
 
 function HypertrophyPage() {
+  const [searchParams] = useSearchParams();
+  const templateId = searchParams.get('template'); // Get template ID from URL
+
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(null);
   const [numberOfSets, setNumberOfSets] = useState(null);
   const [exerciseData, setExerciseData] = useState({});
@@ -23,6 +28,13 @@ function HypertrophyPage() {
   const [previousWorkoutData, setPreviousWorkoutData] = useState(null);
   const [previousCustomExercises, setPreviousCustomExercises] = useState([]);
   const [previousCustomMuscleGroups, setPreviousCustomMuscleGroups] = useState([]);
+  const [loadedTemplate, setLoadedTemplate] = useState(null);
+  const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
+  const [selectedTemplateFromDropdown, setSelectedTemplateFromDropdown] = useState(null);
+  const [justLoadedTemplate, setJustLoadedTemplate] = useState(false);
+
+  // Workflow mode: 'choose' | 'template' | 'custom'
+  const [workflowMode, setWorkflowMode] = useState('choose');
 
   // Custom input states
   const [customMuscleGroupName, setCustomMuscleGroupName] = useState('');
@@ -71,8 +83,80 @@ function HypertrophyPage() {
       (selectedMuscleGroup !== 'custom' || customMuscleGroupName.trim());
     const hasSets = numberOfSets &&
       (numberOfSets !== 'custom' || (customSetCount && parseInt(customSetCount) > 0));
-    return hasMuscleGroup && hasSets;
+    const result = hasMuscleGroup && hasSets;
+    console.log('🔍 isWorkoutConfigured:', result, { hasMuscleGroup, hasSets, selectedMuscleGroup, numberOfSets });
+    return result;
   }, [selectedMuscleGroup, customMuscleGroupName, numberOfSets, customSetCount]);
+
+  // LOAD TEMPLATE FROM URL ---
+  useEffect(() => {
+    const loadTemplateData = async () => {
+      if (!templateId) return;
+
+      const user = auth.currentUser;
+      if (!user) {
+        console.log('User not logged in, cannot load template');
+        return;
+      }
+
+      setIsLoadingTemplate(true);
+      console.log('Loading template:', templateId);
+
+      const template = await loadTemplate(user.uid, templateId);
+
+      if (template) {
+        console.log('Template loaded:', template);
+        setLoadedTemplate(template);
+        setSelectedTemplateFromDropdown(templateId); // Also set dropdown value
+
+        // Apply template data to form
+        setSelectedMuscleGroup(template.muscleGroup || null);
+        setCustomMuscleGroupName(template.customMuscleGroupName || '');
+        setNumberOfSets(template.numberOfSets || null);
+        setCustomSetCount(template.customSetCount?.toString() || '');
+        setCustomRepCount(template.customRepCount?.toString() || '');
+
+        // Set optional sections
+        setShowCardio(template.includeCardio || false);
+        setCardioAtTop(template.cardioAtTop || false);
+        setShowAbs(template.includeAbs || false);
+        setAbsAtTop(template.absAtTop || false);
+
+        // Pre-fill exercises once we have the set count
+        const setsCount = template.customSetCount || template.numberOfSets || 4;
+        const prefilledExercises = templateToExerciseData(template, setsCount);
+        setExerciseData(prefilledExercises);
+
+        // Update template's last used timestamp
+        await updateTemplateLastUsed(user.uid, templateId);
+
+        // Clear any existing draft since we're starting fresh with a template
+        localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
+
+        // Set flag to prevent auto-save from immediately triggering
+        setJustLoadedTemplate(true);
+        setTimeout(() => setJustLoadedTemplate(false), 1000); // Reset after 1 second
+
+        // Set workflow mode to template
+        setWorkflowMode('template');
+
+        console.log('Template applied successfully');
+      } else {
+        console.log('Template not found');
+      }
+
+      setIsLoadingTemplate(false);
+    };
+
+    // Only load template if user is authenticated
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user && templateId) {
+        loadTemplateData();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [templateId]);
 
   const setRangeLabel = useMemo(() => {
     if (numberOfSets === 'custom' && customSetCount) {
@@ -86,6 +170,15 @@ function HypertrophyPage() {
 
   // RECOVER DRAFT ON LOAD ---
   useEffect(() => {
+    // Skip draft recovery if loading from a template (URL or dropdown)
+    if (templateId || isLoadingTemplate || selectedTemplateFromDropdown) {
+      // Clear draft when using a template
+      if (templateId || selectedTemplateFromDropdown) {
+        localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
+      }
+      return;
+    }
+
     const savedDraft = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
     if (savedDraft) {
       const parsed = JSON.parse(savedDraft);
@@ -133,6 +226,18 @@ function HypertrophyPage() {
           if (parsed.customSetCount) setCustomSetCount(parsed.customSetCount);
           if (parsed.customRepCount) setCustomRepCount(parsed.customRepCount);
 
+          // Restore template selection if present
+          if (parsed.templateId) {
+            setSelectedTemplateFromDropdown(parsed.templateId);
+            // Optionally reload the full template data
+            const user = auth.currentUser;
+            if (user) {
+              loadTemplate(user.uid, parsed.templateId).then(template => {
+                if (template) setLoadedTemplate(template);
+              });
+            }
+          }
+
           console.log('Workout draft restored from local storage.');
         } else {
           // If they say No, clear the old draft so they start fresh
@@ -140,10 +245,15 @@ function HypertrophyPage() {
         }
       }
     }
-  }, []);
+  }, [templateId, isLoadingTemplate, selectedTemplateFromDropdown]);
 
   // AUTO-SAVE TO LOCAL STORAGE ---
   useEffect(() => {
+    // Skip auto-save if we just loaded a template (give user a chance to start working)
+    if (justLoadedTemplate) {
+      return;
+    }
+
     // Only save if the user has at least started a workout (selected a muscle group)
     if (selectedMuscleGroup) {
       const draft = {
@@ -153,11 +263,20 @@ function HypertrophyPage() {
         note,
         customMuscleGroupName,
         customSetCount,
-        customRepCount
+        customRepCount,
+        templateId: selectedTemplateFromDropdown, // Save template ID for recovery
       };
       localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT, JSON.stringify(draft));
     }
-  }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount]);
+  }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount, selectedTemplateFromDropdown, justLoadedTemplate]);
+
+  // Debug: Log exerciseData whenever it changes
+  useEffect(() => {
+    if (Object.keys(exerciseData).length > 0) {
+      console.log('💾 Exercise data updated:', exerciseData);
+      console.log('💾 Exercise categories:', Object.keys(exerciseData));
+    }
+  }, [exerciseData]);
 
   // PREVENT ACCIDENTAL TAB CLOSING ---
   useEffect(() => {
@@ -462,6 +581,78 @@ function HypertrophyPage() {
     setExerciseData({});
   };
 
+  // Handle template selection from dropdown
+  const handleTemplateSelect = async (templateId) => {
+    if (!templateId) {
+      // User selected "Start from Scratch" - switch to custom mode
+      setWorkflowMode('custom');
+      setSelectedTemplateFromDropdown(null);
+      setLoadedTemplate(null);
+      setSelectedMuscleGroup(null);
+      setNumberOfSets(null);
+      setCustomMuscleGroupName('');
+      setCustomSetCount('');
+      setCustomRepCount('');
+      setExerciseData({});
+      setShowCardio(false);
+      setShowAbs(false);
+      setJustLoadedTemplate(false);
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
+      return;
+    }
+
+    const user = auth.currentUser;
+    if (!user) return;
+
+    setIsLoadingTemplate(true);
+    setSelectedTemplateFromDropdown(templateId);
+
+    const template = await loadTemplate(user.uid, templateId);
+
+    if (template) {
+      console.log('Template loaded from dropdown:', template);
+      setLoadedTemplate(template);
+
+      // Apply template data to form
+      setSelectedMuscleGroup(template.muscleGroup || null);
+      setCustomMuscleGroupName(template.customMuscleGroupName || '');
+      setNumberOfSets(template.numberOfSets || null);
+      setCustomSetCount(template.customSetCount?.toString() || '');
+      setCustomRepCount(template.customRepCount?.toString() || '');
+
+      // Set optional sections
+      setShowCardio(template.includeCardio || false);
+      setCardioAtTop(template.cardioAtTop || false);
+      setShowAbs(template.includeAbs || false);
+      setAbsAtTop(template.absAtTop || false);
+
+      // Pre-fill exercises once we have the set count
+      const setsCount = template.customSetCount || template.numberOfSets || 4;
+      console.log('📊 Converting template exercises with', setsCount, 'sets');
+      const prefilledExercises = templateToExerciseData(template, setsCount);
+      console.log('📋 Prefilled exercise data:', prefilledExercises);
+      console.log('📋 Number of exercises:', Object.keys(prefilledExercises).length);
+      setExerciseData(prefilledExercises);
+
+      // Update template's last used timestamp
+      await updateTemplateLastUsed(user.uid, templateId);
+
+      // Clear any existing draft since we're starting fresh with a template
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
+
+      // Set flag to prevent auto-save from immediately triggering
+      setJustLoadedTemplate(true);
+      setTimeout(() => setJustLoadedTemplate(false), 1000); // Reset after 1 second
+
+      // Keep in template mode
+      setWorkflowMode('template');
+
+      console.log('✅ Template applied successfully from dropdown');
+    }
+
+    setIsLoadingTemplate(false);
+  };
+
   // Auto-save custom exercises to "My Exercises" when saving workout
   const autoSaveCustomExercises = async (userId, exerciseDataToSave) => {
     console.log('autoSaveCustomExercises called with:', exerciseDataToSave);
@@ -547,7 +738,7 @@ function HypertrophyPage() {
       setIsGeneratingSummary(false);
 
       // Save WorkoutLog with new field names (use actual values for custom)
-      const docRef = await addDoc(collection(db, 'workoutLogs'), {
+      const workoutData = {
         [FIREBASE_FIELDS.USER_ID]: user.uid,
         [FIREBASE_FIELDS.MUSCLE_GROUP]: actualMuscleGroup,
         [FIREBASE_FIELDS.NUMBER_OF_SETS]: actualNumberOfSets,
@@ -556,7 +747,16 @@ function HypertrophyPage() {
         [FIREBASE_FIELDS.NOTE]: note,
         [FIREBASE_FIELDS.SUMMARY]: newSummary,
         createdAt: new Date(), // Exact timestamp for ordering
-      });
+      };
+
+      // Add template ID if workout was started from a template (URL or dropdown)
+      const activeTemplateId = templateId || selectedTemplateFromDropdown;
+      if (activeTemplateId) {
+        workoutData.templateId = activeTemplateId;
+        workoutData.templateName = loadedTemplate?.name || 'Unknown Template';
+      }
+
+      const docRef = await addDoc(collection(db, 'workoutLogs'), workoutData);
 
       // CLEAR LOCAL STORAGE ON SUCCESS ---
       localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
@@ -591,26 +791,75 @@ function HypertrophyPage() {
       setExerciseData({});
       setNote('');
       setPreviousWorkoutData(null);
+      setLoadedTemplate(null);
+      setSelectedTemplateFromDropdown(null);
+      setCustomMuscleGroupName('');
+      setCustomSetCount('');
+      setCustomRepCount('');
+      setShowCardio(false);
+      setShowAbs(false);
+      setJustLoadedTemplate(false);
+      setWorkflowMode('choose'); // Reset to choice screen
 
       // 2. Clear the local storage draft
       localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
 
-      // 3. Scroll to top so user sees the "Step 1" section
+      // 3. Scroll to top so user sees the choice screen
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   return (
-    <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-32 font-serif">
+    <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-[150vh] pb-40 font-serif">
       <Navbar />
 
-      <div className="max-w-6xl mx-auto px-6 pt-14">
-        <h1 className="text-5xl font-extrabold mb-4 text-gray-800">Hypertrophy Training</h1>
-        <p className="text-lg text-gray-700 italic mb-10">
-          Training program designed to increase muscle size and mass.
-        </p>
-        {/* Only show "Restart" if there is actually data to clear */}
-        {(selectedMuscleGroup || Object.keys(exerciseData).length > 0) && (
+      <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 min-h-screen">
+        {/* Only show generic title on choice screen */}
+        {workflowMode === 'choose' && (
+          <>
+            <h1 className="text-5xl font-extrabold mb-4 text-gray-800">Create Workout</h1>
+            <p className="text-lg text-gray-700 italic mb-10">
+              Choose your training style and start logging your workout.
+            </p>
+          </>
+        )}
+
+        {/* Show specific title when following program */}
+        {workflowMode === 'custom' && selectedMuscleGroup && (
+          <>
+            <h1 className="text-4xl font-extrabold mb-2 text-gray-800">
+              {actualMuscleGroup ? `${actualMuscleGroup.charAt(0).toUpperCase() + actualMuscleGroup.slice(1)} Day` : 'Workout'}
+            </h1>
+            <p className="text-sm text-gray-600 italic mb-8">
+              Following Jonathan's Hypertrophy Program
+            </p>
+          </>
+        )}
+
+        {/* Show template name when using template */}
+        {workflowMode === 'template' && loadedTemplate && (
+          <>
+            <h1 className="text-4xl font-extrabold mb-2 text-gray-800 flex items-center gap-3">
+              <span>{loadedTemplate.icon || '💪'}</span>
+              <span>{loadedTemplate.name}</span>
+            </h1>
+            {loadedTemplate.category && (
+              <p className="text-sm text-gray-600 italic mb-8">
+                {loadedTemplate.category} Training
+              </p>
+            )}
+          </>
+        )}
+
+        {/* Loading Template Indicator */}
+        {isLoadingTemplate && (
+          <div className="bg-gray-100 p-3 mb-6 rounded-lg text-center">
+            <p className="text-gray-700 text-sm">Loading template...</p>
+          </div>
+        )}
+
+        {/* Only show "Restart" if there is actually data to clear OR if they've made a choice */}
+        {(selectedMuscleGroup || Object.keys(exerciseData).length > 0 || workflowMode !== 'choose') && (
           <div className="flex justify-start mb-6">
             <button
               onClick={handleReset}
@@ -635,7 +884,213 @@ function HypertrophyPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
+        {/* Workflow Choice - Only show if nothing selected yet */}
+        {workflowMode === 'choose' && !selectedMuscleGroup && !selectedTemplateFromDropdown && Object.keys(exerciseData).length === 0 && (
+          <div className="mb-10">
+            <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">How would you like to train today?</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              {/* Follow My Program Option */}
+              <button
+                onClick={() => setWorkflowMode('custom')}
+                className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-white group relative"
+              >
+                <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full">
+                  RECOMMENDED
+                </div>
+                <div className="text-6xl mb-4">💪</div>
+                <h3 className="text-2xl font-bold mb-3">Follow My Program</h3>
+                <p className="text-blue-100 text-sm mb-4">
+                  Use my proven hypertrophy split. Just pick your muscle group and I'll give you the exercises.
+                </p>
+                <div className="bg-white/20 rounded-lg p-3 text-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span>✓</span>
+                    <span>Quick & simple</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span>✓</span>
+                    <span>My tested exercises</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>✓</span>
+                    <span>Perfect for beginners</span>
+                  </div>
+                </div>
+              </button>
+
+              {/* Use Custom Templates Option */}
+              <button
+                onClick={() => setWorkflowMode('template')}
+                className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-white group"
+              >
+                <div className="text-6xl mb-4">📋</div>
+                <h3 className="text-2xl font-bold mb-3">Use Custom Templates</h3>
+                <p className="text-purple-100 text-sm mb-4">
+                  Load your saved templates or create new ones for custom splits (PPL, Upper/Lower, etc.)
+                </p>
+                <div className="bg-white/20 rounded-lg p-3 text-sm">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span>✓</span>
+                    <span>Your saved routines</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span>✓</span>
+                    <span>Full customization</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>✓</span>
+                    <span>Advanced training</span>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Link to manage templates */}
+            <div className="text-center mt-6">
+              <Link to="/MyTemplates" className="text-purple-700 hover:text-purple-800 font-semibold text-sm underline">
+                Manage My Custom Templates →
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Template Mode - Show template selector */}
+        {workflowMode === 'template' && (
+          <div className="mb-8">
+            <div className="bg-sky-50 rounded-3xl p-6 shadow-lg">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-semibold">Choose Your Template</h2>
+                <button
+                  onClick={() => {
+                    setWorkflowMode('choose');
+                    setSelectedTemplateFromDropdown(null);
+                    setLoadedTemplate(null);
+                    setExerciseData({});
+                    setSelectedMuscleGroup(null);
+                    setNumberOfSets(null);
+                  }}
+                  className="text-sm text-gray-600 hover:text-gray-800 underline"
+                >
+                  ← Back to choices
+                </button>
+              </div>
+
+              {/* Option 1: Use existing template */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Load an existing template
+                </label>
+                <TemplateSelector
+                  onSelectTemplate={(templateId) => {
+                    handleTemplateSelect(templateId);
+                  }}
+                  selectedTemplateId={selectedTemplateFromDropdown}
+                />
+              </div>
+
+              {/* Divider */}
+              <div className="flex items-center my-6">
+                <div className="flex-1 border-t border-gray-300"></div>
+                <span className="px-4 text-gray-500 text-sm">OR</span>
+                <div className="flex-1 border-t border-gray-300"></div>
+              </div>
+
+              {/* Option 2: Create new template */}
+              <div className="text-center">
+                <p className="text-sm text-gray-600 mb-3">
+                  Don't have a template for this workout yet?
+                </p>
+                <Link to="/MyTemplates">
+                  <button className="px-6 py-3 bg-purple-600 text-white rounded-full font-semibold hover:bg-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 inline-flex items-center gap-2">
+                    <span>➕</span>
+                    <span>Create New Template</span>
+                  </button>
+                </Link>
+                <p className="text-xs text-gray-500 mt-2">
+                  Build a custom template with your own exercises and save it for future workouts
+                </p>
+              </div>
+            </div>
+
+            {/* Show template info when loaded */}
+            {loadedTemplate && (
+              <div className="mt-6 bg-blue-50 border-2 border-blue-200 rounded-2xl p-6">
+                <div className="flex items-start gap-4">
+                  <div className="text-5xl">{loadedTemplate.icon || '💪'}</div>
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-bold text-blue-900 mb-2">{loadedTemplate.name}</h3>
+                    {loadedTemplate.description && (
+                      <p className="text-blue-800 mb-3">{loadedTemplate.description}</p>
+                    )}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                      <div className="bg-white/50 rounded-lg p-2">
+                        <div className="text-blue-600 font-semibold">Muscle Group</div>
+                        <div className="text-gray-800">{actualMuscleGroup}</div>
+                      </div>
+                      <div className="bg-white/50 rounded-lg p-2">
+                        <div className="text-blue-600 font-semibold">Sets × Reps</div>
+                        <div className="text-gray-800">{setRangeLabel}</div>
+                      </div>
+                      <div className="bg-white/50 rounded-lg p-2">
+                        <div className="text-blue-600 font-semibold">Exercises</div>
+                        <div className="text-gray-800">{Object.keys(exerciseData).length} loaded</div>
+                      </div>
+                    </div>
+                    <div className="mt-4 text-sm text-blue-700">
+                      ✓ Template loaded! Scroll down to see exercises and start your workout.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Workout Date - Show in both modes when configured */}
+        {(workflowMode === 'template' && loadedTemplate) && (
+          <div className="mb-8">
+            <div className="bg-sky-50 rounded-3xl p-6 shadow-lg max-w-2xl">
+              <h2 className="text-2xl font-semibold mb-4">Workout Date</h2>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select date for this workout
+              </label>
+              <input
+                type="date"
+                value={workoutDate}
+                onChange={(e) => setWorkoutDate(e.target.value)}
+                max={(() => {
+                  const today = new Date();
+                  const year = today.getFullYear();
+                  const month = String(today.getMonth() + 1).padStart(2, '0');
+                  const day = String(today.getDate()).padStart(2, '0');
+                  return `${year}-${month}-${day}`;
+                })()}
+                className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+              />
+              <p className="mt-2 text-xs text-gray-500 italic">
+                Change this if you're adding a past workout
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Custom Mode - Show manual steps */}
+        {workflowMode === 'custom' && (
+        <>
+          <div className="mb-6 bg-blue-100 border-l-4 border-blue-500 p-4 rounded flex justify-between items-center">
+            <p className="text-blue-800 font-semibold">
+              📚 Following Jonathan's Program - Select your muscle group and I'll load my proven exercises
+            </p>
+            {!selectedMuscleGroup && (
+              <button
+                onClick={() => setWorkflowMode('choose')}
+                className="text-sm text-blue-700 hover:text-blue-900 underline font-semibold whitespace-nowrap ml-4"
+              >
+                ← Back to choices
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
           <div className="bg-sky-50 rounded-3xl p-6 shadow-lg">
             <h2 className="text-2xl font-semibold mb-4">Step 1: Select Muscle Group</h2>
             <DropDown options={MUSCLE_GROUP_OPTIONS} value={selectedMuscleGroup} onChange={handleMuscleGroupSelect} />
@@ -719,6 +1174,8 @@ function HypertrophyPage() {
             </p>
           </div>
         </div>
+        </>
+        )}
 
         {/* Optional sections at top */}
         {isWorkoutConfigured && (cardioAtTop || absAtTop) && (
