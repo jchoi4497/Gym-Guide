@@ -36,9 +36,14 @@ function MuscleGroupWorkout({
     }
   });
 
-  // Reset exercises when muscle group changes
+  // Reset exercises when muscle group changes (but preserve template exercises)
   useEffect(() => {
-    setExercises(getDefaultExercises(muscleGroup));
+    // Only reset if we don't have existing exercise data (i.e., not loading from template)
+    const hasExerciseData = exerciseData && Object.keys(exerciseData).length > 0;
+
+    if (!hasExerciseData) {
+      setExercises(getDefaultExercises(muscleGroup));
+    }
   }, [muscleGroup]);
 
   // Add a custom exercise row
