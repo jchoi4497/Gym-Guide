@@ -15,10 +15,13 @@ function ExerciseAutocomplete({
   previousCustomExercises = [],
   placeholder = "Exercise Name",
   className = "",
+  autoFocus = false,
 }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const wrapperRef = useRef(null);
+  const inputRef = useRef(null);
+  const justSelectedRef = useRef(false); // Track if we just selected from dropdown
 
   // Combine preset exercises and previous customs
   const allExercises = [
@@ -101,9 +104,25 @@ function ExerciseAutocomplete({
 
   // Handle suggestion click
   const handleSuggestionClick = (exercise) => {
-    onChange(exercise.name);
-    onSelect(exercise);
+    // Mark that we just selected (to prevent blur handler from overwriting)
+    justSelectedRef.current = true;
+
+    // Immediately hide suggestions
     setShowSuggestions(false);
+
+    // Call onSelect to set the complete exercise data
+    // This will update category, exerciseId, and exerciseName all at once
+    onSelect(exercise);
+
+    // Blur the input to prevent dropdown from reopening
+    if (inputRef.current) {
+      inputRef.current.blur();
+    }
+
+    // Reset the flag after a short delay
+    setTimeout(() => {
+      justSelectedRef.current = false;
+    }, 200);
   };
 
   // Close suggestions when clicking outside
@@ -115,29 +134,36 @@ function ExerciseAutocomplete({
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
-  // Handle blur - detect category for custom exercises
+  // Handle blur - detect category and finalize exercise selection
   const handleBlur = () => {
+    // Skip if we just selected from dropdown (to prevent overwriting the selection)
+    if (justSelectedRef.current) {
+      return;
+    }
+
     if (value.trim().length > 0) {
-      // Check if this is a custom exercise (not in presets)
-      const isPresetExercise = uniqueExercises.some(ex =>
+      // Check if this is a preset exercise
+      const presetExercise = uniqueExercises.find(ex =>
         ex.isPreset && normalize(ex.name) === normalize(value)
       );
 
-      if (!isPresetExercise) {
-        // Detect category for custom exercise
+      if (presetExercise) {
+        // It's a preset - call onSelect with the preset data
+        onSelect(presetExercise);
+      } else {
+        // It's a custom exercise - detect category
         const detectedCategory = detectCategoryFromName(value);
-        if (detectedCategory) {
-          // Call onSelect with detected category info
-          onSelect({
-            name: value,
-            id: value,
-            isPreset: false,
-            category: detectedCategory,
-          });
-        }
+        onSelect({
+          name: value,
+          id: value,
+          isPreset: false,
+          category: detectedCategory || `custom_${Date.now()}`,
+        });
       }
     }
   };
@@ -145,11 +171,24 @@ function ExerciseAutocomplete({
   return (
     <div ref={wrapperRef} className="relative w-full">
       <input
+        ref={inputRef}
         type="text"
         placeholder={placeholder}
         value={value}
         onChange={handleInputChange}
-        onBlur={handleBlur}
+        onBlur={() => {
+          // Only delay if dropdown is showing (to allow mousedown to fire)
+          // Otherwise blur immediately to ensure data is saved
+          if (showSuggestions) {
+            setTimeout(() => {
+              handleBlur();
+              setShowSuggestions(false);
+            }, 150);
+          } else {
+            handleBlur();
+            setShowSuggestions(false);
+          }
+        }}
         onFocus={() => {
           if (value.trim().length > 0) {
             const normalizedInput = normalize(value);
@@ -168,6 +207,7 @@ function ExerciseAutocomplete({
         }}
         className={className}
         autoComplete="off"
+        autoFocus={autoFocus}
       />
 
       {/* Suggestions Dropdown */}
@@ -176,7 +216,10 @@ function ExerciseAutocomplete({
           {filteredSuggestions.map((exercise, index) => (
             <div
               key={`${exercise.id}-${index}`}
-              onClick={() => handleSuggestionClick(exercise)}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleSuggestionClick(exercise);
+              }}
               className="px-4 py-2 cursor-pointer hover:bg-blue-100 flex items-center justify-between"
             >
               <span className="text-gray-800">{exercise.name}</span>

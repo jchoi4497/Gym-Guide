@@ -3,11 +3,7 @@ import DropDown from '../DropDown';
 import MuscleGroupAutocomplete from './MuscleGroupAutocomplete';
 import TemplateExercisePicker from './TemplateExercisePicker';
 import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS } from '../constants';
-
-const ICON_OPTIONS = [
-  '💪', '🏋️', '🔥', '⚡', '🎯', '💥', '🚀', '🦾', '⭐', '🏆',
-  '💯', '🎪', '🌟', '✨', '🔱', '⚔️', '🛡️', '🏅', '🥇', '📈'
-];
+import { detectCategoryFromName } from '../utils/categoryDetection';
 
 const TAG_SUGGESTIONS = [
   'PPL', 'Upper/Lower', 'Full Body', 'Beginner', 'Intermediate', 'Advanced',
@@ -18,7 +14,6 @@ const TAG_SUGGESTIONS = [
 function TemplateEditor({ template, onSave, onCancel }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [icon, setIcon] = useState('💪');
   const [category, setCategory] = useState('');
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(null);
   const [customMuscleGroupName, setCustomMuscleGroupName] = useState('');
@@ -39,7 +34,6 @@ function TemplateEditor({ template, onSave, onCancel }) {
     if (template) {
       setName(template.name || '');
       setDescription(template.description || '');
-      setIcon(template.icon || '💪');
       setCategory(template.category || '');
       setSelectedMuscleGroup(template.muscleGroup || null);
       setCustomMuscleGroupName(template.customMuscleGroupName || '');
@@ -79,9 +73,22 @@ function TemplateEditor({ template, onSave, onCancel }) {
     setExercises(newExercises);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Force blur on any focused input to ensure all data is saved
+    const activeEl = document.activeElement;
+    if (activeEl instanceof HTMLInputElement || activeEl instanceof HTMLTextAreaElement) {
+      activeEl.blur();
+
+      // Wait longer for blur handlers and state updates to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    performSubmit();
+  };
+
+  const performSubmit = () => {
     if (!name.trim()) {
       alert('Please enter a template name');
       return;
@@ -97,18 +104,33 @@ function TemplateEditor({ template, onSave, onCancel }) {
       return;
     }
 
-    // Clean up exercises - remove temporary fields and ensure proper structure
-    const cleanedExercises = exercises.map(ex => ({
-      category: ex.category,
-      exerciseId: ex.exerciseId,
-      exerciseName: ex.exerciseName,
-      detectedCategory: ex.detectedCategory,
-    })).filter(ex => ex.category && ex.exerciseId); // Only include exercises that have both
+    // Clean up exercises - ensure all have proper data
+    const cleanedExercises = exercises
+      .filter(ex => ex.exerciseName && ex.exerciseName.trim()) // Only keep exercises with names
+      .map(ex => {
+        // Fix exercises missing category/exerciseId
+        if (!ex.category || !ex.exerciseId) {
+          const detectedCat = detectCategoryFromName(ex.exerciseName);
+          return {
+            category: detectedCat || `custom_${Date.now()}`,
+            exerciseId: ex.exerciseName, // Use name as ID for custom exercises
+            exerciseName: ex.exerciseName,
+            detectedCategory: detectedCat,
+          };
+        }
+
+        return {
+          category: ex.category,
+          exerciseId: ex.exerciseId,
+          exerciseName: ex.exerciseName,
+          detectedCategory: ex.detectedCategory,
+        };
+      })
+      .filter(ex => ex.category && ex.exerciseId && ex.exerciseName); // Final validation
 
     const templateData = {
       name: name.trim(),
       description: description.trim() || '',
-      icon: icon || '💪',
       category: category || '',
       muscleGroup: selectedMuscleGroup,
       customMuscleGroupName: selectedMuscleGroup === 'custom' ? customMuscleGroupName.trim() : '',
@@ -132,8 +154,11 @@ function TemplateEditor({ template, onSave, onCancel }) {
       }
     });
 
-    console.log('Saving template data:', templateData);
-    console.log('Cleaned exercises:', cleanedExercises);
+    if (cleanedExercises.length === 0 && exercises.length > 0) {
+      alert('⚠️ Warning: Your exercises were not saved!\n\nPlease make sure to:\n1. Type the exercise name\n2. Click a suggestion from the dropdown OR click outside the box\n3. Then save the template');
+      return;
+    }
+
     onSave(templateData);
   };
 
@@ -173,44 +198,18 @@ function TemplateEditor({ template, onSave, onCancel }) {
             />
           </div>
 
-          {/* Icon and Category Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {/* Icon Selector */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Icon
-              </label>
-              <div className="flex flex-wrap gap-1">
-                {ICON_OPTIONS.map((iconOption) => (
-                  <button
-                    key={iconOption}
-                    type="button"
-                    onClick={() => setIcon(iconOption)}
-                    className={`text-2xl p-1.5 rounded-lg transition-all ${
-                      icon === iconOption
-                        ? 'bg-blue-500 scale-110 shadow-md'
-                        : 'bg-white hover:bg-gray-100'
-                    }`}
-                  >
-                    {iconOption}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Category */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category (optional)
-              </label>
-              <input
-                type="text"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g., Hypertrophy, Strength, PPL"
-                className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category (optional)
+            </label>
+            <input
+              type="text"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="e.g., Hypertrophy, Strength, PPL"
+              className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
 
           {/* Favorite Toggle */}
@@ -378,7 +377,12 @@ function TemplateEditor({ template, onSave, onCancel }) {
               type="text"
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddTag();
+                }
+              }}
               placeholder="Add a tag..."
               className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             />

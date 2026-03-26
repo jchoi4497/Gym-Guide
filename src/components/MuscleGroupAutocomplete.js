@@ -14,8 +14,6 @@ function MuscleGroupAutocomplete({
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const wrapperRef = useRef(null);
 
-  console.log('MuscleGroupAutocomplete - previousMuscleGroups:', previousMuscleGroups);
-
   // Normalize string for better matching
   const normalize = (str) => {
     return str.toLowerCase().replace(/[\s-_]/g, '');
@@ -43,7 +41,6 @@ function MuscleGroupAutocomplete({
                wordsMatch;
       });
 
-      console.log('Filtered muscle groups:', filtered, 'from input:', inputValue);
       setFilteredSuggestions(filtered);
       setShowSuggestions(filtered.length > 0);
     } else {

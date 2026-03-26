@@ -200,14 +200,11 @@ function MyExercisesPage() {
       );
 
       const querySnapshot = await getDocs(q);
-      console.log('Found', querySnapshot.size, 'workout documents');
       const foundExercises = new Map();
 
       querySnapshot.docs.forEach((docSnapshot) => {
         const data = docSnapshot.data();
         const exerciseData = data.exerciseData || data.inputs || {};
-
-        console.log('Checking workout:', docSnapshot.id, 'with', Object.keys(exerciseData).length, 'exercises');
 
         Object.entries(exerciseData).forEach(([key, exercise]) => {
           const exerciseName = exercise.exerciseName || exercise.selection;
@@ -224,8 +221,6 @@ function MyExercisesPage() {
             if (!alreadyExists && !foundExercises.has(normalizedName)) {
               const detectedCategory = exercise.detectedCategory || detectCategoryFromName(exerciseName);
 
-              console.log('Found custom exercise:', exerciseName, 'Category:', detectedCategory);
-
               foundExercises.set(normalizedName, {
                 id: `imported_${Date.now()}_${Math.random()}`,
                 name: exerciseName,
@@ -239,8 +234,6 @@ function MyExercisesPage() {
           }
         });
       });
-
-      console.log('Total custom exercises found:', foundExercises.size);
 
       const importedCount = foundExercises.size;
 
