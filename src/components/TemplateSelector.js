@@ -86,7 +86,7 @@ function TemplateSelector({ onSelectTemplate, selectedTemplateId }) {
         <option value="">-- Start from Scratch --</option>
         {templates.map((template) => (
           <option key={template.id} value={template.id}>
-            {template.icon || '💪'} {template.name}
+            {template.name}
             {template.isFavorite ? ' ⭐' : ''}
             {template.lastUsed ? ` (Last used: ${new Date(template.lastUsed).toLocaleDateString()})` : ''}
           </option>

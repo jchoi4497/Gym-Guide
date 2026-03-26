@@ -172,7 +172,6 @@ function SavedWorkout() {
 
   const fetchData = async () => {
     const user = auth.currentUser;
-    console.log('Current User UID:', user?.uid);
     if (!user) {
       setError('Please log in to view this workout.');
       setIsLoading(false);
@@ -199,6 +198,10 @@ function SavedWorkout() {
         setEditedInputs(exerciseData);
         setNote(data.note || '');
         setSummary(data.summary || '');
+
+        // Load exercise order if available (fallback to object keys for old workouts)
+        const savedOrder = data.exerciseOrder || Object.keys(exerciseData);
+        setExerciseOrder(savedOrder);
 
         // Set the date for editing (convert Firebase timestamp to YYYY-MM-DD)
         if (data.date) {
@@ -408,7 +411,7 @@ function SavedWorkout() {
       setIsSaving(true);
       setIsGeneratingSummary(true);
       const prevExerciseData = previousWorkoutData?.exerciseData || previousWorkoutData?.inputs;
-      const newSummary = await generateSummary(editedInputs, note, prevExerciseData, monthlyWorkoutData);
+      const newSummary = await generateSummary(editedInputs, note, prevExerciseData, monthlyWorkoutData, exerciseOrder);
       setIsGeneratingSummary(false);
       const docRef = doc(db, 'workoutLogs', workoutId);
 
@@ -423,6 +426,7 @@ function SavedWorkout() {
         [FIREBASE_FIELDS.NOTE]: note,
         [FIREBASE_FIELDS.SUMMARY]: newSummary,
         [FIREBASE_FIELDS.DATE]: updatedDate,
+        exerciseOrder: exerciseOrder, // Save the exercise order
       });
 
       // Refetch data from Firebase to ensure UI is in sync with database
@@ -476,11 +480,19 @@ function SavedWorkout() {
 
   const muscleGroup = workoutData.muscleGroup || workoutData.target;
 
-  const orderedKeys = categoryOrder[muscleGroup] || [];
-  const inputKeys = Object.keys(exerciseData);
-  const orderedInputs = orderedKeys.filter((key) => inputKeys.includes(key));
-  const remainingInputs = inputKeys.filter((key) => !orderedKeys.includes(key));
-  const order = [...orderedInputs, ...remainingInputs];
+  // Use saved exercise order if available, otherwise fall back to category order
+  let displayOrder;
+  if (exerciseOrder && exerciseOrder.length > 0) {
+    // Filter to only include exercises that exist in current data
+    displayOrder = exerciseOrder.filter((key) => key in exerciseData);
+  } else {
+    // Fallback to hardcoded order for old workouts
+    const orderedKeys = categoryOrder[muscleGroup] || [];
+    const inputKeys = Object.keys(exerciseData);
+    const orderedInputs = orderedKeys.filter((key) => inputKeys.includes(key));
+    const remainingInputs = inputKeys.filter((key) => !orderedKeys.includes(key));
+    displayOrder = [...orderedInputs, ...remainingInputs];
+  }
 
   return (
     <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen font-serif pb-80">
@@ -553,7 +565,7 @@ function SavedWorkout() {
         {/* Workout Inputs */}
         <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
           <WorkoutInputs
-            order={exerciseOrder}
+            order={displayOrder}
             isEditing={isEditing}
             editedInputs={editedInputs}
             setEditedInputs={setEditedInputs}

@@ -83,9 +83,7 @@ function HypertrophyPage() {
       (selectedMuscleGroup !== 'custom' || customMuscleGroupName.trim());
     const hasSets = numberOfSets &&
       (numberOfSets !== 'custom' || (customSetCount && parseInt(customSetCount) > 0));
-    const result = hasMuscleGroup && hasSets;
-    console.log('🔍 isWorkoutConfigured:', result, { hasMuscleGroup, hasSets, selectedMuscleGroup, numberOfSets });
-    return result;
+    return hasMuscleGroup && hasSets;
   }, [selectedMuscleGroup, customMuscleGroupName, numberOfSets, customSetCount]);
 
   // LOAD TEMPLATE FROM URL ---
@@ -94,18 +92,13 @@ function HypertrophyPage() {
       if (!templateId) return;
 
       const user = auth.currentUser;
-      if (!user) {
-        console.log('User not logged in, cannot load template');
-        return;
-      }
+      if (!user) return;
 
       setIsLoadingTemplate(true);
-      console.log('Loading template:', templateId);
 
       const template = await loadTemplate(user.uid, templateId);
 
       if (template) {
-        console.log('Template loaded:', template);
         setLoadedTemplate(template);
         setSelectedTemplateFromDropdown(templateId); // Also set dropdown value
 
@@ -139,10 +132,6 @@ function HypertrophyPage() {
 
         // Set workflow mode to template
         setWorkflowMode('template');
-
-        console.log('Template applied successfully');
-      } else {
-        console.log('Template not found');
       }
 
       setIsLoadingTemplate(false);
@@ -237,8 +226,6 @@ function HypertrophyPage() {
               });
             }
           }
-
-          console.log('Workout draft restored from local storage.');
         } else {
           // If they say No, clear the old draft so they start fresh
           localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
@@ -269,14 +256,6 @@ function HypertrophyPage() {
       localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT, JSON.stringify(draft));
     }
   }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount, selectedTemplateFromDropdown, justLoadedTemplate]);
-
-  // Debug: Log exerciseData whenever it changes
-  useEffect(() => {
-    if (Object.keys(exerciseData).length > 0) {
-      console.log('💾 Exercise data updated:', exerciseData);
-      console.log('💾 Exercise categories:', Object.keys(exerciseData));
-    }
-  }, [exerciseData]);
 
   // PREVENT ACCIDENTAL TAB CLOSING ---
   useEffect(() => {
@@ -340,9 +319,6 @@ function HypertrophyPage() {
       const exerciseArray = Array.from(customExercises.values());
       const muscleGroupArray = Array.from(customMuscleGroups);
 
-      console.log('Previous custom exercises from history:', exerciseArray);
-      console.log('Previous custom muscle groups:', muscleGroupArray);
-
       setPreviousCustomExercises(exerciseArray);
       setPreviousCustomMuscleGroups(muscleGroupArray);
 
@@ -351,7 +327,6 @@ function HypertrophyPage() {
         const customExDoc = await getDoc(doc(db, 'userCustomExercises', user.uid));
         if (customExDoc.exists()) {
           const myExercises = customExDoc.data().exercises || [];
-          console.log('Custom exercises from My Exercises page:', myExercises);
 
           myExercises.forEach((ex) => {
             const normalizedName = ex.name.toLowerCase().trim();
@@ -368,7 +343,7 @@ function HypertrophyPage() {
           setPreviousCustomExercises(Array.from(customExercises.values()));
         }
       } catch (customExError) {
-        console.log('Could not fetch from My Exercises page (you may need to set up Firebase rules):', customExError.message);
+        // My Exercises page data not available
       }
     } catch (error) {
       console.error('Error fetching custom exercises:', error);
@@ -505,11 +480,9 @@ function HypertrophyPage() {
 
   // Workout Selection: Weight x Reps input
   const handleExerciseDataChange = (categoryKey, exerciseName, setIndex, setInput, detectedCategory) => {
-    console.log('handleExerciseDataChange called:', { categoryKey, exerciseName, setIndex, setInput, detectedCategory, actualNumberOfSets });
     const updatedExerciseData = { ...exerciseData };
     if (!updatedExerciseData[categoryKey]) {
       const setsArray = new Array(actualNumberOfSets).fill('');
-      console.log('Creating new exercise with', actualNumberOfSets, 'sets');
       updatedExerciseData[categoryKey] = {
         sets: setsArray,
         exerciseName: exerciseName,
@@ -522,7 +495,6 @@ function HypertrophyPage() {
       // Store detected category if provided
       if (detectedCategory) {
         updatedExerciseData[categoryKey].detectedCategory = detectedCategory;
-        console.log('Stored detected category:', detectedCategory, 'for exercise:', exerciseName);
       }
       // Ensure sets array exists and has correct length
       if (!updatedExerciseData[categoryKey].sets || updatedExerciseData[categoryKey].sets.length === 0) {
@@ -538,7 +510,6 @@ function HypertrophyPage() {
       updatedExerciseData[categoryKey].sets[setIndex] = setInput;
     }
 
-    console.log(updatedExerciseData);
     setExerciseData(updatedExerciseData);
   };
 
@@ -610,7 +581,6 @@ function HypertrophyPage() {
     const template = await loadTemplate(user.uid, templateId);
 
     if (template) {
-      console.log('Template loaded from dropdown:', template);
       setLoadedTemplate(template);
 
       // Apply template data to form
@@ -628,10 +598,7 @@ function HypertrophyPage() {
 
       // Pre-fill exercises once we have the set count
       const setsCount = template.customSetCount || template.numberOfSets || 4;
-      console.log('📊 Converting template exercises with', setsCount, 'sets');
       const prefilledExercises = templateToExerciseData(template, setsCount);
-      console.log('📋 Prefilled exercise data:', prefilledExercises);
-      console.log('📋 Number of exercises:', Object.keys(prefilledExercises).length);
       setExerciseData(prefilledExercises);
 
       // Update template's last used timestamp
@@ -646,8 +613,6 @@ function HypertrophyPage() {
 
       // Keep in template mode
       setWorkflowMode('template');
-
-      console.log('✅ Template applied successfully from dropdown');
     }
 
     setIsLoadingTemplate(false);
@@ -655,20 +620,16 @@ function HypertrophyPage() {
 
   // Auto-save custom exercises to "My Exercises" when saving workout
   const autoSaveCustomExercises = async (userId, exerciseDataToSave) => {
-    console.log('autoSaveCustomExercises called with:', exerciseDataToSave);
     try {
       // Get current custom exercises
       const customExDoc = await getDoc(doc(db, 'userCustomExercises', userId));
       const existingExercises = customExDoc.exists() ? customExDoc.data().exercises || [] : [];
-      console.log('Existing exercises in My Exercises:', existingExercises.length);
 
       // Find new custom exercises to add
       const newExercises = [];
       Object.entries(exerciseDataToSave).forEach(([key, exercise]) => {
         const exerciseName = exercise.exerciseName || exercise.selection;
         const detectedCategory = exercise.detectedCategory;
-
-        console.log('Checking exercise:', { key, exerciseName, detectedCategory });
 
         // Save all custom exercises (with or without detected category)
         if (exerciseName && (key.startsWith('custom_') || !exerciseName.match(/^[a-z]+$/))) {
@@ -694,23 +655,17 @@ function HypertrophyPage() {
       });
 
       // Save if there are new exercises
-      console.log('New exercises to auto-save:', newExercises);
       if (newExercises.length > 0) {
         const allExercises = [...existingExercises, ...newExercises];
         await setDoc(doc(db, 'userCustomExercises', userId), { exercises: allExercises });
-        console.log('✅ Auto-saved', newExercises.length, 'custom exercises to My Exercises');
-      } else {
-        console.log('No new custom exercises to auto-save (either already exist or no detected categories)');
       }
     } catch (error) {
-      console.error('❌ Could not auto-save custom exercises:', error);
       // Don't block the workout save if this fails
     }
   };
 
   // Save Workout
   const handleSaveWorkout = async () => {
-    console.log(exerciseData);
     setIsSaving(true);
     try {
       // Use the selected workout date - parse as local time, not UTC
@@ -726,15 +681,27 @@ function HypertrophyPage() {
       // Auto-save custom exercises to "My Exercises"
       await autoSaveCustomExercises(user.uid, exerciseData);
       // get previous workout directly
-      console.log(selectedDate);
       const prevWorkout = await fetchPreviousWorkout(selectedDate, actualMuscleGroup);
-      console.log('fetch prev workout:', prevWorkout);
       // Get previous workout data in the right format for summary generation
       const prevExerciseData = prevWorkout?.exerciseData || prevWorkout?.inputs;
 
+      // Create exercise order array based on actual display order
+      const allKeys = Object.keys(exerciseData);
+      const cardioKeys = allKeys.filter(k => k.startsWith('cardio') || k.startsWith('custom_cardio'));
+      const absKeys = allKeys.filter(k => k.startsWith('abs') || k.startsWith('custom_abs'));
+      const mainKeys = allKeys.filter(k => !cardioKeys.includes(k) && !absKeys.includes(k));
+
+      const exerciseOrder = [
+        ...(cardioAtTop && showCardio ? cardioKeys : []),
+        ...(absAtTop && showAbs ? absKeys : []),
+        ...mainKeys,
+        ...(!cardioAtTop && showCardio ? cardioKeys : []),
+        ...(!absAtTop && showAbs ? absKeys : []),
+      ];
+
       // Generate New Summary (no monthly data on initial save, only has previous workout)
       setIsGeneratingSummary(true);
-      const newSummary = await generateSummary(exerciseData, note, prevExerciseData, []);
+      const newSummary = await generateSummary(exerciseData, note, prevExerciseData, [], exerciseOrder);
       setIsGeneratingSummary(false);
 
       // Save WorkoutLog with new field names (use actual values for custom)
@@ -746,6 +713,7 @@ function HypertrophyPage() {
         [FIREBASE_FIELDS.EXERCISE_DATA]: exerciseData,
         [FIREBASE_FIELDS.NOTE]: note,
         [FIREBASE_FIELDS.SUMMARY]: newSummary,
+        exerciseOrder: exerciseOrder, // Store the order exercises were performed
         createdAt: new Date(), // Exact timestamp for ordering
       };
 
@@ -763,15 +731,11 @@ function HypertrophyPage() {
 
       // Get the document ID
       const workoutId = docRef.id;
-      console.log('Workout saved with ID:', workoutId);
-
-      // Small delay so console logs can be seen
-      await new Promise(resolve => setTimeout(resolve, 500));
 
       // Redirect to another page with the document ID in the URL
       window.location.href = `/SavedWorkout/${workoutId}`;
     } catch (error) {
-      console.error('ERROR SAVING WORKOUT:', error);
+      console.error('Error saving workout:', error);
       alert('Error saving workout. Please try again.');
     } finally {
       setIsSaving(false); // End loading
@@ -839,9 +803,8 @@ function HypertrophyPage() {
         {/* Show template name when using template */}
         {workflowMode === 'template' && loadedTemplate && (
           <>
-            <h1 className="text-4xl font-extrabold mb-2 text-gray-800 flex items-center gap-3">
-              <span>{loadedTemplate.icon || '💪'}</span>
-              <span>{loadedTemplate.name}</span>
+            <h1 className="text-4xl font-extrabold mb-2 text-gray-800">
+              {loadedTemplate.name}
             </h1>
             {loadedTemplate.category && (
               <p className="text-sm text-gray-600 italic mb-8">
@@ -1015,30 +978,27 @@ function HypertrophyPage() {
             {/* Show template info when loaded */}
             {loadedTemplate && (
               <div className="mt-6 bg-blue-50 border-2 border-blue-200 rounded-2xl p-6">
-                <div className="flex items-start gap-4">
-                  <div className="text-5xl">{loadedTemplate.icon || '💪'}</div>
-                  <div className="flex-1">
-                    <h3 className="text-2xl font-bold text-blue-900 mb-2">{loadedTemplate.name}</h3>
-                    {loadedTemplate.description && (
-                      <p className="text-blue-800 mb-3">{loadedTemplate.description}</p>
-                    )}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                      <div className="bg-white/50 rounded-lg p-2">
-                        <div className="text-blue-600 font-semibold">Muscle Group</div>
-                        <div className="text-gray-800">{actualMuscleGroup}</div>
-                      </div>
-                      <div className="bg-white/50 rounded-lg p-2">
-                        <div className="text-blue-600 font-semibold">Sets × Reps</div>
-                        <div className="text-gray-800">{setRangeLabel}</div>
-                      </div>
-                      <div className="bg-white/50 rounded-lg p-2">
-                        <div className="text-blue-600 font-semibold">Exercises</div>
-                        <div className="text-gray-800">{Object.keys(exerciseData).length} loaded</div>
-                      </div>
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-blue-900 mb-2">{loadedTemplate.name}</h3>
+                  {loadedTemplate.description && (
+                    <p className="text-blue-800 mb-3">{loadedTemplate.description}</p>
+                  )}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                    <div className="bg-white/50 rounded-lg p-2">
+                      <div className="text-blue-600 font-semibold">Muscle Group</div>
+                      <div className="text-gray-800">{actualMuscleGroup}</div>
                     </div>
-                    <div className="mt-4 text-sm text-blue-700">
-                      ✓ Template loaded! Scroll down to see exercises and start your workout.
+                    <div className="bg-white/50 rounded-lg p-2">
+                      <div className="text-blue-600 font-semibold">Sets × Reps</div>
+                      <div className="text-gray-800">{setRangeLabel}</div>
                     </div>
+                    <div className="bg-white/50 rounded-lg p-2">
+                      <div className="text-blue-600 font-semibold">Exercises</div>
+                      <div className="text-gray-800">{Object.keys(exerciseData).length} loaded</div>
+                    </div>
+                  </div>
+                  <div className="mt-4 text-sm text-blue-700">
+                    ✓ Template loaded! Scroll down to see exercises and start your workout.
                   </div>
                 </div>
               </div>
