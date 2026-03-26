@@ -36,15 +36,25 @@ function MuscleGroupWorkout({
     }
   });
 
-  // Reset exercises when muscle group changes (but preserve template exercises)
+  // Sync exercises array with exerciseData (for template loading)
   useEffect(() => {
-    // Only reset if we don't have existing exercise data (i.e., not loading from template)
     const hasExerciseData = exerciseData && Object.keys(exerciseData).length > 0;
 
-    if (!hasExerciseData) {
+    if (hasExerciseData) {
+      // Build exercises array from exerciseData
+      const exercisesFromData = Object.keys(exerciseData).map((categoryId) => ({
+        id: categoryId,
+        selected: exerciseData[categoryId]?.exerciseName || '',
+        options: [],
+        isCustom: true,
+      }));
+
+      setExercises(exercisesFromData);
+    } else {
+      // No exercise data - load defaults
       setExercises(getDefaultExercises(muscleGroup));
     }
-  }, [muscleGroup]);
+  }, [muscleGroup, exerciseData]);
 
   // Add a custom exercise row
   const addCustomExercise = () => {

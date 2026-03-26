@@ -88,7 +88,7 @@ function MyTemplatesPage() {
         updatedTemplates.push(templateToSave);
       }
 
-      // Clean up undefined values in all templates (Firestore doesn't allow them)
+      // Clean up undefined values and legacy fields in all templates (Firestore doesn't allow undefined)
       const cleanedTemplates = updatedTemplates.map(template => {
         const cleaned = { ...template };
         Object.keys(cleaned).forEach(key => {
@@ -96,10 +96,13 @@ function MyTemplatesPage() {
             delete cleaned[key];
           }
         });
+        // Remove legacy icon field from old templates
+        if ('icon' in cleaned) {
+          delete cleaned.icon;
+        }
         return cleaned;
       });
 
-      console.log('Saving templates to Firestore:', cleanedTemplates);
       await setDoc(doc(db, 'userTemplates', user.uid), { templates: cleanedTemplates });
 
       // Refresh templates
@@ -222,15 +225,15 @@ function MyTemplatesPage() {
           </div>
           <button
             onClick={handleCreateNew}
-            className="px-6 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl hover:scale-105"
+            className="px-5 py-2.5 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg hover:scale-105 text-sm"
           >
-            + Create New Template
+            + Create New
           </button>
         </div>
 
         {/* Templates List */}
         {templates.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {templates.map((template) => (
               <div
                 key={template.id}
@@ -239,10 +242,9 @@ function MyTemplatesPage() {
                 {/* Header */}
                 <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
                   <div className="flex justify-between items-start mb-2">
-                    <div className="text-4xl">{template.icon || '💪'}</div>
-                    {template.isFavorite && <span className="text-2xl">⭐</span>}
+                    <h3 className="text-2xl font-bold flex-1">{template.name}</h3>
+                    {template.isFavorite && <span className="text-2xl ml-2">⭐</span>}
                   </div>
-                  <h3 className="text-2xl font-bold">{template.name}</h3>
                   {template.category && (
                     <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-sm">
                       {template.category}

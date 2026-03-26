@@ -33,33 +33,6 @@ function DataChart({ currentData, monthlyWorkoutData, graphView, exerciseKey }) 
   // Only allow category comparison for strength exercises (not cardio or abs)
   const isStrengthExercise = currentCategory && !['cardio', 'abs'].includes(currentCategory);
 
-  // Debug logging
-  console.log('DataChart Debug:', {
-    exerciseKey,
-    currentSelectionName,
-    currentExerciseId,
-    currentCategory,
-    isStrengthExercise,
-    comparisonMode,
-    monthlyWorkoutDataCount: monthlyWorkoutData?.length || 0,
-    graphView
-  });
-
-  // Debug: Log all exercise names in historical workouts
-  if (monthlyWorkoutData?.length > 0) {
-    console.log('Looking for:', currentSelectionName, '| Category:', currentCategory);
-    monthlyWorkoutData.slice(0, 3).forEach((w, i) => {
-      const exercises = w?.exerciseData || w?.inputs || {};
-      const names = Object.values(exercises).map(e => {
-        const id = e.exerciseName || e.selection;
-        const fullName = exerciseNames[id] || id;
-        const ex = getExerciseById(id);
-        return `${fullName} (${ex?.category || 'custom'})`;
-      });
-      console.log(`Workout ${i + 1} exercises:`, names);
-    });
-  }
-
   // Helper to find data in historical logs
   const getMatch = (workout) => {
     // Handle both old (inputs) and new (exerciseData) field names
@@ -78,21 +51,13 @@ function DataChart({ currentData, monthlyWorkoutData, graphView, exerciseKey }) 
 
       if (comparisonMode === 'exact' || !isStrengthExercise) {
         // Exact match: same exercise name (always use exact for cardio/abs)
-        const matched = fullName?.toLowerCase().trim() === currentSelectionName?.toLowerCase().trim();
-        if (matched) {
-          console.log('Found exact match:', fullName, '(from', exerciseName, ') in workout', workout.id);
-        }
-        return matched;
+        return fullName?.toLowerCase().trim() === currentSelectionName?.toLowerCase().trim();
       } else {
         // Category match: same category (e.g., all shoulder press variations)
         const histExercise = getExerciseById(exerciseName);
         // Check both preset category and detected category
         const histCategory = e.detectedCategory || histExercise?.category;
-        const matched = histCategory === currentCategory && currentCategory !== undefined;
-        if (matched) {
-          console.log('Found category match:', fullName, '(category:', currentCategory, ') in workout', workout.id);
-        }
-        return matched;
+        return histCategory === currentCategory && currentCategory !== undefined;
       }
     });
 

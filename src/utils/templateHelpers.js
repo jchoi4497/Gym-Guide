@@ -10,7 +10,6 @@ export async function loadTemplate(userId, templateId) {
     const templateDoc = await getDoc(doc(db, 'userTemplates', userId));
 
     if (!templateDoc.exists()) {
-      console.log('No templates found for user');
       return null;
     }
 
@@ -18,7 +17,6 @@ export async function loadTemplate(userId, templateId) {
     const template = templates.find(t => t.id === templateId);
 
     if (!template) {
-      console.log('Template not found:', templateId);
       return null;
     }
 
@@ -35,18 +33,13 @@ export async function loadTemplate(userId, templateId) {
  * HypertrophyPage format: { "incline": { exerciseName: "Dumbbell Incline Press", sets: [] } }
  */
 export function templateToExerciseData(template, numberOfSets) {
-  console.log('🔄 Converting template to exercise data:', template);
   const exerciseData = {};
 
   if (!template.exercises || template.exercises.length === 0) {
-    console.log('⚠️ No exercises in template');
     return exerciseData;
   }
 
-  console.log('📋 Template exercises:', template.exercises);
-
-  template.exercises.forEach((exercise, index) => {
-    console.log(`Exercise ${index}:`, exercise);
+  template.exercises.forEach((exercise) => {
     if (exercise.category && exercise.exerciseId) {
       // Use stored exerciseName, or convert exerciseId to full name, or fallback to exerciseId
       let displayName = exercise.exerciseName;
@@ -54,7 +47,6 @@ export function templateToExerciseData(template, numberOfSets) {
       if (!displayName) {
         // Try to convert the ID to the full name (for old templates without exerciseName)
         displayName = getExerciseName(exercise.exerciseId);
-        console.log(`🔄 Converted "${exercise.exerciseId}" to "${displayName}"`);
       }
 
       exerciseData[exercise.category] = {
@@ -62,13 +54,9 @@ export function templateToExerciseData(template, numberOfSets) {
         sets: new Array(numberOfSets).fill(''), // Initialize empty sets
         detectedCategory: exercise.detectedCategory, // Preserve detected category
       };
-      console.log(`✓ Added exercise to category "${exercise.category}":`, exerciseData[exercise.category]);
-    } else {
-      console.log(`⚠️ Skipping exercise - missing category or exerciseId:`, exercise);
     }
   });
 
-  console.log('✅ Final exercise data:', exerciseData);
   return exerciseData;
 }
 

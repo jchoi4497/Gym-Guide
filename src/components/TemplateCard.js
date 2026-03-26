@@ -110,20 +110,19 @@ function TemplateCard({ template, onUpdate, isBuiltIn = false }) {
       className="block cursor-pointer"
     >
       <div className={`bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}>
-        {/* Header with icon/emoji */}
+        {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
           <div className="flex justify-between items-start mb-2">
-            <div className="text-4xl">{template.icon || '💪'}</div>
+            <h3 className="text-2xl font-bold flex-1">{template.name}</h3>
             {!isBuiltIn && (
               <button
                 onClick={handleToggleFavorite}
-                className="text-2xl hover:scale-110 transition-transform"
+                className="text-2xl hover:scale-110 transition-transform ml-2"
               >
                 {template.isFavorite ? '⭐' : '☆'}
               </button>
             )}
           </div>
-          <h3 className="text-2xl font-bold">{template.name}</h3>
           {template.category && (
             <span className="inline-block mt-2 px-3 py-1 bg-white/20 rounded-full text-sm">
               {template.category}

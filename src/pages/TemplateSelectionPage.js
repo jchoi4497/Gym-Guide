@@ -15,7 +15,6 @@ const BUILTIN_TEMPLATES = [
     description: 'My default muscle-building program with focus on controlled reps and progressive overload.',
     muscleGroup: null, // User selects on workout page
     isBuiltIn: true,
-    icon: '💪',
     category: 'Hypertrophy',
   },
   // Future templates can be added here:
@@ -177,14 +176,14 @@ function TemplateSelectionPage() {
         )}
 
         {/* Built-in Templates */}
-        <div className="mb-12">
+        <div className="mb-16">
           <h2 className="text-3xl font-bold mb-6 text-gray-800 flex items-center gap-2">
             <span className="text-blue-600">📚</span> Built-in Programs
           </h2>
           <p className="text-gray-600 mb-6">
             My proven training programs designed for different goals
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {BUILTIN_TEMPLATES.map(template => (
               <TemplateCard
                 key={template.id}
@@ -201,11 +200,11 @@ function TemplateSelectionPage() {
           <>
             {/* Favorites */}
             {favoriteTemplates.length > 0 && (
-              <div className="mb-12">
+              <div className="mb-16">
                 <h2 className="text-3xl font-bold mb-6 text-gray-800 flex items-center gap-2">
                   <span className="text-yellow-500">⭐</span> Favorites
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {favoriteTemplates.map(template => (
                     <TemplateCard
                       key={template.id}
@@ -219,11 +218,11 @@ function TemplateSelectionPage() {
 
             {/* My Templates */}
             {regularTemplates.length > 0 && (
-              <div className="mb-12">
+              <div className="mb-16">
                 <h2 className="text-3xl font-bold mb-6 text-gray-800 flex items-center gap-2">
                   <span className="text-green-600">📋</span> My Templates
                 </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {regularTemplates.map(template => (
                     <TemplateCard
                       key={template.id}
@@ -236,14 +235,14 @@ function TemplateSelectionPage() {
             )}
 
             {/* Create New Template CTA */}
-            <div className="mb-12">
+            <div className="mb-16 max-w-2xl mx-auto">
               <Link to="/MyTemplates">
-                <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl p-8 shadow-2xl hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer">
+                <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer">
                   <div className="text-center text-white">
-                    <div className="text-6xl mb-4">➕</div>
-                    <h3 className="text-3xl font-bold mb-2">Create Custom Template</h3>
-                    <p className="text-lg opacity-90">
-                      Build your own workout plan with custom exercises and structure
+                    <div className="text-4xl mb-3">➕</div>
+                    <h3 className="text-2xl font-bold mb-2">Create Custom Template</h3>
+                    <p className="text-sm opacity-90">
+                      Build your own workout plan with custom exercises
                     </p>
                   </div>
                 </div>
@@ -252,7 +251,7 @@ function TemplateSelectionPage() {
 
             {/* Empty State */}
             {userTemplates.length === 0 && (
-              <div className="bg-sky-50 rounded-3xl p-12 text-center shadow-lg">
+              <div className="bg-sky-50 rounded-3xl p-12 text-center shadow-lg mb-16">
                 <div className="text-6xl mb-4">📝</div>
                 <h3 className="text-2xl font-bold mb-4 text-gray-800">No Custom Templates Yet</h3>
                 <p className="text-gray-600 mb-6">
@@ -280,7 +279,7 @@ function TemplateSelectionPage() {
         )}
 
         {/* Info Section */}
-        <div className="max-w-5xl mx-auto bg-sky-50 rounded-3xl shadow-2xl p-10 text-gray-800 space-y-6">
+        <div className="max-w-5xl mx-auto bg-sky-50 rounded-3xl shadow-2xl p-10 text-gray-800 space-y-6 mt-16">
           <h3 className="text-2xl font-bold underline mb-4">📌 About Templates</h3>
           <ul className="space-y-3 text-lg leading-relaxed">
             <li>
