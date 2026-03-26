@@ -24,29 +24,81 @@ function TableRow({
   const baseSetCount = Number(numberOfSets);
   const currentSetCount = setInputs ? setInputs.length : baseSetCount;
 
+  // Parse "145x12" format into weight and reps
+  const parseSet = (setString) => {
+    if (!setString || setString.trim() === '') {
+      return { weight: '', reps: '' };
+    }
+
+    if (setString.includes('x')) {
+      const [weight, reps] = setString.split('x').map(s => s.trim());
+      return { weight: weight || '', reps: reps || '' };
+    }
+
+    // Bodyweight (just reps, no weight)
+    return { weight: '', reps: setString.trim() };
+  };
+
+  // Combine weight and reps back to "145x12" format
+  const combineSet = (weight, reps) => {
+    const w = weight.trim();
+    const r = reps.trim();
+
+    if (!w && !r) return '';
+    if (!w) return r; // Bodyweight - just reps
+    if (!r) return w + 'x'; // Weight entered but no reps yet
+    return `${w}x${r}`;
+  };
+
+  // Handle weight input change
+  const handleWeightChange = (setIndex, newWeight) => {
+    const currentSet = parseSet((setInputs && setInputs[setIndex]) || '');
+    const combined = combineSet(newWeight, currentSet.reps);
+    cellInput(setIndex, combined);
+  };
+
+  // Handle reps input change
+  const handleRepsChange = (setIndex, newReps) => {
+    const currentSet = parseSet((setInputs && setInputs[setIndex]) || '');
+    const combined = combineSet(currentSet.weight, newReps);
+    cellInput(setIndex, combined);
+  };
+
   const recordInputCells = () => {
     const cellElements = [];
     // Get dynamic placeholder based on exercise type
     const placeholder = getPlaceholderForExercise(value);
+    const isCardio = placeholder.includes('min') || placeholder.includes('mi');
 
     for (let i = 0; i < currentSetCount; i++) {
+      const currentSet = parseSet((setInputs && setInputs[i]) || '');
+
       cellElements.push(
-        <input
-          key={i + rowId}
-          id={`${rowId}-cell-${i}`}
-          className="
-                        px-3 py-2 w-full rounded-md
-                        bg-gradient-to-r from-blue-50 to-blue-100
-                        focus:outline-none focus:ring-2 focus:ring-blue-400
-                        transition-colors duration-300
-                        placeholder-gray-400 text-gray-900
-                        mb-2 sm:mb-0
-                    "
-          type="text"
-          placeholder={placeholder}
-          value={(setInputs && setInputs[i]) || ''}
-          onChange={(e) => cellInput(i, e.target.value)}
-        />,
+        <div key={i + rowId} className="flex items-center gap-1 mb-2 sm:mb-0 flex-shrink-0">
+          {!isCardio && (
+            <>
+              <input
+                id={`${rowId}-weight-${i}`}
+                className="px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 placeholder-gray-400 text-gray-900 text-center text-sm"
+                type="number"
+                inputMode="decimal"
+                placeholder="lbs"
+                value={currentSet.weight}
+                onChange={(e) => handleWeightChange(i, e.target.value)}
+              />
+              <span className="text-gray-500 font-bold text-xs">×</span>
+            </>
+          )}
+          <input
+            id={`${rowId}-reps-${i}`}
+            className="px-2 py-2 w-14 sm:w-16 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 placeholder-gray-400 text-gray-900 text-center text-sm"
+            type="number"
+            inputMode="numeric"
+            placeholder={isCardio ? placeholder : "reps"}
+            value={currentSet.reps}
+            onChange={(e) => handleRepsChange(i, e.target.value)}
+          />
+        </div>
       );
     }
     return cellElements;
@@ -98,7 +150,7 @@ function TableRow({
         )}
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:gap-2 w-full items-center">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:gap-2 w-full items-center">
         {recordInputCells()}
 
         {isEditingSets && (
