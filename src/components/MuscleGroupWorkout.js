@@ -36,13 +36,34 @@ function MuscleGroupWorkout({
     }
   });
 
-  // Sync exercises array with exerciseData (for template loading)
+  // Sync exercises array with exerciseData (for template loading ONLY)
+  // Only rebuild when a template is loaded (exerciseData has MORE keys than current exercises)
   useEffect(() => {
-    const hasExerciseData = exerciseData && Object.keys(exerciseData).length > 0;
+    const exerciseDataKeys = Object.keys(exerciseData || {});
+    const currentExerciseCount = exercises.length;
 
-    if (hasExerciseData) {
-      // Build exercises array from exerciseData
-      const exercisesFromData = Object.keys(exerciseData).map((categoryId) => ({
+    // Only rebuild if exerciseData has MORE exercises than current (template loaded)
+    // OR if we have no exercises yet (initial load)
+    if (currentExerciseCount === 0) {
+      if (exerciseDataKeys.length > 0) {
+        // Build exercises array from exerciseData (template loading)
+        const exercisesFromData = exerciseDataKeys.map((categoryId) => ({
+          id: categoryId,
+          selected: exerciseData[categoryId]?.exerciseName || '',
+          options: [],
+          isCustom: true,
+        }));
+
+        setExercises(exercisesFromData);
+      } else {
+        // No exercise data - load defaults
+        setExercises(getDefaultExercises(muscleGroup));
+      }
+    } else if (exerciseDataKeys.length > currentExerciseCount &&
+               exerciseDataKeys.length > 0 &&
+               exerciseData[exerciseDataKeys[0]]?.exerciseName) {
+      // Template loaded - has more exercises with names
+      const exercisesFromData = exerciseDataKeys.map((categoryId) => ({
         id: categoryId,
         selected: exerciseData[categoryId]?.exerciseName || '',
         options: [],
@@ -50,10 +71,8 @@ function MuscleGroupWorkout({
       }));
 
       setExercises(exercisesFromData);
-    } else {
-      // No exercise data - load defaults
-      setExercises(getDefaultExercises(muscleGroup));
     }
+    // Otherwise skip rebuild - user is just typing set data
   }, [muscleGroup, exerciseData]);
 
   // Add a custom exercise row
