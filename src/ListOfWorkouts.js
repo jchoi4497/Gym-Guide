@@ -121,7 +121,7 @@ function ListOfWorkouts() {
           return (
             <li
               key={workout.id}
-              className="bg-sky-50 p-4 rounded shadow-lg flex items-center justify-between sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl"
+              className="bg-sky-50 p-4 rounded shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl"
             >
               <div>
                 <div className="text-xl font-semibold">
@@ -138,16 +138,16 @@ function ListOfWorkouts() {
                 </button>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                 <Link
                   to={`/SavedWorkout/${workout.id}`}
-                  className="px-3 py-1 rounded bg-blue-600 text-sky-50 hover:bg-blue-700"
+                  className="px-4 py-2 rounded bg-blue-600 text-sky-50 hover:bg-blue-700 text-sm sm:text-base whitespace-nowrap"
                 >
                   Edit
                 </Link>
                 <button
                   onClick={() => setConfirmDeleteId(workout.id)}
-                  className="ml-4 px-3 py-1 rounded bg-red-600 text-sky-50 hover:bg-red-700"
+                  className="px-4 py-2 rounded bg-red-600 text-sky-50 hover:bg-red-700 text-sm sm:text-base whitespace-nowrap"
                   disabled={isDeleting}
                 >
                   Delete

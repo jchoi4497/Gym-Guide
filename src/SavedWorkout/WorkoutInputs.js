@@ -1,6 +1,7 @@
 import exerciseNames from '../exerciseNames';
 import DataChart from '../DataChart';
 import ExerciseAutocomplete from '../components/ExerciseAutocomplete';
+import { getPlaceholderForExercise, getExerciseById } from '../config/exerciseConfig';
 import {
   DndContext,
   closestCenter,
@@ -17,6 +18,32 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+
+// Parse "145x12" format into weight and reps
+const parseSet = (setString) => {
+  if (!setString || setString.trim() === '') {
+    return { weight: '', reps: '' };
+  }
+
+  if (setString.includes('x')) {
+    const [weight, reps] = setString.split('x').map(s => s.trim());
+    return { weight: weight || '', reps: reps || '' };
+  }
+
+  // Bodyweight (just reps, no weight)
+  return { weight: '', reps: setString.trim() };
+};
+
+// Combine weight and reps back to "145x12" format
+const combineSet = (weight, reps) => {
+  const w = weight.trim();
+  const r = reps.trim();
+
+  if (!w && !r) return '';
+  if (!w) return r; // Bodyweight - just reps
+  if (!r) return w + 'x'; // Weight entered but no reps yet
+  return `${w}x${r}`;
+};
 
 // Sortable Exercise Item Component
 function SortableExerciseItem({
@@ -105,30 +132,114 @@ function SortableExerciseItem({
       </div>
 
       <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 sm:space-y-0">
-        <div className="flex-1 flex flex-wrap gap-3">
-          {(data.sets || data.input || []).map((weight, idx) => (
-            <div key={idx}>
-              {isEditing ? (
-                <input
-                  type="text"
-                  value={(editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input)?.[idx] || ''}
-                  onChange={(e) => {
-                    const newInputs = { ...editedInputs };
-                    if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
-                    if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = []; // Keep for backward compatibility
-                    newInputs[exerciseKey].sets[idx] = e.target.value;
-                    newInputs[exerciseKey].input[idx] = e.target.value; // Keep for backward compatibility
-                    setEditedInputs(newInputs);
-                  }}
-                  className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl border min-w-[60px] text-center"
-                />
-              ) : (
-                <div className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl min-w-[60px] text-center">
-                  {weight || '-'}
+        <div className="flex-1 flex flex-col gap-3">
+          {/* Set Inputs */}
+          <div className="flex flex-wrap gap-3">
+            {(data.sets || data.input || []).map((setData, idx) => {
+              const currentSet = parseSet((editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input)?.[idx] || setData || '');
+
+              // Determine exercise type for proper input display
+              const exerciseId = data.selection || data.exerciseName;
+              const exercise = getExerciseById(exerciseId);
+              const placeholder = getPlaceholderForExercise(exerciseId);
+
+              // Check metric type for determining which inputs to show
+              const isBodyweight = exercise?.metricType === 'bodyweight' || placeholder === 'Reps';
+              const isTimed = exercise?.metricType === 'timed' || placeholder.includes('Duration') || placeholder.includes('sec');
+              const isCardio = placeholder.includes('min') || placeholder.includes('mi');
+              const showWeightInput = !isBodyweight && !isTimed && !isCardio;
+
+              return (
+                <div key={idx}>
+                  {isEditing ? (
+                    <div className="flex items-center gap-1">
+                      {showWeightInput && (
+                        <>
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            placeholder="lbs"
+                            value={currentSet.weight}
+                            onChange={(e) => {
+                              const combined = combineSet(e.target.value, currentSet.reps);
+                              const newInputs = { ...editedInputs };
+                              if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
+                              if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
+                              newInputs[exerciseKey].sets[idx] = combined;
+                              newInputs[exerciseKey].input[idx] = combined;
+                              setEditedInputs(newInputs);
+                            }}
+                            className="px-2 py-3 w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 placeholder-gray-400 text-gray-900 text-center text-lg"
+                          />
+                          <span className="text-gray-500 font-bold">×</span>
+                        </>
+                      )}
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        placeholder={isCardio ? placeholder : (isTimed ? "sec" : "reps")}
+                        value={currentSet.reps}
+                        onChange={(e) => {
+                          const combined = combineSet(currentSet.weight, e.target.value);
+                          const newInputs = { ...editedInputs };
+                          if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
+                          if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
+                          newInputs[exerciseKey].sets[idx] = combined;
+                          newInputs[exerciseKey].input[idx] = combined;
+                          setEditedInputs(newInputs);
+                        }}
+                        className={`px-2 py-3 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 placeholder-gray-400 text-gray-900 text-center text-lg ${showWeightInput ? 'w-16' : 'w-20'}`}
+                      />
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl min-w-[60px] text-center">
+                      {setData || '-'}
+                    </div>
+                  )}
                 </div>
-              )}
+              );
+            })}
+          </div>
+
+          {/* Add/Remove Set Buttons - Only in Edit Mode */}
+          {isEditing && (
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={() => {
+                  const newInputs = { ...editedInputs };
+                  if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
+                  if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
+                  newInputs[exerciseKey].sets.push('');
+                  newInputs[exerciseKey].input.push('');
+                  setEditedInputs(newInputs);
+                }}
+                className="px-4 py-2 rounded-md bg-green-500 hover:bg-green-600 text-white font-bold transition-colors cursor-pointer text-sm"
+                title="Add another set"
+              >
+                + Add Set
+              </button>
+              <button
+                onClick={() => {
+                  const currentSets = editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input || [];
+                  if (currentSets.length > 1) {
+                    const newInputs = { ...editedInputs };
+                    newInputs[exerciseKey].sets = currentSets.slice(0, -1);
+                    newInputs[exerciseKey].input = currentSets.slice(0, -1);
+                    setEditedInputs(newInputs);
+                  }
+                }}
+                disabled={(editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input || []).length <= 1}
+                className={`px-4 py-2 rounded-md font-bold transition-colors text-sm ${
+                  (editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input || []).length <= 1
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-red-500 hover:bg-red-600 text-white cursor-pointer'
+                }`}
+                title="Remove last set"
+              >
+                - Remove Set
+              </button>
             </div>
-          ))}
+          )}
         </div>
 
         {/* Chart */}

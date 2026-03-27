@@ -42,6 +42,15 @@ function SavedWorkout() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [editedDate, setEditedDate] = useState('');
 
+  // Optional sections state
+  const [showCardio, setShowCardio] = useState(false);
+  const [showAbs, setShowAbs] = useState(false);
+  const [cardioAtTop, setCardioAtTop] = useState(false);
+  const [absAtTop, setAbsAtTop] = useState(false);
+
+  // Sticky button state for mobile
+  const [isButtonSticky, setIsButtonSticky] = useState(true);
+
   //used to get label of workout on savedworkout page
   const getLabel = (value) =>
     MUSCLE_GROUP_OPTIONS.find((option) => option.value === value)?.label || value;
@@ -199,6 +208,16 @@ function SavedWorkout() {
         setNote(data.note || '');
         setSummary(data.summary || '');
 
+        // Check if workout has cardio or abs data and auto-show those sections
+        const hasCardio = Object.keys(exerciseData).some(key =>
+          key.includes('cardio') || exerciseData[key]?.exerciseName?.toLowerCase().includes('cardio')
+        );
+        const hasAbs = Object.keys(exerciseData).some(key =>
+          key.includes('abs') || exerciseData[key]?.exerciseName?.toLowerCase().includes('abs')
+        );
+        if (hasCardio) setShowCardio(true);
+        if (hasAbs) setShowAbs(true);
+
         // Load exercise order if available (fallback to object keys for old workouts)
         const savedOrder = data.exerciseOrder || Object.keys(exerciseData);
         setExerciseOrder(savedOrder);
@@ -245,6 +264,14 @@ function SavedWorkout() {
         input: ['', '', '', '']
       },
     }));
+    setHasUnsavedChanges(true);
+
+    // Scroll down to show the new exercise after state updates
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      });
+    });
   };
 
   const handleRemoveExercise = (rowId) => {
@@ -287,6 +314,31 @@ function SavedWorkout() {
     setHasUnsavedChanges(true);
   };
 
+  // Toggle functions for optional sections
+  const handleToggleCardioPosition = () => {
+    setCardioAtTop(!cardioAtTop);
+    setHasUnsavedChanges(true);
+  };
+
+  const handleToggleAbsPosition = () => {
+    setAbsAtTop(!absAtTop);
+    setHasUnsavedChanges(true);
+  };
+
+  // Handler for removing sets from optional sections
+  const handleRemoveOptionalSet = (rowId, setIndex) => {
+    const updatedInputs = { ...editedInputs };
+    if (updatedInputs[rowId]?.sets) {
+      updatedInputs[rowId].sets = updatedInputs[rowId].sets.filter((_, idx) => idx !== setIndex);
+      // Also update input array for backward compatibility
+      if (updatedInputs[rowId].input) {
+        updatedInputs[rowId].input = updatedInputs[rowId].input.filter((_, idx) => idx !== setIndex);
+      }
+      setEditedInputs(updatedInputs);
+      setHasUnsavedChanges(true);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -296,6 +348,85 @@ function SavedWorkout() {
     });
     return () => unsubscribe();
   }, [workoutId]);
+
+  // Scroll to top when entering edit mode
+  useEffect(() => {
+    if (isEditing) {
+      // Instant scroll to top (smooth doesn't work reliably in this context)
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }
+  }, [isEditing]);
+
+  // Handle sticky button on mobile - unstick when user scrolls near bottom
+  useEffect(() => {
+    // Wait for content to load before setting up scroll handler
+    if (isLoading || !workoutData) return;
+
+    let animationFrameId;
+    let lastScrollY = -1;
+    let lastDocHeight = -1;
+
+    const checkScroll = () => {
+      // Only on mobile (screen width < 640px - Tailwind's sm breakpoint)
+      if (window.innerWidth >= 640) {
+        setIsButtonSticky(false);
+        animationFrameId = requestAnimationFrame(checkScroll);
+        return;
+      }
+
+      // Try multiple ways to get scroll position
+      const currentScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+
+      // Try multiple ways to get document height (body.scrollHeight works better on some mobile browsers)
+      const documentHeight = Math.max(
+        document.documentElement.scrollHeight,
+        document.body.scrollHeight,
+        document.documentElement.offsetHeight,
+        document.body.offsetHeight
+      );
+
+      // Check if scroll position OR document height changed
+      if (currentScrollY !== lastScrollY || documentHeight !== lastDocHeight) {
+        lastScrollY = currentScrollY;
+        lastDocHeight = documentHeight;
+
+        const scrollPosition = currentScrollY + window.innerHeight;
+        const distanceFromBottom = documentHeight - scrollPosition;
+
+        // If page content hasn't loaded yet (too short), default to sticky
+        if (documentHeight < 1000) {
+          setIsButtonSticky(true);
+        } else {
+          // Use hysteresis to prevent flickering:
+          // - Unstick when within 200px of bottom
+          // - Re-stick when scrolling back up beyond 300px from bottom
+          // This creates a 100px buffer zone to prevent rapid toggling
+          setIsButtonSticky((prevSticky) => {
+            if (prevSticky) {
+              // Currently sticky - unstick only if very close to bottom
+              return distanceFromBottom >= 200;
+            } else {
+              // Currently not sticky - stick only if far enough from bottom
+              return distanceFromBottom >= 300;
+            }
+          });
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(checkScroll);
+    };
+
+    // Start the animation frame loop
+    animationFrameId = requestAnimationFrame(checkScroll);
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [isLoading, workoutData]);
 
   // Track changes to editedInputs, note, and date
   useEffect(() => {
@@ -363,7 +494,7 @@ function SavedWorkout() {
     };
 
     // Handle browser back/forward buttons
-    const handlePopState = (e) => {
+    const handlePopState = () => {
       if (isEditing && hasUnsavedChanges) {
         const confirmed = window.confirm(
           'You have unsaved changes. Are you sure you want to leave? All changes will be lost.'
@@ -481,14 +612,16 @@ function SavedWorkout() {
   const muscleGroup = workoutData.muscleGroup || workoutData.target;
 
   // Use saved exercise order if available, otherwise fall back to category order
+  // When editing, use editedInputs to include newly added exercises
+  const dataForOrderFilter = isEditing ? editedInputs : exerciseData;
   let displayOrder;
   if (exerciseOrder && exerciseOrder.length > 0) {
     // Filter to only include exercises that exist in current data
-    displayOrder = exerciseOrder.filter((key) => key in exerciseData);
+    displayOrder = exerciseOrder.filter((key) => key in dataForOrderFilter);
   } else {
     // Fallback to hardcoded order for old workouts
     const orderedKeys = categoryOrder[muscleGroup] || [];
-    const inputKeys = Object.keys(exerciseData);
+    const inputKeys = Object.keys(dataForOrderFilter);
     const orderedInputs = orderedKeys.filter((key) => inputKeys.includes(key));
     const remainingInputs = inputKeys.filter((key) => !orderedKeys.includes(key));
     displayOrder = [...orderedInputs, ...remainingInputs];
@@ -587,9 +720,18 @@ function SavedWorkout() {
               {/* Optional Cardio & Abs Sections */}
               <OptionalWorkoutSections
                 numberOfSets={workoutData?.numberOfSets || 4}
-                setRangeLabel=""
                 exerciseData={editedInputs}
                 onExerciseDataChange={handleOptionalExerciseChange}
+                onRemoveSet={handleRemoveOptionalSet}
+                position="bottom"
+                showCardio={showCardio}
+                setShowCardio={setShowCardio}
+                showAbs={showAbs}
+                setShowAbs={setShowAbs}
+                cardioAtTop={cardioAtTop}
+                absAtTop={absAtTop}
+                onToggleCardioPosition={handleToggleCardioPosition}
+                onToggleAbsPosition={handleToggleAbsPosition}
               />
             </div>
           </div>
@@ -604,7 +746,8 @@ function SavedWorkout() {
         <WorkoutAnalysis summary={summary} />
       </div>
 
-      <div className="m-6 flex flex-col justify-end sm:space-x-4 space-y-4 px-4 sm:px-20">
+      {/* View Workouts button - not sticky */}
+      <div className="m-6 px-4 sm:px-20">
         <Link to="/SavedWorkouts">
           <button
             disabled={isSaving}
@@ -617,31 +760,46 @@ function SavedWorkout() {
             View Workouts
           </button>
         </Link>
+      </div>
 
-        <button
-          onClick={() => {
-            if (isEditing) {
-              handleCancelEdit();
-            } else {
-              // Scroll to top when entering edit mode
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+      {/* Edit button - sticky on mobile when not at bottom (only when NOT editing) */}
+      {!isEditing && (
+        <div className={`flex flex-col justify-end space-y-4 ${
+          isButtonSticky
+            ? 'fixed bottom-0 left-0 right-0 bg-gradient-to-t from-sky-300 via-sky-300 to-transparent pt-6 pb-4 px-4 m-0 z-50'
+            : 'm-6 px-4 sm:px-20'
+        } sm:m-6 sm:px-20 sm:relative sm:bg-none sm:pt-0 sm:pb-0`}>
+          <button
+            onClick={() => {
               setIsEditing(true);
-              setHasUnsavedChanges(false); // Reset when entering edit mode
-            }
-          }}
-          disabled={isSaving}
-          className={`px-6 py-3 w-full rounded text-sky-50 sm:w-auto self-start transition-all ${
-            isSaving
-              ? 'bg-gray-400 cursor-not-allowed'
-              : isEditing
-                ? 'bg-red-600 hover:bg-red-700 active:bg-red-400 active:scale-95'
-                : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-400 active:scale-95'
-          }`}
-        >
-          {isEditing ? 'Cancel' : 'Edit Workout'}
-        </button>
+              setHasUnsavedChanges(false);
+            }}
+            className="px-6 py-3 w-full rounded text-sky-50 sm:w-auto self-start transition-all bg-blue-500 hover:bg-blue-600 active:bg-blue-400 active:scale-95"
+          >
+            Edit Workout
+          </button>
+        </div>
+      )}
 
-        {isEditing && (
+      {/* Cancel/Save buttons - sticky on mobile when not at bottom (only when editing) */}
+      {isEditing && (
+        <div className={`flex flex-col justify-end space-y-4 ${
+          isButtonSticky
+            ? 'fixed bottom-0 left-0 right-0 bg-gradient-to-t from-sky-300 via-sky-300 to-transparent pt-6 pb-4 px-4 m-0 z-50'
+            : 'm-6 px-4 sm:px-20'
+        } sm:m-6 sm:px-20 sm:relative sm:bg-none sm:pt-0 sm:pb-0`}>
+          <button
+            onClick={handleCancelEdit}
+            disabled={isSaving}
+            className={`px-6 py-3 w-full rounded text-sky-50 sm:w-auto self-start transition-all ${
+              isSaving
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-red-600 hover:bg-red-700 active:bg-red-400 active:scale-95'
+            }`}
+          >
+            Cancel
+          </button>
+
           <div className="flex flex-col gap-2">
             {isGeneratingSummary && (
               <div className="text-blue-600 font-semibold animate-pulse">
@@ -660,8 +818,8 @@ function SavedWorkout() {
               {isSaving ? (isGeneratingSummary ? 'Generating Summary...' : 'Saving...') : 'Save Changes'}
             </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
