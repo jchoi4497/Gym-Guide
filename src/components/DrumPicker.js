@@ -29,10 +29,33 @@ function DrumPicker({
     values.push(Math.round(i * 10) / 10); // Round to 1 decimal place
   }
 
-  // Haptic feedback
+  // Haptic feedback - try multiple methods for better mobile support
   const triggerHaptic = () => {
+    // Method 1: Vibration API (works on Android)
     if ('vibrate' in navigator) {
-      navigator.vibrate(10); // 10ms vibration
+      try {
+        navigator.vibrate(10); // 10ms vibration
+      } catch (e) {
+        console.log('Vibrate failed:', e);
+      }
+    }
+
+    // Method 2: Haptic Feedback API (iOS Safari)
+    if (window.navigator && window.navigator.vibrate) {
+      try {
+        window.navigator.vibrate([10]);
+      } catch (e) {
+        console.log('Window vibrate failed:', e);
+      }
+    }
+
+    // Method 3: iOS Haptic Engine (if available)
+    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.haptic) {
+      try {
+        window.webkit.messageHandlers.haptic.postMessage('light');
+      } catch (e) {
+        console.log('Webkit haptic failed:', e);
+      }
     }
   };
 
@@ -186,7 +209,7 @@ function DrumPicker({
       >
         {/* Selection highlight */}
         <div
-          className="absolute left-0 right-0 bg-blue-50 bg-opacity-40 border-t-2 border-b-2 border-blue-500 pointer-events-none z-10"
+          className="absolute left-0 right-0 bg-blue-100 bg-opacity-20 border-t-2 border-b-2 border-blue-500 pointer-events-none z-10"
           style={{
             top: `${ITEM_HEIGHT * 2}px`,
             height: `${ITEM_HEIGHT}px`,
@@ -216,9 +239,12 @@ function DrumPicker({
               <div
                 key={index}
                 className={`relative z-20 flex items-center justify-center transition-all duration-150 ${
-                  isSelected ? 'text-2xl font-bold text-gray-900' : 'text-lg text-gray-400'
+                  isSelected ? 'text-3xl font-extrabold text-black' : 'text-base text-gray-300'
                 }`}
-                style={{ height: `${ITEM_HEIGHT}px` }}
+                style={{
+                  height: `${ITEM_HEIGHT}px`,
+                  ...(isSelected && { textShadow: '0 0 1px rgba(0,0,0,0.3)' })
+                }}
               >
                 {val}{unit}
               </div>
