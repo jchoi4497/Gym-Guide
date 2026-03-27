@@ -83,7 +83,7 @@ function DrumPicker({
 
   // Handle scroll and snap to nearest value
   const handleScroll = () => {
-    if (!scrollRef.current) return;
+    if (!scrollRef.current || isDragging) return;
 
     const scrollTop = scrollRef.current.scrollTop;
     const index = Math.round(scrollTop / ITEM_HEIGHT);
@@ -182,9 +182,11 @@ function DrumPicker({
         const clampedIndex = Math.max(0, Math.min(values.length - 1, index));
         scrollToIndex(clampedIndex, true);
 
-        if (values[clampedIndex] !== lastValue) {
-          onChange(values[clampedIndex]);
-          setLastValue(values[clampedIndex]);
+        // ALWAYS update value on touch end
+        const targetValue = values[clampedIndex];
+        onChange(targetValue);
+        setLastValue(targetValue);
+        if (targetValue !== value) {
           triggerHaptic();
         }
       }, 10);
@@ -204,16 +206,38 @@ function DrumPicker({
         // Always snap to exact position
         scrollToIndex(clampedIndex, true);
 
-        // Ensure value is updated
-        if (values[clampedIndex] !== lastValue) {
-          onChange(values[clampedIndex]);
-          setLastValue(values[clampedIndex]);
+        // FORCE update the value even if it seems the same
+        const targetValue = values[clampedIndex];
+        onChange(targetValue);
+        setLastValue(targetValue);
+        if (targetValue !== value) {
           triggerHaptic();
         }
       }, 50); // Faster snap for more responsive feel
       return () => clearTimeout(timer);
     }
   }, [isDragging, velocity]);
+
+  // Additional safety check: Ensure value matches visual position every 200ms when idle
+  useEffect(() => {
+    if (isDragging || Math.abs(velocity) > 0.1) return;
+
+    const checkInterval = setInterval(() => {
+      if (!scrollRef.current) return;
+      const currentScrollTop = scrollRef.current.scrollTop;
+      const index = Math.round(currentScrollTop / ITEM_HEIGHT);
+      const clampedIndex = Math.max(0, Math.min(values.length - 1, index));
+      const targetValue = values[clampedIndex];
+
+      // If the value in the center doesn't match our state, force update
+      if (targetValue !== value) {
+        onChange(targetValue);
+        setLastValue(targetValue);
+      }
+    }, 200);
+
+    return () => clearInterval(checkInterval);
+  }, [isDragging, velocity, value, values]);
 
   return (
     <div className="flex flex-col items-center">
