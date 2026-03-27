@@ -51,7 +51,7 @@ function WeightRepsPicker({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-50 transition-opacity"
+        className="fixed inset-0 bg-gray-400 bg-opacity-30 z-50 transition-opacity backdrop-blur-sm"
         onClick={handleCancel}
       />
 
