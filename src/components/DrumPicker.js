@@ -20,7 +20,7 @@ function DrumPicker({
   const lastTouchTime = useRef(Date.now());
   const lastTouchY = useRef(0);
 
-  const ITEM_HEIGHT = 44; // Height of each item in pixels
+  const ITEM_HEIGHT = 50; // Height of each item in pixels (larger for easier control)
   const VISIBLE_ITEMS = 5; // Number of visible items
 
   // Generate the list of values
@@ -98,7 +98,7 @@ function DrumPicker({
 
   // Momentum scrolling with velocity
   const applyMomentum = () => {
-    if (Math.abs(velocity) < 0.5) {
+    if (Math.abs(velocity) < 0.1) {
       setVelocity(0);
       handleScroll();
       return;
@@ -109,8 +109,8 @@ function DrumPicker({
     const newScrollTop = scrollRef.current.scrollTop + velocity;
     scrollRef.current.scrollTop = newScrollTop;
 
-    // Deceleration
-    setVelocity(velocity * 0.95);
+    // Faster deceleration for snappier feel
+    setVelocity(velocity * 0.90);
 
     animationRef.current = requestAnimationFrame(applyMomentum);
   };
@@ -147,12 +147,13 @@ function DrumPicker({
     const deltaY = startY - currentY;
     scrollRef.current.scrollTop = scrollTop + deltaY;
 
-    // Calculate velocity for momentum
+    // Calculate velocity for momentum with reduced sensitivity
     const currentTime = Date.now();
     const timeDelta = currentTime - lastTouchTime.current;
     if (timeDelta > 0) {
       const yDelta = lastTouchY.current - currentY;
-      setVelocity(yDelta / timeDelta * 16); // Convert to ~60fps
+      // Reduced multiplier for less aggressive momentum
+      setVelocity(yDelta / timeDelta * 12);
     }
 
     lastTouchTime.current = currentTime;
@@ -170,12 +171,30 @@ function DrumPicker({
 
   const handleTouchEnd = () => {
     setIsDragging(false);
-    // Momentum will be applied via useEffect
+
+    // If velocity is low, snap immediately instead of waiting
+    if (Math.abs(velocity) < 3) {
+      setVelocity(0);
+      setTimeout(() => {
+        if (!scrollRef.current) return;
+        const currentScrollTop = scrollRef.current.scrollTop;
+        const index = Math.round(currentScrollTop / ITEM_HEIGHT);
+        const clampedIndex = Math.max(0, Math.min(values.length - 1, index));
+        scrollToIndex(clampedIndex, true);
+
+        if (values[clampedIndex] !== lastValue) {
+          onChange(values[clampedIndex]);
+          setLastValue(values[clampedIndex]);
+          triggerHaptic();
+        }
+      }, 10);
+    }
+    // Otherwise momentum will be applied via useEffect
   };
 
   // Snap to nearest after momentum stops or any scroll ends
   useEffect(() => {
-    if (!isDragging && Math.abs(velocity) < 0.5) {
+    if (!isDragging && Math.abs(velocity) < 0.1) {
       const timer = setTimeout(() => {
         if (!scrollRef.current) return;
         const currentScrollTop = scrollRef.current.scrollTop;
@@ -191,7 +210,7 @@ function DrumPicker({
           setLastValue(values[clampedIndex]);
           triggerHaptic();
         }
-      }, 100); // Slightly longer delay for better snap
+      }, 50); // Faster snap for more responsive feel
       return () => clearTimeout(timer);
     }
   }, [isDragging, velocity]);
