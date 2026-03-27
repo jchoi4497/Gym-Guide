@@ -198,7 +198,11 @@ function DrumPicker({
 
   return (
     <div className="flex flex-col items-center">
-      {label && <div className="text-sm text-gray-600 mb-2 font-medium">{label}</div>}
+      {label && (
+        <div className="text-sm text-gray-600 mb-2 font-medium">
+          {label}{unit && <span className="text-gray-500 ml-1">({unit.trim()})</span>}
+        </div>
+      )}
       <div
         ref={containerRef}
         className="relative w-24 h-56 overflow-hidden"
@@ -239,13 +243,13 @@ function DrumPicker({
               <div
                 key={index}
                 className={`relative z-20 flex items-center justify-center transition-all duration-150 ${
-                  isSelected ? 'text-4xl font-black text-black' : 'text-sm text-gray-300'
+                  isSelected ? 'text-2xl font-bold text-black' : 'text-base text-gray-400'
                 }`}
                 style={{
                   height: `${ITEM_HEIGHT}px`,
                 }}
               >
-                {val}{unit}
+                {val}
               </div>
             );
           })}
