@@ -17,7 +17,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 // Sortable wrapper for TableRow
-function SortableTableRow({ exercise, isEditingSets, ...props }) {
+function SortableTableRow({ exercise, isEditingSets, onMoveUp, onMoveDown, isFirst, isLast, ...props }) {
   const {
     attributes,
     listeners,
@@ -35,16 +35,47 @@ function SortableTableRow({ exercise, isEditingSets, ...props }) {
 
   return (
     <div ref={setNodeRef} style={style} className="relative">
-      {/* Drag Handle - Only visible when editing sets */}
+      {/* Reorder Controls - Only visible when editing sets */}
       {isEditingSets && (
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute -left-3 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing bg-blue-500 text-white w-8 h-12 rounded-lg flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors z-10"
-          title="Drag to reorder"
-        >
-          <span className="text-xl">⋮⋮</span>
-        </div>
+        <>
+          {/* Arrow Buttons (Mobile - sm and below) */}
+          <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex flex-col gap-1 sm:hidden z-10">
+            <button
+              onClick={() => onMoveUp(exercise.id)}
+              disabled={isFirst}
+              className={`w-7 h-7 rounded flex items-center justify-center shadow-md transition-all ${
+                isFirst
+                  ? 'bg-gray-300 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600 active:scale-90'
+              }`}
+              title="Move up"
+            >
+              ↑
+            </button>
+            <button
+              onClick={() => onMoveDown(exercise.id)}
+              disabled={isLast}
+              className={`w-7 h-7 rounded flex items-center justify-center shadow-md transition-all ${
+                isLast
+                  ? 'bg-gray-300 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600 active:scale-90'
+              }`}
+              title="Move down"
+            >
+              ↓
+            </button>
+          </div>
+
+          {/* Drag Handle (Desktop - sm and above) */}
+          <div
+            {...attributes}
+            {...listeners}
+            className="hidden sm:flex absolute -left-3 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing bg-blue-500 text-white w-8 h-12 rounded-lg items-center justify-center shadow-lg hover:bg-blue-600 transition-colors z-10"
+            title="Drag to reorder"
+          >
+            <span className="text-xl">⋮⋮</span>
+          </div>
+        </>
       )}
       <TableRow {...props} isEditingSets={isEditingSets} />
     </div>
@@ -89,6 +120,24 @@ function WorkoutTable({
     }
   };
 
+  // Move item up one position
+  const moveUp = (id) => {
+    const currentIndex = exercises.findIndex((ex) => ex.id === id);
+    if (currentIndex > 0) {
+      const newOrder = arrayMove(exercises, currentIndex, currentIndex - 1);
+      onReorder(newOrder);
+    }
+  };
+
+  // Move item down one position
+  const moveDown = (id) => {
+    const currentIndex = exercises.findIndex((ex) => ex.id === id);
+    if (currentIndex < exercises.length - 1) {
+      const newOrder = arrayMove(exercises, currentIndex, currentIndex + 1);
+      onReorder(newOrder);
+    }
+  };
+
   return (
     <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4">
       <div className="text-xl font-bold mb-4 py-3 bg-blue-50 rounded-md text-center">
@@ -106,7 +155,7 @@ function WorkoutTable({
           disabled={!isEditingSets}
         >
           <div className="flex flex-col">
-            {exercises.map((exercise) => (
+            {exercises.map((exercise, index) => (
               <SortableTableRow
                 key={exercise.id}
                 exercise={exercise}
@@ -126,6 +175,10 @@ function WorkoutTable({
                 isEditingSets={isEditingSets}
                 favoriteExercises={favoriteExercises}
                 onToggleFavorite={onToggleFavorite}
+                onMoveUp={moveUp}
+                onMoveDown={moveDown}
+                isFirst={index === 0}
+                isLast={index === exercises.length - 1}
               />
             ))}
           </div>

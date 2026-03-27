@@ -11,6 +11,18 @@ function WeightRepsPicker({
 }) {
   const [selectedWeight, setSelectedWeight] = useState(weight || '');
   const [selectedReps, setSelectedReps] = useState(reps || '');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -25,10 +37,13 @@ function WeightRepsPicker({
   };
 
   const handleCancel = () => {
+    // Save current values before closing
+    onSave(selectedWeight, selectedReps);
     onClose();
   };
 
-  if (!isOpen) return null;
+  // Don't show picker on desktop at all
+  if (!isOpen || !isMobile) return null;
 
   // Determine what to show based on exercise type
   const showWeight = exerciseType === 'weight';
@@ -36,7 +51,7 @@ function WeightRepsPicker({
 
   // Determine reps label and config
   let repsLabel = 'Reps';
-  let repsMax = 50;
+  let repsMax = 100;
   let repsStep = 1;
 
   if (exerciseType === 'timed') {
@@ -48,16 +63,16 @@ function WeightRepsPicker({
   }
 
   return (
-    <>
+    <div className="fixed inset-0 z-[100] flex items-end justify-center">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-20 z-50 transition-opacity"
+        className="absolute inset-0 bg-black/50"
         onClick={handleCancel}
       />
 
       {/* Modal - slides up from bottom */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50 animate-slide-up"
+        className="relative w-full bg-white rounded-t-3xl shadow-2xl animate-slide-up"
         style={{
           maxHeight: '70vh',
         }}
@@ -107,7 +122,7 @@ function WeightRepsPicker({
         {/* Bottom safe area for iOS */}
         <div className="h-8" />
       </div>
-    </>
+    </div>
   );
 }
 
