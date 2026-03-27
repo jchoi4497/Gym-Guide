@@ -29,10 +29,6 @@ function DrumPicker({
     values.push(Math.round(i * 10) / 10); // Round to 1 decimal place
   }
 
-  // Find current index
-  const currentIndex = values.findIndex(v => v === value);
-  const validIndex = currentIndex >= 0 ? currentIndex : 0;
-
   // Haptic feedback
   const triggerHaptic = () => {
     if ('vibrate' in navigator) {
@@ -54,22 +50,24 @@ function DrumPicker({
     }
   };
 
-  // Initialize scroll position
+  // Initialize scroll position and update when value changes
   useEffect(() => {
-    scrollToIndex(validIndex, false);
+    const currentIndex = values.findIndex(v => v === value);
+    const indexToScroll = currentIndex >= 0 ? currentIndex : 0;
+    scrollToIndex(indexToScroll, false);
     setLastValue(value);
-  }, []);
+  }, [value]); // Update when value changes
 
   // Handle scroll and snap to nearest value
   const handleScroll = () => {
-    if (!scrollRef.current || isDragging) return;
+    if (!scrollRef.current) return;
 
     const scrollTop = scrollRef.current.scrollTop;
     const index = Math.round(scrollTop / ITEM_HEIGHT);
     const clampedIndex = Math.max(0, Math.min(values.length - 1, index));
 
     if (values[clampedIndex] !== lastValue) {
-      onChange(values[clampedIndex]);
+      onChange(values[clampedIndex]); // Auto-save on scroll
       setLastValue(values[clampedIndex]);
       triggerHaptic();
     }
@@ -152,14 +150,25 @@ function DrumPicker({
     // Momentum will be applied via useEffect
   };
 
-  // Snap to nearest after momentum stops
+  // Snap to nearest after momentum stops or any scroll ends
   useEffect(() => {
     if (!isDragging && Math.abs(velocity) < 0.5) {
       const timer = setTimeout(() => {
         if (!scrollRef.current) return;
-        const index = Math.round(scrollRef.current.scrollTop / ITEM_HEIGHT);
-        scrollToIndex(index, true);
-      }, 50);
+        const currentScrollTop = scrollRef.current.scrollTop;
+        const index = Math.round(currentScrollTop / ITEM_HEIGHT);
+        const clampedIndex = Math.max(0, Math.min(values.length - 1, index));
+
+        // Always snap to exact position
+        scrollToIndex(clampedIndex, true);
+
+        // Ensure value is updated
+        if (values[clampedIndex] !== lastValue) {
+          onChange(values[clampedIndex]);
+          setLastValue(values[clampedIndex]);
+          triggerHaptic();
+        }
+      }, 100); // Slightly longer delay for better snap
       return () => clearTimeout(timer);
     }
   }, [isDragging, velocity]);
@@ -187,7 +196,7 @@ function DrumPicker({
         {/* Scrollable drum */}
         <div
           ref={scrollRef}
-          className="h-full overflow-y-scroll scrollbar-hide"
+          className="h-full overflow-y-scroll scrollbar-hide sm:overflow-hidden sm:pointer-events-none"
           style={{
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
@@ -206,7 +215,7 @@ function DrumPicker({
             return (
               <div
                 key={index}
-                className={`flex items-center justify-center transition-all duration-150 ${
+                className={`relative z-20 flex items-center justify-center transition-all duration-150 ${
                   isSelected ? 'text-2xl font-bold text-gray-900' : 'text-lg text-gray-400'
                 }`}
                 style={{ height: `${ITEM_HEIGHT}px` }}

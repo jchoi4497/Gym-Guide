@@ -83,6 +83,18 @@ function TableRow({
     }
   };
 
+  // Copy previous set exactly
+  const handleCopyPreviousSet = (setIndex) => {
+    if (setIndex === 0) return; // Can't copy if first set
+
+    const previousSet = parseSet((setInputs && setInputs[setIndex - 1]) || '');
+    if (!previousSet.weight && !previousSet.reps) return; // Nothing to copy
+
+    // Copy exact same weight and reps
+    const combined = combineSet(previousSet.weight, previousSet.reps);
+    cellInput(setIndex, combined);
+  };
+
   const recordInputCells = () => {
     const cellElements = [];
     // Get dynamic placeholder based on exercise type
@@ -91,28 +103,65 @@ function TableRow({
 
     for (let i = 0; i < currentSetCount; i++) {
       const currentSet = parseSet((setInputs && setInputs[i]) || '');
+      const previousSet = i > 0 ? parseSet((setInputs && setInputs[i - 1]) || '') : null;
+      const hasPreviousSet = previousSet && (previousSet.weight || previousSet.reps);
 
       cellElements.push(
-        <div key={i + rowId} className="flex items-center gap-1 mb-2 sm:mb-0 flex-shrink-0">
-          {!isCardio && (
-            <>
+        <div key={i + rowId} className="relative mb-2 sm:mb-0 flex-shrink-0">
+          <span className="absolute -top-2 -left-2 text-xs text-gray-400 font-medium bg-sky-50 px-1 rounded z-10">{i + 1}</span>
+          <div className="relative flex items-center gap-1">
+            {!isCardio && (
+              <>
+                {/* Mobile: Button that opens picker */}
+                <button
+                  type="button"
+                  onClick={() => handleOpenPicker(i)}
+                  className="sm:hidden px-2 py-2 w-16 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
+                >
+                  {currentSet.weight || <span className="text-gray-400">lbs</span>}
+                </button>
+                {/* Desktop: Text input */}
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={currentSet.weight}
+                  onChange={(e) => handleWeightChange(i, e.target.value)}
+                  placeholder="lbs"
+                  className="hidden sm:block px-2 py-2 w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm"
+                />
+                <span className="text-gray-500 font-bold text-xs">×</span>
+              </>
+            )}
+            {/* Mobile: Button that opens picker */}
+            <button
+              type="button"
+              onClick={() => handleOpenPicker(i)}
+              className="sm:hidden px-2 py-2 w-14 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
+            >
+              {currentSet.reps || <span className="text-gray-400">{isCardio ? placeholder : "reps"}</span>}
+            </button>
+            {/* Desktop: Text input */}
+            <input
+              type="text"
+              inputMode="numeric"
+              value={currentSet.reps}
+              onChange={(e) => handleRepsChange(i, e.target.value)}
+              placeholder={isCardio ? placeholder : "reps"}
+              className="hidden sm:block px-2 py-2 w-16 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm"
+            />
+
+            {/* Copy Previous Set Button - overlay, only show if there's a previous set and current set is empty */}
+            {hasPreviousSet && !currentSet.weight && !currentSet.reps && (
               <button
                 type="button"
-                onClick={() => handleOpenPicker(i)}
-                className="px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
+                onClick={() => handleCopyPreviousSet(i)}
+                className="absolute top-1/2 -translate-y-1/2 -right-8 w-7 h-7 rounded-full bg-green-500 hover:bg-green-600 active:bg-green-700 text-white text-sm font-bold transition-all active:scale-90 flex items-center justify-center shadow-md z-10"
+                title="Copy previous set"
               >
-                {currentSet.weight || <span className="text-gray-400">lbs</span>}
+                ↑
               </button>
-              <span className="text-gray-500 font-bold text-xs">×</span>
-            </>
-          )}
-          <button
-            type="button"
-            onClick={() => handleOpenPicker(i)}
-            className="px-2 py-2 w-14 sm:w-16 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
-          >
-            {currentSet.reps || <span className="text-gray-400">{isCardio ? placeholder : "reps"}</span>}
-          </button>
+            )}
+          </div>
         </div>
       );
     }
