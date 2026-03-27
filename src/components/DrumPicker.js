@@ -207,9 +207,9 @@ function DrumPicker({
           maskImage: 'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)',
         }}
       >
-        {/* Selection highlight */}
+        {/* Selection highlight - just borders, no background */}
         <div
-          className="absolute left-0 right-0 bg-blue-100 bg-opacity-20 border-t-2 border-b-2 border-blue-500 pointer-events-none z-10"
+          className="absolute left-0 right-0 border-t-2 border-b-2 border-gray-400 pointer-events-none z-10"
           style={{
             top: `${ITEM_HEIGHT * 2}px`,
             height: `${ITEM_HEIGHT}px`,
@@ -239,11 +239,10 @@ function DrumPicker({
               <div
                 key={index}
                 className={`relative z-20 flex items-center justify-center transition-all duration-150 ${
-                  isSelected ? 'text-3xl font-extrabold text-black' : 'text-base text-gray-300'
+                  isSelected ? 'text-4xl font-black text-black' : 'text-sm text-gray-300'
                 }`}
                 style={{
                   height: `${ITEM_HEIGHT}px`,
-                  ...(isSelected && { textShadow: '0 0 1px rgba(0,0,0,0.3)' })
                 }}
               >
                 {val}{unit}

@@ -28,7 +28,23 @@ function WeightRepsPicker({
     if (isOpen) {
       setSelectedWeight(weight || '');
       setSelectedReps(reps || '');
+      // Prevent background scrolling when modal is open
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      // Restore scrolling when modal closes
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
     }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
   }, [isOpen, weight, reps]);
 
   const handleDone = () => {
