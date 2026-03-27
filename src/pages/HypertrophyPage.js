@@ -61,6 +61,9 @@ function HypertrophyPage() {
     return `${year}-${month}-${day}`; // Format: YYYY-MM-DD in local timezone
   });
 
+  // Sticky button state for mobile
+  const [isButtonSticky, setIsButtonSticky] = useState(true);
+
   // Determine actual muscle group name to use
   const actualMuscleGroup = useMemo(() => {
     if (selectedMuscleGroup === 'custom' && customMuscleGroupName) {
@@ -409,6 +412,73 @@ function HypertrophyPage() {
     });
     return () => unsubscribe();
   }, [actualMuscleGroup]); // Re-run when the actual muscle group changes
+
+  // Handle sticky button on mobile - unstick when user scrolls near bottom
+  useEffect(() => {
+    if (!isWorkoutConfigured) return; // Only run when workout is configured
+
+    let animationFrameId;
+    let lastScrollY = -1;
+    let lastDocHeight = -1;
+
+    const checkScroll = () => {
+      // Only on mobile (screen width < 640px - Tailwind's sm breakpoint)
+      if (window.innerWidth >= 640) {
+        setIsButtonSticky(false);
+        animationFrameId = requestAnimationFrame(checkScroll);
+        return;
+      }
+
+      // Try multiple ways to get scroll position
+      const currentScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+
+      // Try multiple ways to get document height (body.scrollHeight works better on some mobile browsers)
+      const documentHeight = Math.max(
+        document.documentElement.scrollHeight,
+        document.body.scrollHeight,
+        document.documentElement.offsetHeight,
+        document.body.offsetHeight
+      );
+
+      // Check if scroll position OR document height changed
+      if (currentScrollY !== lastScrollY || documentHeight !== lastDocHeight) {
+        lastScrollY = currentScrollY;
+        lastDocHeight = documentHeight;
+
+        const scrollPosition = currentScrollY + window.innerHeight;
+        const distanceFromBottom = documentHeight - scrollPosition;
+
+        // If page content hasn't loaded yet (too short), default to sticky
+        if (documentHeight < 1000) {
+          setIsButtonSticky(true);
+        } else {
+          // Use hysteresis to prevent flickering:
+          // - Unstick when within 200px of bottom
+          // - Re-stick when scrolling back up beyond 300px from bottom
+          setIsButtonSticky((prevSticky) => {
+            if (prevSticky) {
+              // Currently sticky - unstick only if very close to bottom
+              return distanceFromBottom >= 200;
+            } else {
+              // Currently not sticky - stick only if far enough from bottom
+              return distanceFromBottom >= 300;
+            }
+          });
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(checkScroll);
+    };
+
+    // Start the animation frame loop
+    animationFrameId = requestAnimationFrame(checkScroll);
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [isWorkoutConfigured]);
 
   // Fetch recent workouts across ALL muscle groups (for exercise-level comparison)
   const fetchRecentWorkouts = async (currentDate) => {
@@ -1202,37 +1272,49 @@ function HypertrophyPage() {
           </div>
         )}
 
-        <div className="flex flex-col md:flex-row justify-end space-y-4 md:space-y-0 md:space-x-4 items-end">
-          {isGeneratingSummary && (
-            <div className="text-blue-600 font-semibold animate-pulse">
-              🤖 Generating AI summary...
-            </div>
-          )}
-          <button
-            onClick={handleSaveWorkout}
-            disabled={isSaving} // disable button while saving
-            className={`px-6 py-3 rounded-full text-sky-50 font-semibold shadow-lg transition-all duration-300
-                                ${
-                                  isSaving
-                                    ? 'bg-gray-400 cursor-not-allowed'
-                                    : 'bg-blue-700 hover:bg-blue-800 active:bg-blue-600 active:scale-95'
-                                }`}
-          >
-            {isSaving ? (isGeneratingSummary ? 'Generating Summary...' : 'Saving...') : 'Save Workout'}
-          </button>
-          <Link to="/SavedWorkouts">
+        {/* View Workouts button - not sticky */}
+        {isWorkoutConfigured && (
+          <div className="m-6 px-4 sm:px-20">
+            <Link to="/SavedWorkouts">
+              <button
+                disabled={isSaving}
+                className={`px-6 py-3 w-full sm:w-auto rounded-3xl shadow-lg text-sky-50 transition-all duration-300 ${
+                  isSaving
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-gray-800 hover:bg-blue-600 active:bg-gray-600 active:scale-95'
+                }`}
+              >
+                View Workouts
+              </button>
+            </Link>
+          </div>
+        )}
+
+        {/* Save Workout button - sticky on mobile when not at bottom */}
+        {isWorkoutConfigured && (
+          <div className={`flex flex-col justify-end space-y-4 ${
+            isButtonSticky
+              ? 'fixed bottom-0 left-0 right-0 bg-gradient-to-t from-sky-300 via-sky-300 to-transparent pt-6 pb-4 px-4 m-0 z-50'
+              : 'm-6 px-4 sm:px-20'
+          } sm:m-6 sm:px-20 sm:relative sm:bg-none sm:pt-0 sm:pb-0`}>
+            {isGeneratingSummary && (
+              <div className="text-blue-600 font-semibold animate-pulse">
+                🤖 Generating AI summary...
+              </div>
+            )}
             <button
+              onClick={handleSaveWorkout}
               disabled={isSaving}
-              className={`w-full px-6 py-3 rounded-full text-sky-50 font-semibold shadow-lg transition-all duration-300 ${
+              className={`px-6 py-3 w-full rounded-3xl shadow-lg text-sky-50 transition-all duration-300 ${
                 isSaving
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-gray-800 hover:bg-blue-600 active:bg-gray-600 active:scale-95'
-              }`}
+                  : 'bg-blue-700 hover:bg-blue-800 active:bg-blue-600 active:scale-95'
+              } sm:w-auto self-start`}
             >
-              View Workouts
+              {isSaving ? (isGeneratingSummary ? 'Generating Summary...' : 'Saving...') : 'Save Workout'}
             </button>
-          </Link>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
