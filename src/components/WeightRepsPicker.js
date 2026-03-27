@@ -51,7 +51,7 @@ function WeightRepsPicker({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-gray-400 bg-opacity-30 z-50 transition-opacity backdrop-blur-sm"
+        className="fixed inset-0 bg-black bg-opacity-20 z-50 transition-opacity"
         onClick={handleCancel}
       />
 
@@ -60,7 +60,6 @@ function WeightRepsPicker({
         className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50 animate-slide-up"
         style={{
           maxHeight: '70vh',
-          animation: 'slideUp 0.3s ease-out',
         }}
       >
         {/* Header */}
@@ -108,17 +107,6 @@ function WeightRepsPicker({
         {/* Bottom safe area for iOS */}
         <div className="h-8" />
       </div>
-
-      <style jsx>{`
-        @keyframes slideUp {
-          from {
-            transform: translateY(100%);
-          }
-          to {
-            transform: translateY(0);
-          }
-        }
-      `}</style>
     </>
   );
 }
