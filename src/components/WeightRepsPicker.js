@@ -120,7 +120,7 @@ function WeightRepsPicker({
               max={500}
               step={0.5}
               label="Weight"
-              unit=" lbs"
+              unit="lbs"
             />
           )}
 
@@ -131,7 +131,7 @@ function WeightRepsPicker({
             max={repsMax}
             step={repsStep}
             label={repsLabel}
-            unit={exerciseType === 'cardio' ? ' min' : ''}
+            unit={exerciseType === 'cardio' ? 'min' : ''}
           />
         </div>
 
