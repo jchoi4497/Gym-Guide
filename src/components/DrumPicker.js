@@ -171,13 +171,13 @@ function DrumPicker({
         ref={containerRef}
         className="relative w-24 h-56 overflow-hidden"
         style={{
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)',
-          maskImage: 'linear-gradient(to bottom, transparent, black 20%, black 80%, transparent)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)',
         }}
       >
         {/* Selection highlight */}
         <div
-          className="absolute left-0 right-0 bg-blue-100 border-t-2 border-b-2 border-blue-400 pointer-events-none z-10"
+          className="absolute left-0 right-0 bg-blue-50 bg-opacity-40 border-t-2 border-b-2 border-blue-500 pointer-events-none z-10"
           style={{
             top: `${ITEM_HEIGHT * 2}px`,
             height: `${ITEM_HEIGHT}px`,
@@ -207,7 +207,7 @@ function DrumPicker({
               <div
                 key={index}
                 className={`flex items-center justify-center transition-all duration-150 ${
-                  isSelected ? 'text-2xl font-bold text-blue-600' : 'text-lg text-gray-500'
+                  isSelected ? 'text-2xl font-bold text-gray-900' : 'text-lg text-gray-400'
                 }`}
                 style={{ height: `${ITEM_HEIGHT}px` }}
               >
