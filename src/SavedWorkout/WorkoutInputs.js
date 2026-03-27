@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import exerciseNames from '../exerciseNames';
 import DataChart from '../DataChart';
 import ExerciseAutocomplete from '../components/ExerciseAutocomplete';
 import { getPlaceholderForExercise, getExerciseById } from '../config/exerciseConfig';
+import WeightRepsPicker from '../components/WeightRepsPicker';
 import {
   DndContext,
   closestCenter,
@@ -71,6 +73,29 @@ function SortableExerciseItem({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+  };
+
+  // Picker modal state
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [editingSetIndex, setEditingSetIndex] = useState(null);
+
+  // Open picker for a specific set
+  const handleOpenPicker = (setIndex) => {
+    setEditingSetIndex(setIndex);
+    setPickerOpen(true);
+  };
+
+  // Save values from picker
+  const handlePickerSave = (weight, reps) => {
+    if (editingSetIndex !== null) {
+      const combined = combineSet(weight, reps);
+      const newInputs = { ...editedInputs };
+      if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
+      if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
+      newInputs[exerciseKey].sets[editingSetIndex] = combined;
+      newInputs[exerciseKey].input[editingSetIndex] = combined;
+      setEditedInputs(newInputs);
+    }
   };
 
   return (
@@ -155,41 +180,23 @@ function SortableExerciseItem({
                     <div className="flex items-center gap-1">
                       {showWeightInput && (
                         <>
-                          <input
-                            type="number"
-                            inputMode="decimal"
-                            placeholder="lbs"
-                            value={currentSet.weight}
-                            onChange={(e) => {
-                              const combined = combineSet(e.target.value, currentSet.reps);
-                              const newInputs = { ...editedInputs };
-                              if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
-                              if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
-                              newInputs[exerciseKey].sets[idx] = combined;
-                              newInputs[exerciseKey].input[idx] = combined;
-                              setEditedInputs(newInputs);
-                            }}
-                            className="px-2 py-3 w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 placeholder-gray-400 text-gray-900 text-center text-lg"
-                          />
+                          <button
+                            type="button"
+                            onClick={() => handleOpenPicker(idx)}
+                            className="px-2 py-3 w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg hover:bg-blue-200 active:scale-95"
+                          >
+                            {currentSet.weight || <span className="text-gray-400">lbs</span>}
+                          </button>
                           <span className="text-gray-500 font-bold">×</span>
                         </>
                       )}
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        placeholder={isCardio ? placeholder : (isTimed ? "sec" : "reps")}
-                        value={currentSet.reps}
-                        onChange={(e) => {
-                          const combined = combineSet(currentSet.weight, e.target.value);
-                          const newInputs = { ...editedInputs };
-                          if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
-                          if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
-                          newInputs[exerciseKey].sets[idx] = combined;
-                          newInputs[exerciseKey].input[idx] = combined;
-                          setEditedInputs(newInputs);
-                        }}
-                        className={`px-2 py-3 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 placeholder-gray-400 text-gray-900 text-center text-lg ${showWeightInput ? 'w-16' : 'w-20'}`}
-                      />
+                      <button
+                        type="button"
+                        onClick={() => handleOpenPicker(idx)}
+                        className={`px-2 py-3 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg hover:bg-blue-200 active:scale-95 ${showWeightInput ? 'w-16' : 'w-20'}`}
+                      >
+                        {currentSet.reps || <span className="text-gray-400">{isCardio ? placeholder : (isTimed ? "sec" : "reps")}</span>}
+                      </button>
                     </div>
                   ) : (
                     <div className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl min-w-[60px] text-center">
@@ -253,6 +260,37 @@ function SortableExerciseItem({
           />
         </div>
       </div>
+
+      {/* Wheel Picker Modal */}
+      {isEditing && (() => {
+        // Get current set being edited
+        const currentSet = editingSetIndex !== null ? parseSet((editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input)?.[editingSetIndex] || '') : { weight: '', reps: '' };
+
+        // Determine exercise type for picker
+        const exerciseId = data.selection || data.exerciseName;
+        const exercise = getExerciseById(exerciseId);
+        const placeholder = getPlaceholderForExercise(exerciseId);
+
+        const isBodyweight = exercise?.metricType === 'bodyweight' || placeholder === 'Reps';
+        const isTimed = exercise?.metricType === 'timed' || placeholder.includes('Duration') || placeholder.includes('sec');
+        const isCardio = placeholder.includes('min') || placeholder.includes('mi');
+
+        let exerciseType = 'weight';
+        if (isCardio) exerciseType = 'cardio';
+        else if (isTimed) exerciseType = 'timed';
+        else if (isBodyweight) exerciseType = 'bodyweight';
+
+        return (
+          <WeightRepsPicker
+            isOpen={pickerOpen}
+            onClose={() => setPickerOpen(false)}
+            weight={currentSet.weight}
+            reps={currentSet.reps}
+            onSave={handlePickerSave}
+            exerciseType={exerciseType}
+          />
+        );
+      })()}
     </div>
   );
 }
