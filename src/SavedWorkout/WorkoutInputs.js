@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import exerciseNames from '../exerciseNames';
 import DataChart from '../DataChart';
 import ExerciseAutocomplete from '../components/ExerciseAutocomplete';
 import { getPlaceholderForExercise, getExerciseById } from '../config/exerciseConfig';
+import WeightRepsPicker from '../components/WeightRepsPicker';
 import {
   DndContext,
   closestCenter,
@@ -57,6 +59,10 @@ function SortableExerciseItem({
   monthlyWorkoutData,
   graphView,
   previousCustomExercises,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
 }) {
   const {
     attributes,
@@ -73,22 +79,100 @@ function SortableExerciseItem({
     opacity: isDragging ? 0.5 : 1,
   };
 
+  // Picker modal state
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [editingSetIndex, setEditingSetIndex] = useState(null);
+
+  // Open picker for a specific set
+  const handleOpenPicker = (setIndex) => {
+    setEditingSetIndex(setIndex);
+    setPickerOpen(true);
+  };
+
+  // Save values from picker
+  const handlePickerSave = (weight, reps) => {
+    if (editingSetIndex !== null) {
+      const combined = combineSet(weight, reps);
+      const newInputs = { ...editedInputs };
+      if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
+      if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
+      newInputs[exerciseKey].sets[editingSetIndex] = combined;
+      newInputs[exerciseKey].input[editingSetIndex] = combined;
+      setEditedInputs(newInputs);
+    }
+  };
+
+  // Handle weight input change (for desktop text inputs)
+  const handleWeightChange = (setIndex, newWeight) => {
+    const currentSet = parseSet((editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input)?.[setIndex] || '');
+    const combined = combineSet(newWeight, currentSet.reps);
+    const newInputs = { ...editedInputs };
+    if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
+    if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
+    newInputs[exerciseKey].sets[setIndex] = combined;
+    newInputs[exerciseKey].input[setIndex] = combined;
+    setEditedInputs(newInputs);
+  };
+
+  // Handle reps input change (for desktop text inputs)
+  const handleRepsChange = (setIndex, newReps) => {
+    const currentSet = parseSet((editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input)?.[setIndex] || '');
+    const combined = combineSet(currentSet.weight, newReps);
+    const newInputs = { ...editedInputs };
+    if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
+    if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
+    newInputs[exerciseKey].sets[setIndex] = combined;
+    newInputs[exerciseKey].input[setIndex] = combined;
+    setEditedInputs(newInputs);
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className="mb-8 p-4 bg-sky-50 rounded-2xl shadow-lg relative"
     >
-      {/* Drag Handle - Only visible when editing */}
+      {/* Reorder Controls - Only visible when editing */}
       {isEditing && (
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute -left-3 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing bg-blue-500 text-white w-8 h-12 rounded-lg flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors z-10"
-          title="Drag to reorder"
-        >
-          <span className="text-xl">⋮⋮</span>
-        </div>
+        <>
+          {/* Arrow Buttons (Mobile - sm and below) */}
+          <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex flex-col gap-1 sm:hidden z-10">
+            <button
+              onClick={() => onMoveUp(exerciseKey)}
+              disabled={isFirst}
+              className={`w-7 h-7 rounded flex items-center justify-center shadow-md transition-all ${
+                isFirst
+                  ? 'bg-gray-300 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600 active:scale-90'
+              }`}
+              title="Move up"
+            >
+              ↑
+            </button>
+            <button
+              onClick={() => onMoveDown(exerciseKey)}
+              disabled={isLast}
+              className={`w-7 h-7 rounded flex items-center justify-center shadow-md transition-all ${
+                isLast
+                  ? 'bg-gray-300 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-500 text-white hover:bg-blue-600 active:scale-90'
+              }`}
+              title="Move down"
+            >
+              ↓
+            </button>
+          </div>
+
+          {/* Drag Handle (Desktop - sm and above) */}
+          <div
+            {...attributes}
+            {...listeners}
+            className="hidden sm:flex absolute -left-3 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing bg-blue-500 text-white w-8 h-12 rounded-lg items-center justify-center shadow-lg hover:bg-blue-600 transition-colors z-10"
+            title="Drag to reorder"
+          >
+            <span className="text-xl">⋮⋮</span>
+          </div>
+        </>
       )}
 
       {/* DELETE BUTTON: Only shows when editing */}
@@ -152,44 +236,49 @@ function SortableExerciseItem({
               return (
                 <div key={idx}>
                   {isEditing ? (
-                    <div className="flex items-center gap-1">
-                      {showWeightInput && (
-                        <>
-                          <input
-                            type="number"
-                            inputMode="decimal"
-                            placeholder="lbs"
-                            value={currentSet.weight}
-                            onChange={(e) => {
-                              const combined = combineSet(e.target.value, currentSet.reps);
-                              const newInputs = { ...editedInputs };
-                              if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
-                              if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
-                              newInputs[exerciseKey].sets[idx] = combined;
-                              newInputs[exerciseKey].input[idx] = combined;
-                              setEditedInputs(newInputs);
-                            }}
-                            className="px-2 py-3 w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 placeholder-gray-400 text-gray-900 text-center text-lg"
-                          />
-                          <span className="text-gray-500 font-bold">×</span>
-                        </>
-                      )}
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        placeholder={isCardio ? placeholder : (isTimed ? "sec" : "reps")}
-                        value={currentSet.reps}
-                        onChange={(e) => {
-                          const combined = combineSet(currentSet.weight, e.target.value);
-                          const newInputs = { ...editedInputs };
-                          if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
-                          if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
-                          newInputs[exerciseKey].sets[idx] = combined;
-                          newInputs[exerciseKey].input[idx] = combined;
-                          setEditedInputs(newInputs);
-                        }}
-                        className={`px-2 py-3 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 placeholder-gray-400 text-gray-900 text-center text-lg ${showWeightInput ? 'w-16' : 'w-20'}`}
-                      />
+                    <div className="relative">
+                      <span className="absolute -top-2 -left-2 text-xs text-gray-400 font-medium bg-sky-50 px-1 rounded">{idx + 1}</span>
+                      <div className="flex items-center gap-1">
+                        {showWeightInput && (
+                          <>
+                            {/* Mobile: Button that opens picker */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenPicker(idx)}
+                              className="sm:hidden px-2 py-3 w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg hover:bg-blue-200 active:scale-95"
+                            >
+                              {currentSet.weight || <span className="text-gray-400">lbs</span>}
+                            </button>
+                            {/* Desktop: Text input */}
+                            <input
+                              type="text"
+                              inputMode="decimal"
+                              value={currentSet.weight}
+                              onChange={(e) => handleWeightChange(idx, e.target.value)}
+                              placeholder="lbs"
+                              className="hidden sm:block px-2 py-3 w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg"
+                            />
+                            <span className="text-gray-500 font-bold">×</span>
+                          </>
+                        )}
+                        {/* Mobile: Button that opens picker */}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenPicker(idx)}
+                          className={`sm:hidden px-2 py-3 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg hover:bg-blue-200 active:scale-95 ${showWeightInput ? 'w-16' : 'w-20'}`}
+                        >
+                          {currentSet.reps || <span className="text-gray-400">{isCardio ? placeholder : (isTimed ? "sec" : "reps")}</span>}
+                        </button>
+                        {/* Desktop: Text input */}
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={currentSet.reps}
+                          onChange={(e) => handleRepsChange(idx, e.target.value)}
+                          placeholder={isCardio ? placeholder : (isTimed ? "sec" : "reps")}
+                          className={`hidden sm:block px-2 py-3 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg ${showWeightInput ? 'w-16' : 'w-20'}`}
+                        />
+                      </div>
                     </div>
                   ) : (
                     <div className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl min-w-[60px] text-center">
@@ -253,6 +342,37 @@ function SortableExerciseItem({
           />
         </div>
       </div>
+
+      {/* Wheel Picker Modal */}
+      {isEditing && (() => {
+        // Get current set being edited
+        const currentSet = editingSetIndex !== null ? parseSet((editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input)?.[editingSetIndex] || '') : { weight: '', reps: '' };
+
+        // Determine exercise type for picker
+        const exerciseId = data.selection || data.exerciseName;
+        const exercise = getExerciseById(exerciseId);
+        const placeholder = getPlaceholderForExercise(exerciseId);
+
+        const isBodyweight = exercise?.metricType === 'bodyweight' || placeholder === 'Reps';
+        const isTimed = exercise?.metricType === 'timed' || placeholder.includes('Duration') || placeholder.includes('sec');
+        const isCardio = placeholder.includes('min') || placeholder.includes('mi');
+
+        let exerciseType = 'weight';
+        if (isCardio) exerciseType = 'cardio';
+        else if (isTimed) exerciseType = 'timed';
+        else if (isBodyweight) exerciseType = 'bodyweight';
+
+        return (
+          <WeightRepsPicker
+            isOpen={pickerOpen}
+            onClose={() => setPickerOpen(false)}
+            weight={currentSet.weight}
+            reps={currentSet.reps}
+            onSave={handlePickerSave}
+            exerciseType={exerciseType}
+          />
+        );
+      })()}
     </div>
   );
 }
@@ -291,6 +411,24 @@ function WorkoutInputs({
       onReorder(newOrder);
     }
   };
+
+  // Move item up one position
+  const moveUp = (key) => {
+    const currentIndex = order.indexOf(key);
+    if (currentIndex > 0) {
+      const newOrder = arrayMove(order, currentIndex, currentIndex - 1);
+      onReorder(newOrder);
+    }
+  };
+
+  // Move item down one position
+  const moveDown = (key) => {
+    const currentIndex = order.indexOf(key);
+    if (currentIndex < order.length - 1) {
+      const newOrder = arrayMove(order, currentIndex, currentIndex + 1);
+      onReorder(newOrder);
+    }
+  };
   return (
     <div className="mb-8">
       <DndContext
@@ -303,7 +441,7 @@ function WorkoutInputs({
           strategy={verticalListSortingStrategy}
           disabled={!isEditing}
         >
-          {order.map((key) => {
+          {order.map((key, index) => {
             // Handle both old (inputs) and new (exerciseData) field names
             const workoutExercises = isEditing ? editedInputs : (workoutData.exerciseData || workoutData.inputs);
             const data = workoutExercises[key];
@@ -324,6 +462,10 @@ function WorkoutInputs({
                 monthlyWorkoutData={monthlyWorkoutData}
                 graphView={graphView}
                 previousCustomExercises={previousCustomExercises}
+                onMoveUp={moveUp}
+                onMoveDown={moveDown}
+                isFirst={index === 0}
+                isLast={index === order.length - 1}
               />
             );
           })}
