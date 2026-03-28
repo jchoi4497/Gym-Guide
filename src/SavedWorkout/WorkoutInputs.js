@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import exerciseNames from '../exerciseNames';
 import DataChart from '../DataChart';
 import ExerciseAutocomplete from '../components/ExerciseAutocomplete';
@@ -78,6 +78,20 @@ function SortableExerciseItem({
   // Picker modal state
   const [pickerOpen, setPickerOpen] = useState(false);
   const [editingSetIndex, setEditingSetIndex] = useState(null);
+
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640); // Tailwind's sm breakpoint
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Open picker for a specific set
   const handleOpenPicker = (setIndex) => {
@@ -177,27 +191,71 @@ function SortableExerciseItem({
               return (
                 <div key={idx}>
                   {isEditing ? (
-                    <div className="flex items-center gap-1">
-                      {showWeightInput && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => handleOpenPicker(idx)}
-                            className="px-2 py-3 w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg hover:bg-blue-200 active:scale-95"
-                          >
-                            {currentSet.weight || <span className="text-gray-400">lbs</span>}
-                          </button>
-                          <span className="text-gray-500 font-bold">×</span>
-                        </>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenPicker(idx)}
-                        className={`px-2 py-3 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg hover:bg-blue-200 active:scale-95 ${showWeightInput ? 'w-16' : 'w-20'}`}
-                      >
-                        {currentSet.reps || <span className="text-gray-400">{isCardio ? placeholder : (isTimed ? "sec" : "reps")}</span>}
-                      </button>
-                    </div>
+                    isMobile ? (
+                      // MOBILE: Buttons that open picker modal
+                      <div className="flex items-center gap-1">
+                        {showWeightInput && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenPicker(idx)}
+                              className="px-2 py-3 w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg hover:bg-blue-200 active:scale-95"
+                            >
+                              {currentSet.weight || <span className="text-gray-400">lbs</span>}
+                            </button>
+                            <span className="text-gray-500 font-bold">×</span>
+                          </>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenPicker(idx)}
+                          className={`px-2 py-3 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg hover:bg-blue-200 active:scale-95 ${showWeightInput ? 'w-16' : 'w-20'}`}
+                        >
+                          {currentSet.reps || <span className="text-gray-400">{isCardio ? placeholder : (isTimed ? "sec" : "reps")}</span>}
+                        </button>
+                      </div>
+                    ) : (
+                      // DESKTOP: Regular text inputs
+                      <div className="flex items-center gap-1">
+                        {showWeightInput && (
+                          <>
+                            <input
+                              type="number"
+                              step="0.5"
+                              value={currentSet.weight}
+                              onChange={(e) => {
+                                const combined = combineSet(e.target.value, currentSet.reps);
+                                const newInputs = { ...editedInputs };
+                                if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
+                                if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
+                                newInputs[exerciseKey].sets[idx] = combined;
+                                newInputs[exerciseKey].input[idx] = combined;
+                                setEditedInputs(newInputs);
+                              }}
+                              placeholder="lbs"
+                              className="px-2 py-3 w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg"
+                            />
+                            <span className="text-gray-500 font-bold">×</span>
+                          </>
+                        )}
+                        <input
+                          type="number"
+                          step={isCardio ? "0.1" : "1"}
+                          value={currentSet.reps}
+                          onChange={(e) => {
+                            const combined = combineSet(currentSet.weight, e.target.value);
+                            const newInputs = { ...editedInputs };
+                            if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
+                            if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
+                            newInputs[exerciseKey].sets[idx] = combined;
+                            newInputs[exerciseKey].input[idx] = combined;
+                            setEditedInputs(newInputs);
+                          }}
+                          placeholder={isCardio ? placeholder : (isTimed ? "sec" : "reps")}
+                          className={`px-2 py-3 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg ${showWeightInput ? 'w-16' : 'w-20'}`}
+                        />
+                      </div>
+                    )
                   ) : (
                     <div className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl min-w-[60px] text-center">
                       {setData || '-'}
