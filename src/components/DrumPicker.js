@@ -16,6 +16,7 @@ function DrumPicker({
   const [scrollTop, setScrollTop] = useState(0);
   const [velocity, setVelocity] = useState(0);
   const [lastValue, setLastValue] = useState(value);
+  const [, forceUpdate] = useState(0); // For forcing re-renders
   const animationRef = useRef(null);
   const lastTouchTime = useRef(Date.now());
   const lastTouchY = useRef(0);
@@ -24,14 +25,19 @@ function DrumPicker({
   const VISIBLE_ITEMS = 5; // Number of visible items
 
   // Generate the list of values
-  const values = [];
+  const coreValues = [];
   for (let i = min; i <= max; i += step) {
-    values.push(Math.round(i * 10) / 10); // Round to 1 decimal place
+    coreValues.push(Math.round(i * 10) / 10); // Round to 1 decimal place
   }
 
-  // Find current index
-  const currentIndex = values.findIndex(v => v === value);
-  const validIndex = currentIndex >= 0 ? currentIndex : 0;
+  // Add wrap-around values for infinite scroll illusion
+  // 3 full rotations for best infinite feel
+  const values = [...coreValues, ...coreValues, ...coreValues];
+  const wrapOffset = coreValues.length; // Offset to start at middle copy
+
+  // Find current index in core values, then add offset for wrapped values
+  const coreIndex = coreValues.findIndex(v => v === value);
+  const validIndex = coreIndex >= 0 ? coreIndex + wrapOffset : wrapOffset;
 
   // Haptic feedback
   const triggerHaptic = () => {
@@ -62,13 +68,14 @@ function DrumPicker({
 
   // Handle scroll and snap to nearest value
   const handleScroll = () => {
-    if (!scrollRef.current || isDragging) return;
+    if (!scrollRef.current) return;
 
     const scrollTop = scrollRef.current.scrollTop;
     const index = Math.round(scrollTop / ITEM_HEIGHT);
     const clampedIndex = Math.max(0, Math.min(values.length - 1, index));
 
-    if (values[clampedIndex] !== lastValue) {
+    // Always update to the value at the center position
+    if (values[clampedIndex] !== value) {
       onChange(values[clampedIndex]);
       setLastValue(values[clampedIndex]);
       triggerHaptic();
@@ -77,9 +84,14 @@ function DrumPicker({
 
   // Momentum scrolling with velocity
   const applyMomentum = () => {
-    if (Math.abs(velocity) < 0.5) {
+    if (Math.abs(velocity) < 1) {
       setVelocity(0);
-      handleScroll();
+      // Snap to nearest when momentum stops
+      if (scrollRef.current) {
+        const index = Math.round(scrollRef.current.scrollTop / ITEM_HEIGHT);
+        const clampedIndex = Math.max(0, Math.min(values.length - 1, index));
+        scrollToIndex(clampedIndex, true);
+      }
       return;
     }
 
@@ -88,8 +100,8 @@ function DrumPicker({
     const newScrollTop = scrollRef.current.scrollTop + velocity;
     scrollRef.current.scrollTop = newScrollTop;
 
-    // Deceleration
-    setVelocity(velocity * 0.95);
+    // Faster deceleration for snappier feel
+    setVelocity(velocity * 0.92);
 
     animationRef.current = requestAnimationFrame(applyMomentum);
   };
@@ -154,70 +166,75 @@ function DrumPicker({
 
   // Snap to nearest after momentum stops
   useEffect(() => {
-    if (!isDragging && Math.abs(velocity) < 0.5) {
+    if (!isDragging && Math.abs(velocity) < 1) {
       const timer = setTimeout(() => {
         if (!scrollRef.current) return;
         const index = Math.round(scrollRef.current.scrollTop / ITEM_HEIGHT);
-        scrollToIndex(index, true);
-      }, 50);
+        const clampedIndex = Math.max(0, Math.min(values.length - 1, index));
+        scrollToIndex(clampedIndex, true);
+      }, 10);
       return () => clearTimeout(timer);
     }
   }, [isDragging, velocity]);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center" style={{ background: 'transparent', backgroundColor: 'transparent' }}>
       {label && <div className="text-sm text-gray-600 mb-2 font-medium">{label}</div>}
       <div
         ref={containerRef}
-        className="relative w-24 h-56 overflow-hidden"
+        className="relative w-24 overflow-hidden"
         style={{
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)',
-          maskImage: 'linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)',
+          height: '350px', // Much taller to fill white space and show more numbers
+          background: 'transparent',
+          backgroundColor: 'transparent',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
+          maskImage: 'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
         }}
       >
-        {/* Selection highlight */}
-        <div
-          className="absolute left-0 right-0 bg-blue-50 bg-opacity-40 border-t-2 border-b-2 border-blue-500 pointer-events-none z-10"
-          style={{
-            top: `${ITEM_HEIGHT * 2}px`,
-            height: `${ITEM_HEIGHT}px`,
-          }}
-        />
 
         {/* Scrollable drum */}
         <div
           ref={scrollRef}
           className="h-full overflow-y-scroll scrollbar-hide"
           style={{
+            background: 'transparent',
+            backgroundColor: 'transparent',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
           }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          onScroll={handleScroll}
+          onScroll={() => {
+            handleScroll();
+            forceUpdate(prev => prev + 1); // Force re-render to update highlighting
+          }}
         >
-          {/* Top padding */}
-          <div style={{ height: `${ITEM_HEIGHT * 2}px` }} />
+          {/* Top padding - aligned to center selected value in highlight box */}
+          <div style={{ height: `${ITEM_HEIGHT * 3}px`, background: 'transparent' }} />
 
           {/* Values */}
           {values.map((val, index) => {
-            const isSelected = val === value;
+            // Calculate which value is at the center of the viewport
+            const scrollTop = scrollRef.current?.scrollTop || 0;
+            const centerIndex = Math.round(scrollTop / ITEM_HEIGHT);
+            const isAtCenter = index === centerIndex;
+
             return (
               <div
                 key={index}
                 className={`flex items-center justify-center transition-all duration-150 ${
-                  isSelected ? 'text-2xl font-bold text-gray-900' : 'text-lg text-gray-400'
+                  isAtCenter ? 'text-2xl font-bold text-gray-900' : 'text-lg text-gray-400'
                 }`}
-                style={{ height: `${ITEM_HEIGHT}px` }}
+                style={{ height: `${ITEM_HEIGHT}px`, background: 'transparent', backgroundColor: 'transparent' }}
               >
                 {val}{unit}
               </div>
             );
           })}
 
-          {/* Bottom padding */}
-          <div style={{ height: `${ITEM_HEIGHT * 2}px` }} />
+          {/* Bottom padding - matches top for symmetry */}
+          <div style={{ height: `${ITEM_HEIGHT * 3}px`, background: 'transparent' }} />
         </div>
       </div>
     </div>
