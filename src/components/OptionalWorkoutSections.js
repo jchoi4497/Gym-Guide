@@ -57,22 +57,40 @@ function OptionalWorkoutSections({
     };
   }, [absEditMode]);
 
-  const [cardioExercises, setCardioExercises] = useState([
-    {
-      id: 'cardio_section',
-      selected: 'treadmill',
-      options: getExercisesByCategory(EXERCISE_CATEGORIES.CARDIO),
-      isCustom: false,
-    },
-  ]);
-  const [absExercises, setAbsExercises] = useState([
-    {
-      id: 'abs_section',
-      selected: 'abcrunchmachine',
-      options: getExercisesByCategory(EXERCISE_CATEGORIES.ABS),
-      isCustom: false,
-    },
-  ]);
+  const [cardioExercises, setCardioExercises] = useState([]);
+  const [absExercises, setAbsExercises] = useState([]);
+
+  // Add initial cardio exercise when cardio is enabled
+  useEffect(() => {
+    if (showCardio && cardioExercises.length === 0) {
+      setCardioExercises([
+        {
+          id: 'cardio_section',
+          selected: 'treadmill',
+          options: getExercisesByCategory(EXERCISE_CATEGORIES.CARDIO),
+          isCustom: false,
+        },
+      ]);
+    } else if (!showCardio) {
+      setCardioExercises([]);
+    }
+  }, [showCardio]);
+
+  // Add initial abs exercise when abs is enabled
+  useEffect(() => {
+    if (showAbs && absExercises.length === 0) {
+      setAbsExercises([
+        {
+          id: 'abs_section',
+          selected: 'abcrunchmachine',
+          options: getExercisesByCategory(EXERCISE_CATEGORIES.ABS),
+          isCustom: false,
+        },
+      ]);
+    } else if (!showAbs) {
+      setAbsExercises([]);
+    }
+  }, [showAbs]);
 
   // Add custom cardio exercise
   const addCustomCardio = () => {
