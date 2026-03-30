@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getExercisesByCategory, EXERCISE_CATEGORIES, getPlaceholderForExercise } from '../config/exerciseConfig';
 
 // Field templates for different cardio exercise types
@@ -59,38 +59,78 @@ function OptionalWorkoutSections({
 
   const [cardioExercises, setCardioExercises] = useState([]);
   const [absExercises, setAbsExercises] = useState([]);
+  const cardioInitialized = useRef(false);
+  const absInitialized = useRef(false);
 
-  // Add initial cardio exercise when cardio is enabled
+  // Populate cardio exercises from existing exerciseData when cardio is enabled
   useEffect(() => {
-    if (showCardio && cardioExercises.length === 0) {
-      setCardioExercises([
-        {
-          id: 'cardio_section',
-          selected: 'treadmill',
-          options: getExercisesByCategory(EXERCISE_CATEGORIES.CARDIO),
-          isCustom: false,
-        },
-      ]);
+    if (showCardio && !cardioInitialized.current && exerciseData) {
+      // Check if there's existing cardio data in exerciseData
+      const existingCardioKeys = Object.keys(exerciseData).filter(key =>
+        key.startsWith('cardio') || key.startsWith('custom_cardio')
+      );
+
+      if (existingCardioKeys.length > 0) {
+        // Restore from existing data
+        const restoredCardio = existingCardioKeys.map(key => ({
+          id: key,
+          selected: exerciseData[key]?.exerciseName || exerciseData[key]?.selection || '',
+          options: key.startsWith('custom_cardio') ? [] : getExercisesByCategory(EXERCISE_CATEGORIES.CARDIO),
+          isCustom: key.startsWith('custom_cardio'),
+        }));
+        setCardioExercises(restoredCardio);
+      } else {
+        // No existing data, add default
+        setCardioExercises([
+          {
+            id: 'cardio_section',
+            selected: 'treadmill',
+            options: getExercisesByCategory(EXERCISE_CATEGORIES.CARDIO),
+            isCustom: false,
+          },
+        ]);
+      }
+      cardioInitialized.current = true;
     } else if (!showCardio) {
       setCardioExercises([]);
+      cardioInitialized.current = false;
     }
-  }, [showCardio]);
+  }, [showCardio, exerciseData]);
 
-  // Add initial abs exercise when abs is enabled
+  // Populate abs exercises from existing exerciseData when abs is enabled
   useEffect(() => {
-    if (showAbs && absExercises.length === 0) {
-      setAbsExercises([
-        {
-          id: 'abs_section',
-          selected: 'abcrunchmachine',
-          options: getExercisesByCategory(EXERCISE_CATEGORIES.ABS),
-          isCustom: false,
-        },
-      ]);
+    if (showAbs && !absInitialized.current && exerciseData) {
+      // Check if there's existing abs data in exerciseData
+      const existingAbsKeys = Object.keys(exerciseData).filter(key =>
+        key.startsWith('abs') || key.startsWith('custom_abs')
+      );
+
+      if (existingAbsKeys.length > 0) {
+        // Restore from existing data
+        const restoredAbs = existingAbsKeys.map(key => ({
+          id: key,
+          selected: exerciseData[key]?.exerciseName || exerciseData[key]?.selection || '',
+          options: key.startsWith('custom_abs') ? [] : getExercisesByCategory(EXERCISE_CATEGORIES.ABS),
+          isCustom: key.startsWith('custom_abs'),
+        }));
+        setAbsExercises(restoredAbs);
+      } else {
+        // No existing data, add default
+        setAbsExercises([
+          {
+            id: 'abs_section',
+            selected: 'abcrunchmachine',
+            options: getExercisesByCategory(EXERCISE_CATEGORIES.ABS),
+            isCustom: false,
+          },
+        ]);
+      }
+      absInitialized.current = true;
     } else if (!showAbs) {
       setAbsExercises([]);
+      absInitialized.current = false;
     }
-  }, [showAbs]);
+  }, [showAbs, exerciseData]);
 
   // Add custom cardio exercise
   const addCustomCardio = () => {
