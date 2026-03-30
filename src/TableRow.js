@@ -28,6 +28,7 @@ function TableRow({
   // Picker modal state
   const [pickerOpen, setPickerOpen] = useState(false);
   const [editingSetIndex, setEditingSetIndex] = useState(null);
+  const [initialField, setInitialField] = useState('weight'); // Track which field was clicked
 
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
@@ -83,9 +84,10 @@ function TableRow({
     cellInput(setIndex, combined);
   };
 
-  // Open picker for a specific set
-  const handleOpenPicker = (setIndex) => {
+  // Open picker for a specific set and field
+  const handleOpenPicker = (setIndex, field = 'weight') => {
     setEditingSetIndex(setIndex);
+    setInitialField(field);
     setPickerOpen(true);
   };
 
@@ -131,7 +133,7 @@ function TableRow({
                 <>
                   <button
                     type="button"
-                    onClick={() => handleOpenPicker(i)}
+                    onClick={() => handleOpenPicker(i, 'weight')}
                     className="px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
                   >
                     {currentSet.weight || <span className="text-gray-400">lbs</span>}
@@ -141,7 +143,7 @@ function TableRow({
               )}
               <button
                 type="button"
-                onClick={() => handleOpenPicker(i)}
+                onClick={() => handleOpenPicker(i, 'reps')}
                 className="px-2 py-2 w-14 sm:w-16 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
               >
                 {currentSet.reps || <span className="text-gray-400">{isCardio ? placeholder : "reps"}</span>}
@@ -290,6 +292,7 @@ function TableRow({
         reps={currentSet.reps}
         onSave={handlePickerSave}
         exerciseType={exerciseType}
+        initialField={initialField}
       />
     </>
   );

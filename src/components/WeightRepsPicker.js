@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import DrumPicker from './DrumPicker';
 import NumPad from './NumPad';
 
@@ -9,11 +9,13 @@ function WeightRepsPicker({
   reps,
   onSave,
   exerciseType = 'weight', // 'weight', 'bodyweight', 'timed', 'cardio'
+  initialField = 'weight', // Which field to focus on initially
 }) {
   const [selectedWeight, setSelectedWeight] = useState(weight || '');
   const [selectedReps, setSelectedReps] = useState(reps || '');
   const [inputMode, setInputMode] = useState('scroll'); // 'scroll' or 'keypad'
   const [activeField, setActiveField] = useState('weight'); // 'weight' or 'reps'
+  const previousIsOpen = useRef(false);
 
   const ITEM_HEIGHT = 44; // Same as DrumPicker
 
@@ -21,10 +23,14 @@ function WeightRepsPicker({
     if (isOpen) {
       setSelectedWeight(weight || '');
       setSelectedReps(reps || '');
-      // Set active field to weight if showing weight, otherwise reps
-      setActiveField(exerciseType === 'weight' ? 'weight' : 'reps');
+
+      // Only set active field when modal FIRST opens (transition from closed to open)
+      if (!previousIsOpen.current) {
+        setActiveField(initialField);
+      }
     }
-  }, [isOpen, weight, reps, exerciseType]);
+    previousIsOpen.current = isOpen;
+  }, [isOpen, weight, reps, initialField]);
 
   const handleDone = () => {
     onSave(selectedWeight, selectedReps);
@@ -44,7 +50,6 @@ function WeightRepsPicker({
   let repsLabel = 'Reps';
   let repsUnit = '';
   let repsMax = 100;
-  let repsStep = 1;
 
   if (exerciseType === 'timed') {
     repsLabel = 'Seconds';
@@ -150,9 +155,9 @@ function WeightRepsPicker({
               <DrumPicker
                 value={parseFloat(selectedReps) || 0}
                 onChange={(val) => setSelectedReps(val.toString())}
-                min={exerciseType === 'cardio' ? 0.1 : 1}
+                min={0}
                 max={repsMax}
-                step={repsStep}
+                step={exerciseType === 'cardio' ? 0.1 : 1}
                 label={repsLabel + (repsUnit ? ` (${repsUnit.trim()})` : '')}
                 unit=""
               />

@@ -78,6 +78,7 @@ function SortableExerciseItem({
   // Picker modal state
   const [pickerOpen, setPickerOpen] = useState(false);
   const [editingSetIndex, setEditingSetIndex] = useState(null);
+  const [initialField, setInitialField] = useState('weight'); // Track which field was clicked
 
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
@@ -93,9 +94,10 @@ function SortableExerciseItem({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Open picker for a specific set
-  const handleOpenPicker = (setIndex) => {
+  // Open picker for a specific set and field
+  const handleOpenPicker = (setIndex, field = 'weight') => {
     setEditingSetIndex(setIndex);
+    setInitialField(field);
     setPickerOpen(true);
   };
 
@@ -198,7 +200,7 @@ function SortableExerciseItem({
                           <>
                             <button
                               type="button"
-                              onClick={() => handleOpenPicker(idx)}
+                              onClick={() => handleOpenPicker(idx, 'weight')}
                               className="px-2 py-3 w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg hover:bg-blue-200 active:scale-95"
                             >
                               {currentSet.weight || <span className="text-gray-400">lbs</span>}
@@ -208,7 +210,7 @@ function SortableExerciseItem({
                         )}
                         <button
                           type="button"
-                          onClick={() => handleOpenPicker(idx)}
+                          onClick={() => handleOpenPicker(idx, 'reps')}
                           className={`px-2 py-3 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg hover:bg-blue-200 active:scale-95 ${showWeightInput ? 'w-16' : 'w-20'}`}
                         >
                           {currentSet.reps || <span className="text-gray-400">{isCardio ? placeholder : (isTimed ? "sec" : "reps")}</span>}
@@ -346,6 +348,7 @@ function SortableExerciseItem({
             reps={currentSet.reps}
             onSave={handlePickerSave}
             exerciseType={exerciseType}
+            initialField={initialField}
           />
         );
       })()}
