@@ -198,11 +198,12 @@ function HypertrophyPage() {
           if (parsed.exerciseData || parsed.inputs) {
             const dataToRestore = parsed.exerciseData || parsed.inputs;
 
-            // Convert old format to new format if needed
+            // Convert old format to new format if needed, but preserve all fields
             const convertedData = {};
             Object.keys(dataToRestore).forEach(key => {
               const exercise = dataToRestore[key];
               convertedData[key] = {
+                ...exercise, // Keep all existing fields (selection, linkedExerciseId, detectedCategory, etc.)
                 sets: exercise.sets || exercise.input || [],
                 exerciseName: exercise.exerciseName || exercise.selection || '',
               };
@@ -229,6 +230,12 @@ function HypertrophyPage() {
               });
             }
           }
+
+          // Restore cardio/abs sections if present
+          if (parsed.showCardio !== undefined) setShowCardio(parsed.showCardio);
+          if (parsed.showAbs !== undefined) setShowAbs(parsed.showAbs);
+          if (parsed.cardioAtTop !== undefined) setCardioAtTop(parsed.cardioAtTop);
+          if (parsed.absAtTop !== undefined) setAbsAtTop(parsed.absAtTop);
         } else {
           // If they say No, clear the old draft so they start fresh
           localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
@@ -255,10 +262,14 @@ function HypertrophyPage() {
         customSetCount,
         customRepCount,
         templateId: selectedTemplateFromDropdown, // Save template ID for recovery
+        showCardio,
+        showAbs,
+        cardioAtTop,
+        absAtTop,
       };
       localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT, JSON.stringify(draft));
     }
-  }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount, selectedTemplateFromDropdown, justLoadedTemplate]);
+  }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount, selectedTemplateFromDropdown, showCardio, showAbs, cardioAtTop, absAtTop, justLoadedTemplate]);
 
   // PREVENT ACCIDENTAL TAB CLOSING ---
   useEffect(() => {
