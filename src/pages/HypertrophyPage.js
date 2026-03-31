@@ -608,32 +608,28 @@ function HypertrophyPage() {
 
   // Batch initialize multiple exercises at once (optimal for initial load)
   const batchInitializeExercises = (exercisesToInit) => {
-    setExerciseData(prevExerciseData => {
-      const updatedExerciseData = { ...prevExerciseData };
+    const updatedExerciseData = { ...exerciseData };
 
-      exercisesToInit.forEach(({ categoryKey, exerciseName }) => {
-        if (!updatedExerciseData[categoryKey] || !updatedExerciseData[categoryKey].exerciseName) {
-          const setsArray = new Array(actualNumberOfSets).fill('');
-          updatedExerciseData[categoryKey] = {
-            sets: setsArray,
-            exerciseName: exerciseName,
-          };
-        }
-      });
-
-      return updatedExerciseData;
+    exercisesToInit.forEach(({ categoryKey, exerciseName }) => {
+      if (!updatedExerciseData[categoryKey] || !updatedExerciseData[categoryKey].exerciseName) {
+        const setsArray = new Array(actualNumberOfSets).fill('');
+        updatedExerciseData[categoryKey] = {
+          sets: setsArray,
+          exerciseName: exerciseName,
+        };
+      }
     });
+
+    setExerciseData(updatedExerciseData);
   };
 
   // Workout Selection: Weight x Reps input
   const handleExerciseDataChange = (categoryKey, exerciseName, setIndex, setInput, detectedCategory) => {
-    // Use functional setState to ensure we always get the latest state
-    setExerciseData(prevExerciseData => {
-      const updatedExerciseData = { ...prevExerciseData };
+    const updatedExerciseData = { ...exerciseData };
 
-      // Check if this is a cardio or abs exercise (they don't use actualNumberOfSets)
-      const isCardioOrAbs = categoryKey.startsWith('cardio') || categoryKey.startsWith('custom_cardio') ||
-                            categoryKey.startsWith('abs') || categoryKey.startsWith('custom_abs');
+    // Check if this is a cardio or abs exercise (they don't use actualNumberOfSets)
+    const isCardioOrAbs = categoryKey.startsWith('cardio') || categoryKey.startsWith('custom_cardio') ||
+                          categoryKey.startsWith('abs') || categoryKey.startsWith('custom_abs');
 
     if (!updatedExerciseData[categoryKey]) {
       // For cardio/abs, start with empty array (will grow dynamically)
@@ -667,8 +663,7 @@ function HypertrophyPage() {
       updatedExerciseData[categoryKey].sets[setIndex] = setInput;
     }
 
-      return updatedExerciseData;
-    });
+    setExerciseData(updatedExerciseData);
   };
 
   // Remove a specific set from an exercise
