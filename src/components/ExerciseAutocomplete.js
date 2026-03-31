@@ -212,7 +212,7 @@ function ExerciseAutocomplete({
 
       {/* Suggestions Dropdown */}
       {showSuggestions && filteredSuggestions.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+        <div className="absolute z-[100] w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
           {filteredSuggestions.map((exercise, index) => (
             <div
               key={`${exercise.id}-${index}`}
@@ -241,7 +241,7 @@ function ExerciseAutocomplete({
       {showSuggestions && value.trim().length > 0 && filteredSuggestions.length === 0 && (() => {
         const detectedCategory = detectCategoryFromName(value);
         return (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-green-300 rounded-lg shadow-lg px-4 py-3">
+          <div className="absolute z-[100] w-full mt-1 bg-white border border-green-300 rounded-lg shadow-lg px-4 py-3">
             <div className="flex items-start gap-2">
               <span className="text-green-600 text-lg">✓</span>
               <div>

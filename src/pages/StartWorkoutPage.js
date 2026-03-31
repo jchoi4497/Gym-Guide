@@ -75,9 +75,10 @@ function StartWorkoutPage() {
       mainKeys.forEach(key => {
         const exercise = workoutData.exerciseData[key];
         const exerciseName = exercise.exerciseName || getExerciseName(key);
-        const totalSets = workoutData.numberOfSets || exercise.sets?.length || 0;
+        const totalSets = workoutData.numberOfSets || exercise.sets?.length || 4;
 
-        if (totalSets > 0 && exerciseName) {
+        // Include exercise if it has a name, even if no sets are entered yet
+        if (exerciseName) {
           exerciseArray.push({
             key,
             exerciseName,
