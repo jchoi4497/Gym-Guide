@@ -21,6 +21,7 @@ import WorkoutAnalysis from './WorkoutAnalysis';
 import AddExerciseButton from '../AddExerciseButton';
 import OptionalWorkoutSections from '../components/OptionalWorkoutSections';
 import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from '../constants';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 function SavedWorkout() {
   const { workoutId } = useParams();
@@ -50,6 +51,9 @@ function SavedWorkout() {
 
   // Sticky button state for mobile
   const [isButtonSticky, setIsButtonSticky] = useState(true);
+
+  // Mobile detection (using shared hook)
+  const isMobile = useIsMobile();
 
   //used to get label of workout on savedworkout page
   const getLabel = (value) =>
@@ -369,8 +373,8 @@ function SavedWorkout() {
     let lastDocHeight = -1;
 
     const checkScroll = () => {
-      // Only on mobile (screen width < 640px - Tailwind's sm breakpoint)
-      if (window.innerWidth >= 640) {
+      // Only on mobile (using shared isMobile hook)
+      if (!isMobile) {
         setIsButtonSticky(false);
         animationFrameId = requestAnimationFrame(checkScroll);
         return;

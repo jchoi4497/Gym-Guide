@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { STORAGE_KEYS } from '../config/workoutSettings';
+import { workoutSession } from '../services/storageService';
 
 function ResumeWorkoutModal() {
   const navigate = useNavigate();
@@ -14,17 +14,11 @@ function ResumeWorkoutModal() {
       return;
     }
 
-    // Check for active workout session
-    const savedSession = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT_SESSION);
-    if (savedSession) {
-      try {
-        const session = JSON.parse(savedSession);
-        setWorkoutSession(session);
-        setShowModal(true);
-      } catch (err) {
-        console.error('Failed to parse workout session:', err);
-        localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_SESSION);
-      }
+    // Check for active workout session (using storageService)
+    const session = workoutSession.get();
+    if (session) {
+      setWorkoutSession(session);
+      setShowModal(true);
     }
   }, [location.pathname]);
 
@@ -34,7 +28,7 @@ function ResumeWorkoutModal() {
   };
 
   const handleDiscard = () => {
-    localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_SESSION);
+    workoutSession.clear();
     setShowModal(false);
     setWorkoutSession(null);
   };
