@@ -22,6 +22,15 @@ export const WorkoutProvider = ({ children }) => {
   // ===== CORE WORKOUT STATE =====
   const [workout, setWorkout] = useState(() => createWorkout());
 
+  // ===== WORKOUT DATE =====
+  const [workoutDate, setWorkoutDate] = useState(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`; // Format: YYYY-MM-DD in local timezone
+  });
+
   // ===== UI STATE =====
   const [workflowMode, setWorkflowMode] = useState('choose'); // 'choose' | 'template' | 'custom'
   const [customMuscleGroupName, setCustomMuscleGroupName] = useState('');
@@ -223,6 +232,7 @@ export const WorkoutProvider = ({ children }) => {
     previousCustomExercises,
     previousCustomMuscleGroups,
     favoriteExercises,
+    workoutDate,
 
     // Computed
     actualMuscleGroup,
@@ -251,6 +261,7 @@ export const WorkoutProvider = ({ children }) => {
     setPreviousCustomExercises,
     setPreviousCustomMuscleGroups,
     setFavoriteExercises,
+    setWorkoutDate,
   };
 
   return (
