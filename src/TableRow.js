@@ -127,6 +127,9 @@ function TableRow({
     // Get dynamic placeholder based on exercise type
     const placeholder = getPlaceholderForExercise(value);
     const isCardio = placeholder.includes('min') || placeholder.includes('mi');
+    const isBodyweight = placeholder === 'Reps';
+    const isTimed = placeholder.includes('Duration') || placeholder.includes('sec');
+    const showWeightInput = !isBodyweight && !isTimed && !isCardio;
 
     for (let i = 0; i < currentSetCount; i++) {
       const currentSet = parseSet((setInputs && setInputs[i]) || '');
@@ -140,7 +143,7 @@ function TableRow({
           {isMobile ? (
             // MOBILE: Buttons that open picker modal
             <>
-              {!isCardio && (
+              {showWeightInput && (
                 <>
                   <button
                     type="button"
@@ -155,15 +158,15 @@ function TableRow({
               <button
                 type="button"
                 onClick={() => handleOpenPicker(i, 'reps')}
-                className="px-2 py-2 w-14 sm:w-16 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
+                className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95 ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
               >
-                {currentSet.reps || <span className="text-gray-400">{isCardio ? placeholder : "reps"}</span>}
+                {currentSet.reps || <span className="text-gray-400">{isCardio ? placeholder : (isTimed ? "sec" : "reps")}</span>}
               </button>
             </>
           ) : (
             // DESKTOP: Regular text inputs
             <>
-              {!isCardio && (
+              {showWeightInput && (
                 <>
                   <input
                     type="number"
@@ -181,8 +184,8 @@ function TableRow({
                 step={isCardio ? "0.1" : "1"}
                 value={currentSet.reps}
                 onChange={(e) => handleRepsChange(i, e.target.value)}
-                placeholder={isCardio ? placeholder : "reps"}
-                className="px-2 py-2 w-14 sm:w-16 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm"
+                placeholder={isCardio ? placeholder : (isTimed ? "sec" : "reps")}
+                className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
               />
             </>
           )}
