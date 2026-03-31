@@ -13,7 +13,7 @@ function WeightRepsPicker({
 }) {
   const [selectedWeight, setSelectedWeight] = useState(weight || '');
   const [selectedReps, setSelectedReps] = useState(reps || '');
-  const [inputMode, setInputMode] = useState('scroll'); // 'scroll' or 'keypad'
+  const [inputMode, setInputMode] = useState('keypad'); // 'scroll' or 'keypad' - default to keypad
   const [activeField, setActiveField] = useState('weight'); // 'weight' or 'reps'
   const previousIsOpen = useRef(false);
 
