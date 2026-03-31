@@ -37,6 +37,7 @@ function OptionalWorkoutSections({
   showAbs,
   setShowAbs,
   position, // "top" or "bottom"
+  isEditingSets = false, // Control visibility of remove buttons
 }) {
   const [absEditMode, setAbsEditMode] = useState({}); // Track edit mode per abs exercise
 
@@ -273,26 +274,28 @@ function OptionalWorkoutSections({
       {showCardioHere && (
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={showCardio}
-                onChange={(e) => setShowCardio(e.target.checked)}
-                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              />
-              <span className="text-xl font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">
-                Add Cardio
-              </span>
-            </label>
-            {showCardio && (
-              <button
-                onClick={onToggleCardioPosition}
-                className="px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium transition-colors"
-                title={cardioAtTop ? "Move to bottom" : "Move to top"}
-              >
-                {cardioAtTop ? "↓ Move to Bottom" : "↑ Move to Top"}
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={showCardio}
+                  onChange={(e) => setShowCardio(e.target.checked)}
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                />
+                <span className="text-xl font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">
+                  Add Cardio
+                </span>
+              </label>
+              {showCardio && isEditingSets && (
+                <button
+                  onClick={onToggleCardioPosition}
+                  className="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium transition-colors"
+                  title={cardioAtTop ? "Move to bottom" : "Move to top"}
+                >
+                  {cardioAtTop ? "↓" : "↑"}
+                </button>
+              )}
+            </div>
           </div>
 
         {showCardio && (
@@ -304,8 +307,8 @@ function OptionalWorkoutSections({
               <div className="flex flex-col">
                 {cardioExercises.map((exercise) => (
                   <div key={exercise.id} className="relative flex flex-col sm:flex-row sm:items-center gap-4 border border-gray-300 rounded-md p-4 bg-sky-50 shadow-sm mb-4">
-                    {/* Remove button for custom exercises */}
-                    {exercise.isCustom && (
+                    {/* Remove button - show when editing sets */}
+                    {isEditingSets && (
                       <button
                         onClick={() => removeCardio(exercise.id)}
                         className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90 z-10 cursor-pointer"
@@ -377,26 +380,28 @@ function OptionalWorkoutSections({
       {showAbsHere && (
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={showAbs}
-                onChange={(e) => setShowAbs(e.target.checked)}
-                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              />
-              <span className="text-xl font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">
-                Add Abs/Core
-              </span>
-            </label>
-            {showAbs && (
-              <button
-                onClick={onToggleAbsPosition}
-                className="px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium transition-colors"
-                title={absAtTop ? "Move to bottom" : "Move to top"}
-              >
-                {absAtTop ? "↓ Move to Bottom" : "↑ Move to Top"}
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={showAbs}
+                  onChange={(e) => setShowAbs(e.target.checked)}
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                />
+                <span className="text-xl font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">
+                  Add Abs/Core
+                </span>
+              </label>
+              {showAbs && isEditingSets && (
+                <button
+                  onClick={onToggleAbsPosition}
+                  className="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium transition-colors"
+                  title={absAtTop ? "Move to bottom" : "Move to top"}
+                >
+                  {absAtTop ? "↓" : "↑"}
+                </button>
+              )}
+            </div>
           </div>
 
         {showAbs && (
@@ -408,8 +413,8 @@ function OptionalWorkoutSections({
               <div className="flex flex-col">
                 {absExercises.map((exercise) => (
                   <div key={exercise.id} className="relative flex flex-col sm:flex-row sm:items-center gap-4 border border-gray-300 rounded-md p-4 bg-sky-50 shadow-sm mb-4">
-                    {/* Remove button for custom exercises */}
-                    {exercise.isCustom && (
+                    {/* Remove button - show when editing sets */}
+                    {isEditingSets && (
                       <button
                         onClick={() => removeAbs(exercise.id)}
                         className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90 z-10 cursor-pointer"

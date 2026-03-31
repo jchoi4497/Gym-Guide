@@ -15,10 +15,10 @@ function MuscleGroupWorkout({
   previousExerciseData,
   previousCustomExercises = [],
   favoriteExercises = [],
-  onToggleFavorite
+  onToggleFavorite,
+  isEditingSets,
+  onEditingSetsChange
 }) {
-  // State to track if user is editing sets (add/remove functionality)
-  const [isEditingSets, setIsEditingSets] = useState(false);
 
   // Track if we've already initialized to prevent re-initialization
   const hasInitialized = useRef(false);
@@ -189,8 +189,8 @@ function MuscleGroupWorkout({
       {/* Edit Sets Toggle Button */}
       <div className="mb-4 flex justify-end">
         <button
-          onClick={() => setIsEditingSets(!isEditingSets)}
-          className={`px-4 py-2 rounded-lg text-white font-semibold shadow-md transition-all active:scale-95 ${
+          onClick={() => onEditingSetsChange(!isEditingSets)}
+          className={`px-4 py-2 rounded-lg text-white font-semibold transition-all active:scale-95 shadow-md ${
             isEditingSets
               ? 'bg-orange-500 hover:bg-orange-600'
               : 'bg-blue-500 hover:bg-blue-600'

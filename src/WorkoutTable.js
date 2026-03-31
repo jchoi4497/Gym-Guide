@@ -39,8 +39,8 @@ function SortableTableRow({ exercise, isEditingSets, onMoveUp, onMoveDown, isFir
       {/* Reorder Controls - Only visible when editing sets */}
       {isEditingSets && (
         <>
-          {/* Arrow Buttons (Mobile - sm and below) - Positioned inside the card on the right */}
-          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 sm:hidden z-20">
+          {/* Arrow Buttons (Mobile - sm and below) - Positioned inside the card on the left */}
+          <div className="absolute left-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 sm:hidden z-20">
             <button
               onClick={() => onMoveUp(exercise.id)}
               disabled={isFirst}

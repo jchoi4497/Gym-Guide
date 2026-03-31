@@ -247,15 +247,8 @@ function TableRow({
         )}
 
         {/* Header - Always Visible */}
-        <div className="flex items-center bg-sky-50 transition-colors rounded-t-lg">
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-2 sm:p-3 hover:bg-sky-100 transition-colors flex-shrink-0"
-            type="button"
-          >
-            <span className="text-gray-400 text-sm">{isExpanded ? '▼' : '▶'}</span>
-          </button>
-          <div className="flex-1 flex items-center gap-2 py-2 sm:py-3 pr-8 sm:pr-3 min-w-0">
+        <div className="flex items-center justify-between bg-sky-50 transition-colors rounded-t-lg pr-2">
+          <div className="flex-1 flex items-center gap-2 py-2 sm:py-3 pl-8 sm:pl-3 min-w-0">
             <div className="flex-1 min-w-0">
               {isCustom || value === 'custom' || !options.find(opt => opt.value === value) ? (
                 <ExerciseAutocomplete
@@ -279,6 +272,13 @@ function TableRow({
               )}
             </div>
           </div>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-2 hover:bg-sky-100 transition-colors flex-shrink-0 z-10"
+            type="button"
+          >
+            <span className="text-gray-600 font-bold">{isExpanded ? '▼' : '▶'}</span>
+          </button>
         </div>
 
         {/* Expandable Content */}
