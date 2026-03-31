@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth } from '../firebase';
 import db from '../firebase';
-import Navbar from '../Navbar';
+import Navbar from '../components/Navbar';
 import TemplateEditor from '../components/TemplateEditor';
 
 function MyTemplatesPage() {

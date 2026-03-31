@@ -3,14 +3,14 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { collection, addDoc, query, where, orderBy, limit, getDocs, getDoc, doc, setDoc } from 'firebase/firestore';
 import { auth } from '../firebase'; // Make sure auth is imported
 import db from '../firebase';
-import DropDown from '../DropDown';
+import DropDown from '../components/DropDown';
 import MuscleGroupWorkout from '../components/MuscleGroupWorkout';
 import OptionalWorkoutSections from '../components/OptionalWorkoutSections';
 import MuscleGroupAutocomplete from '../components/MuscleGroupAutocomplete';
 import TemplateSelector from '../components/TemplateSelector';
-import Navbar from '../Navbar';
-import WorkoutNotesInput from '../WorkoutNotesInput';
-import { generateSummary } from '../summaryUtil';
+import Navbar from '../components/Navbar';
+import WorkoutNotesInput from '../components/WorkoutNotesInput';
+import { generateSummary } from '../utils/summaryUtil';
 import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS, FIREBASE_FIELDS } from '../constants';
 import { getMuscleGroupFromCategory } from '../utils/categoryDetection';
 import { loadTemplate, templateToExerciseData, updateTemplateLastUsed } from '../utils/templateHelpers';

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import DropDown from './DropDown';
-import ExerciseAutocomplete from './components/ExerciseAutocomplete';
-import { getPlaceholderForExercise } from './config/exerciseConfig';
-import WeightRepsPicker from './components/WeightRepsPicker';
-import { useIsMobile } from './hooks/useIsMobile';
-import { parseSet, combineSet, getPreviousSet, countFilledSets } from './utils/setHelpers';
+import ExerciseAutocomplete from './ExerciseAutocomplete';
+import { getPlaceholderForExercise } from '../config/exerciseConfig';
+import WeightRepsPicker from './WeightRepsPicker';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { parseSet, combineSet, getPreviousSet, countFilledSets } from '../utils/setHelpers';
 
 function TableRow({
   numberOfSets,

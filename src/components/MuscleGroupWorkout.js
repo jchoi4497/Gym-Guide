@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import WorkoutTable from '../WorkoutTable';
-import AddExerciseButton from '../AddExerciseButton';
+import WorkoutTable from './WorkoutTable';
+import AddExerciseButton from './AddExerciseButton';
 import { getDefaultExercises, getExerciseName } from '../config/exerciseConfig';
 
 function MuscleGroupWorkout({

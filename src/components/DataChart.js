@@ -9,10 +9,10 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { parseWeightReps } from './parsing';
+import { parseWeightReps } from '../parsing';
 import { format } from 'date-fns';
-import exerciseNames from './exerciseNames';
-import { getExerciseById } from './config/exerciseConfig';
+import exerciseNames from '../config/exerciseNames';
+import { getExerciseById } from '../config/exerciseConfig';
 
 function DataChart({ currentData, monthlyWorkoutData, graphView, exerciseKey }) {
   const [comparisonMode, setComparisonMode] = useState('exact'); // 'exact' or 'category'

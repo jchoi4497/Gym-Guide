@@ -10,7 +10,7 @@ import HypertrophyPage from './pages/HypertrophyPage';
 import StartWorkoutPage from './pages/StartWorkoutPage';
 import ColorDesignPage from './pages/ColorDesignPage';
 import SavedWorkout from './SavedWorkout/SavedWorkout';
-import ListOfWorkouts from './ListOfWorkouts';
+import ListOfWorkouts from './pages/ListOfWorkouts';
 import MyExercisesPage from './pages/MyExercisesPage';
 import ResumeWorkoutModal from './components/ResumeWorkoutModal';
 

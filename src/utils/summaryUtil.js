@@ -1,6 +1,6 @@
 // src/utils/summaryUtils.js
-import exerciseNames from './exerciseNames';
-import { parseWeightReps } from './parsing';
+import exerciseNames from '../config/exerciseNames';
+import { parseWeightReps } from '../parsing';
 
 export async function generateSummary(inputs, note, previousInputs, monthlyWorkoutData = [], exerciseOrder = []) {
 
