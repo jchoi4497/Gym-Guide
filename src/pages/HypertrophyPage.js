@@ -216,6 +216,9 @@ function HypertrophyPage() {
           if (session.workoutData.absAtTop !== undefined) {
             setAbsAtTop(session.workoutData.absAtTop);
           }
+          if (session.workoutData.workflowMode) {
+            setWorkflowMode(session.workoutData.workflowMode);
+          }
         }
 
         return; // Don't check draft if we have active session
@@ -289,6 +292,9 @@ function HypertrophyPage() {
           if (parsed.showAbs !== undefined) setShowAbs(parsed.showAbs);
           if (parsed.cardioAtTop !== undefined) setCardioAtTop(parsed.cardioAtTop);
           if (parsed.absAtTop !== undefined) setAbsAtTop(parsed.absAtTop);
+
+          // Restore workflow mode if present
+          if (parsed.workflowMode) setWorkflowMode(parsed.workflowMode);
         } else {
           // If they say No, clear the old draft so they start fresh
           localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
@@ -319,10 +325,11 @@ function HypertrophyPage() {
         showAbs,
         cardioAtTop,
         absAtTop,
+        workflowMode, // Save workflow mode to restore correct screen
       };
       localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT, JSON.stringify(draft));
     }
-  }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount, selectedTemplateFromDropdown, showCardio, showAbs, cardioAtTop, absAtTop, justLoadedTemplate]);
+  }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount, selectedTemplateFromDropdown, showCardio, showAbs, cardioAtTop, absAtTop, workflowMode, justLoadedTemplate]);
 
   // PREVENT ACCIDENTAL TAB CLOSING ---
   useEffect(() => {
@@ -922,6 +929,7 @@ function HypertrophyPage() {
       showAbs,
       cardioAtTop,
       absAtTop,
+      workflowMode,
     };
 
     // Navigate to StartWorkoutPage with workout data
