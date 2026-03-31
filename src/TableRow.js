@@ -3,6 +3,8 @@ import DropDown from './DropDown';
 import ExerciseAutocomplete from './components/ExerciseAutocomplete';
 import { getPlaceholderForExercise } from './config/exerciseConfig';
 import WeightRepsPicker from './components/WeightRepsPicker';
+import { useIsMobile } from './hooks/useIsMobile';
+import { parseSet, combineSet, getPreviousSet, countFilledSets } from './utils/setHelpers';
 
 function TableRow({
   numberOfSets,
@@ -41,45 +43,8 @@ function TableRow({
     }
   }, [expandAll]);
 
-  // Mobile detection
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640); // Tailwind's sm breakpoint
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Parse "145x12" format into weight and reps
-  const parseSet = (setString) => {
-    if (!setString || setString.trim() === '') {
-      return { weight: '', reps: '' };
-    }
-
-    if (setString.includes('x')) {
-      const [weight, reps] = setString.split('x').map(s => s.trim());
-      return { weight: weight || '', reps: reps || '' };
-    }
-
-    // Bodyweight (just reps, no weight)
-    return { weight: '', reps: setString.trim() };
-  };
-
-  // Combine weight and reps back to "145x12" format
-  const combineSet = (weight, reps) => {
-    const w = weight.trim();
-    const r = reps.trim();
-
-    if (!w && !r) return '';
-    if (!w) return r; // Bodyweight - just reps
-    if (!r) return w + 'x'; // Weight entered but no reps yet
-    return `${w}x${r}`;
-  };
+  // Mobile detection (now using shared hook)
+  const isMobile = useIsMobile();
 
   // Handle weight input change
   const handleWeightChange = (setIndex, newWeight) => {
@@ -112,14 +77,10 @@ function TableRow({
 
   // Copy previous set exactly
   const handleCopyPreviousSet = (setIndex) => {
-    if (setIndex === 0) return; // Can't copy if first set
+    const previousSetString = getPreviousSet(setInputs, setIndex);
+    if (!previousSetString) return; // No previous set to copy
 
-    const previousSet = parseSet((setInputs && setInputs[setIndex - 1]) || '');
-    if (!previousSet.weight && !previousSet.reps) return; // Nothing to copy
-
-    // Copy exact same weight and reps
-    const combined = combineSet(previousSet.weight, previousSet.reps);
-    cellInput(setIndex, combined);
+    cellInput(setIndex, previousSetString);
   };
 
   const recordInputCells = () => {
@@ -227,8 +188,8 @@ function TableRow({
   else if (isTimed) exerciseType = 'timed';
   else if (placeholder === 'Reps') exerciseType = 'bodyweight';
 
-  // Count filled sets
-  const filledSetsCount = setInputs ? setInputs.filter(s => s && s.trim() !== '').length : 0;
+  // Count filled sets (using shared helper)
+  const filledSetsCount = countFilledSets(setInputs);
 
   return (
     <>
