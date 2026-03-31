@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './index.css';
+import { WorkoutProvider } from './context/WorkoutContext';
 import LandingPage from './pages/LandingPage';
 import TrainingStylePage from './pages/TrainingStyle';
 import TemplateSelectionPage from './pages/TemplateSelectionPage';
@@ -15,22 +16,24 @@ import ResumeWorkoutModal from './components/ResumeWorkoutModal';
 
 function Main() {
     return (
-        <BrowserRouter>
-            <ResumeWorkoutModal />
-            <Routes>
-                <Route exact path="/" element={<LandingPage />} />
-                <Route exact path="/Templates" element={<TemplateSelectionPage />} />
-                <Route exact path="/MyTemplates" element={<MyTemplatesPage />} />
-                <Route exact path="/TrainingStyle" element={<TrainingStylePage />} />
-                <Route exact path="/Strength" element={<StrengthPage />} />
-                <Route exact path="/Hypertrophy" element={<HypertrophyPage />} />
-                <Route exact path="/start-workout" element={<StartWorkoutPage />} />
-                <Route exact path="ColorDesign" element={<ColorDesignPage />} />
-                <Route exact path="/SavedWorkout/:workoutId" element={<SavedWorkout />} />
-                <Route exact path="/SavedWorkouts" element={<ListOfWorkouts />} />
-                <Route exact path="/MyExercises" element={<MyExercisesPage />} />
-            </Routes>
-        </BrowserRouter>
+        <WorkoutProvider>
+            <BrowserRouter>
+                <ResumeWorkoutModal />
+                <Routes>
+                    <Route exact path="/" element={<LandingPage />} />
+                    <Route exact path="/Templates" element={<TemplateSelectionPage />} />
+                    <Route exact path="/MyTemplates" element={<MyTemplatesPage />} />
+                    <Route exact path="/TrainingStyle" element={<TrainingStylePage />} />
+                    <Route exact path="/Strength" element={<StrengthPage />} />
+                    <Route exact path="/Hypertrophy" element={<HypertrophyPage />} />
+                    <Route exact path="/start-workout" element={<StartWorkoutPage />} />
+                    <Route exact path="ColorDesign" element={<ColorDesignPage />} />
+                    <Route exact path="/SavedWorkout/:workoutId" element={<SavedWorkout />} />
+                    <Route exact path="/SavedWorkouts" element={<ListOfWorkouts />} />
+                    <Route exact path="/MyExercises" element={<MyExercisesPage />} />
+                </Routes>
+            </BrowserRouter>
+        </WorkoutProvider>
     );
 }
 

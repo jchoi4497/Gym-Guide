@@ -3,9 +3,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import WeightRepsPicker from '../components/WeightRepsPicker';
 import WorkoutProgress from '../components/WorkoutProgress';
 import WorkoutSummary from '../components/WorkoutSummary';
-import { STORAGE_KEYS, WORKOUT_SETTINGS, formatDuration, formatTime } from '../config/workoutSettings';
+import { WORKOUT_SETTINGS, formatDuration, formatTime } from '../config/workoutSettings';
 import { getExerciseName, getPlaceholderForExercise, getDefaultExercises } from '../config/exerciseConfig';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { workoutSession } from '../services/storageService';
 
 function StartWorkoutPage() {
   const navigate = useNavigate();
@@ -26,22 +28,12 @@ function StartWorkoutPage() {
   const [currentSetData, setCurrentSetData] = useState({ weight: '', reps: '' }); // Temp storage for current set
   const [lastSetCompletedTime, setLastSetCompletedTime] = useState(null); // Track when last set was completed
   const [restTimeElapsed, setRestTimeElapsed] = useState(0); // Current rest time
-  const [isMobile, setIsMobile] = useState(false); // Mobile detection
   const [editingFromTable, setEditingFromTable] = useState(null); // {exerciseIndex, setNumber} when editing from table
 
   const workoutStartRef = useRef(workoutStartTime);
 
-  // Mobile detection
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640); // Tailwind's sm breakpoint
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  // Mobile detection (using shared hook)
+  const isMobile = useIsMobile();
 
   // Initialize exercises from workout data
   useEffect(() => {
@@ -160,10 +152,10 @@ function StartWorkoutPage() {
 
   // Load session from localStorage if exists
   const loadSessionFromStorage = (exerciseArray) => {
-    const savedSession = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT_SESSION);
+    const savedSession = workoutSession.get();
     if (savedSession) {
       try {
-        const session = JSON.parse(savedSession);
+        const session = savedSession;
         if (session.workoutName === workoutName) {
           // Restore progress
           setExercises(session.exercises);
@@ -197,7 +189,7 @@ function StartWorkoutPage() {
           templateName: workoutData?.templateName,
         },
       };
-      localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT_SESSION, JSON.stringify(session));
+      workoutSession.save(session);
     }
   }, [exercises, currentSetIndex, workoutName, workoutData]);
 
@@ -394,8 +386,8 @@ function StartWorkoutPage() {
 
       await addDoc(collection(db, 'workouts'), workoutToSave);
 
-      // Clear localStorage session
-      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_SESSION);
+      // Clear session storage
+      workoutSession.clear();
 
       // Navigate to saved workouts
       navigate('/saved-workouts');
@@ -407,7 +399,7 @@ function StartWorkoutPage() {
 
   // Discard workout
   const handleDiscardWorkout = () => {
-    localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_SESSION);
+    workoutSession.clear();
     navigate('/');
   };
 
