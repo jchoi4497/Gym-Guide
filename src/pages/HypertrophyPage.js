@@ -684,6 +684,13 @@ function HypertrophyPage() {
     });
   };
 
+  // Remove an entire exercise
+  const handleRemoveExercise = (categoryKey) => {
+    const updatedExerciseData = { ...exerciseData };
+    delete updatedExerciseData[categoryKey];
+    setExerciseData(updatedExerciseData);
+  };
+
   // Remove a specific set from an exercise
   const handleRemoveSet = (categoryKey, setIndex) => {
     const updatedExerciseData = { ...exerciseData };
@@ -1361,6 +1368,7 @@ function HypertrophyPage() {
               onExerciseDataChange={handleExerciseDataChange}
               onBatchInitializeExercises={batchInitializeExercises}
               onRemoveSet={handleRemoveSet}
+              onRemoveExercise={handleRemoveExercise}
               previousExerciseData={previousWorkoutData?.exerciseData || previousWorkoutData?.inputs}
               previousCustomExercises={previousCustomExercises}
               favoriteExercises={favoriteExercises}
