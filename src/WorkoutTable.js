@@ -35,16 +35,16 @@ function SortableTableRow({ exercise, isEditingSets, onMoveUp, onMoveDown, isFir
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="relative pl-2 sm:pl-0">
+    <div ref={setNodeRef} style={style} className="relative">
       {/* Reorder Controls - Only visible when editing sets */}
       {isEditingSets && (
         <>
-          {/* Arrow Buttons (Mobile - sm and below) */}
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 flex flex-col gap-1 sm:hidden z-10">
+          {/* Arrow Buttons (Mobile - sm and below) - Positioned inside the card on the right */}
+          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 sm:hidden z-20">
             <button
               onClick={() => onMoveUp(exercise.id)}
               disabled={isFirst}
-              className={`w-6 h-6 rounded flex items-center justify-center shadow-md transition-all ${
+              className={`w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all ${
                 isFirst
                   ? 'bg-gray-200 cursor-not-allowed'
                   : 'bg-gray-400 hover:bg-gray-500 active:scale-90'
@@ -58,7 +58,7 @@ function SortableTableRow({ exercise, isEditingSets, onMoveUp, onMoveDown, isFir
             <button
               onClick={() => onMoveDown(exercise.id)}
               disabled={isLast}
-              className={`w-6 h-6 rounded flex items-center justify-center shadow-md transition-all ${
+              className={`w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all ${
                 isLast
                   ? 'bg-gray-200 cursor-not-allowed'
                   : 'bg-gray-400 hover:bg-gray-500 active:scale-90'
@@ -146,14 +146,14 @@ function WorkoutTable({
   };
 
   return (
-    <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4 overflow-hidden">
-      <div className="flex items-center justify-between mb-4 p-3 bg-blue-50 rounded-md">
-        <div className="text-xl font-bold">
+    <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-2 sm:p-4 overflow-hidden">
+      <div className="flex items-center justify-between mb-4 p-2 sm:p-3 bg-blue-50 rounded-md">
+        <div className="text-lg sm:text-xl font-bold">
           {setRangeLabel} - {muscleGroup}
         </div>
         <button
           onClick={() => setExpandAll(!expandAll)}
-          className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
+          className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
         >
           {expandAll ? '▼ Collapse All' : '▶ Expand All'}
         </button>
@@ -169,7 +169,7 @@ function WorkoutTable({
           strategy={verticalListSortingStrategy}
           disabled={!isEditingSets}
         >
-          <div className={`flex flex-col ${isEditingSets ? 'pl-8 sm:pl-0' : ''}`}>
+          <div className="flex flex-col">
             {exercises.map((exercise, index) => (
               <SortableTableRow
                 key={exercise.id}

@@ -232,7 +232,7 @@ function TableRow({
 
   return (
     <>
-      <div className="relative border border-gray-300 rounded-lg bg-white shadow-sm mb-3">
+      <div className="relative border border-gray-300 rounded-lg bg-white shadow-sm mb-3 overflow-visible">
         {(isCustom || isEditingSets) && (
           <button
             onClick={onRemove}
@@ -244,16 +244,16 @@ function TableRow({
         )}
 
         {/* Header - Always Visible */}
-        <div className="flex items-center bg-sky-50 transition-colors">
+        <div className="flex items-center bg-sky-50 transition-colors rounded-t-lg">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-3 hover:bg-sky-100 transition-colors"
+            className="p-2 sm:p-3 hover:bg-sky-100 transition-colors flex-shrink-0"
             type="button"
           >
             <span className="text-gray-400 text-sm">{isExpanded ? '▼' : '▶'}</span>
           </button>
-          <div className="flex-1 flex items-center gap-2 py-3 pr-3">
-            <div className="flex-1">
+          <div className="flex-1 flex items-center gap-2 py-2 sm:py-3 pr-8 sm:pr-3 min-w-0">
+            <div className="flex-1 min-w-0">
               {isCustom || value === 'custom' || !options.find(opt => opt.value === value) ? (
                 <ExerciseAutocomplete
                   value={value === 'custom' ? '' : value}
@@ -263,7 +263,7 @@ function TableRow({
                   }}
                   previousCustomExercises={previousCustomExercises}
                   placeholder="Enter exercise name..."
-                  className="w-full px-3 py-1 border border-blue-200 rounded-md focus:border-blue-500 outline-none transition-all text-sm"
+                  className="w-full px-2 sm:px-3 py-1 border border-blue-200 rounded-md focus:border-blue-500 outline-none transition-all text-sm"
                 />
               ) : (
                 <DropDown
