@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { auth } from '../firebase'; // Import your auth instance
-import { loginWithGoogle } from '../googleAuth'; // Import your function
+import { auth } from '../config/firebase'; // Import your auth instance
+import { loginWithGoogle } from '../config/googleAuth'; // Import your function
 import { signOut } from 'firebase/auth';
 
 function Navbar() {
