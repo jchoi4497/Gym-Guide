@@ -762,22 +762,43 @@ function SavedWorkout() {
         </Link>
       </div>
 
-      {/* Edit button - sticky on mobile when not at bottom (only when NOT editing) */}
+      {/* Action buttons - sticky on mobile when not at bottom (only when NOT editing) */}
       {!isEditing && (
         <div className={`flex flex-col justify-end space-y-4 ${
           isButtonSticky
             ? 'fixed bottom-0 left-0 right-0 bg-gradient-to-t from-sky-300 via-sky-300 to-transparent pt-6 pb-4 px-4 m-0 z-50'
             : 'm-6 px-4 sm:px-20'
         } sm:m-6 sm:px-20 sm:relative sm:bg-none sm:pt-0 sm:pb-0`}>
-          <button
-            onClick={() => {
-              setIsEditing(true);
-              setHasUnsavedChanges(false);
-            }}
-            className="px-6 py-3 w-full rounded text-sky-50 sm:w-auto self-start transition-all bg-blue-500 hover:bg-blue-600 active:bg-blue-400 active:scale-95"
-          >
-            Edit Workout
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+            <button
+              onClick={() => {
+                // Navigate to StartWorkoutPage with workout data
+                navigate('/start-workout', {
+                  state: {
+                    workoutData: {
+                      workoutName: workoutData[FIREBASE_FIELDS.MUSCLE_GROUP] || 'Workout',
+                      selectedMuscleGroup: workoutData[FIREBASE_FIELDS.MUSCLE_GROUP],
+                      numberOfSets: workoutData[FIREBASE_FIELDS.NUMBER_OF_SETS],
+                      exerciseData: workoutData[FIREBASE_FIELDS.EXERCISE_DATA] || {},
+                      note: workoutData[FIREBASE_FIELDS.NOTE] || '',
+                    },
+                  },
+                });
+              }}
+              className="px-6 py-3 rounded-3xl shadow-lg text-white font-semibold transition-all bg-green-600 hover:bg-green-700 active:bg-green-500 active:scale-95"
+            >
+              ▶️ Start Workout
+            </button>
+            <button
+              onClick={() => {
+                setIsEditing(true);
+                setHasUnsavedChanges(false);
+              }}
+              className="px-6 py-3 rounded text-sky-50 transition-all bg-blue-500 hover:bg-blue-600 active:bg-blue-400 active:scale-95"
+            >
+              Edit Workout
+            </button>
+          </div>
         </div>
       )}
 
