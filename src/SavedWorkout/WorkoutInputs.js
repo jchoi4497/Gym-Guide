@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import exerciseNames from '../exerciseNames';
 import DataChart from '../DataChart';
 import ExerciseAutocomplete from '../components/ExerciseAutocomplete';
 import { getPlaceholderForExercise, getExerciseById } from '../config/exerciseConfig';
 import WeightRepsPicker from '../components/WeightRepsPicker';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { parseSet, combineSet } from '../utils/setHelpers';
 import {
   DndContext,
   closestCenter,
@@ -20,32 +22,6 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-
-// Parse "145x12" format into weight and reps
-const parseSet = (setString) => {
-  if (!setString || setString.trim() === '') {
-    return { weight: '', reps: '' };
-  }
-
-  if (setString.includes('x')) {
-    const [weight, reps] = setString.split('x').map(s => s.trim());
-    return { weight: weight || '', reps: reps || '' };
-  }
-
-  // Bodyweight (just reps, no weight)
-  return { weight: '', reps: setString.trim() };
-};
-
-// Combine weight and reps back to "145x12" format
-const combineSet = (weight, reps) => {
-  const w = weight.trim();
-  const r = reps.trim();
-
-  if (!w && !r) return '';
-  if (!w) return r; // Bodyweight - just reps
-  if (!r) return w + 'x'; // Weight entered but no reps yet
-  return `${w}x${r}`;
-};
 
 // Sortable Exercise Item Component
 function SortableExerciseItem({
@@ -80,19 +56,8 @@ function SortableExerciseItem({
   const [editingSetIndex, setEditingSetIndex] = useState(null);
   const [initialField, setInitialField] = useState('weight'); // Track which field was clicked
 
-  // Mobile detection
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640); // Tailwind's sm breakpoint
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  // Mobile detection (using shared hook)
+  const isMobile = useIsMobile();
 
   // Open picker for a specific set and field
   const handleOpenPicker = (setIndex, field = 'weight') => {
