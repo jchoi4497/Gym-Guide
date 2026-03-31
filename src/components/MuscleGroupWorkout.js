@@ -44,7 +44,7 @@ function MuscleGroupWorkout({
 
   // Initialize default exercises in exerciseData on first load ONLY
   useEffect(() => {
-    // Only initialize ONCE - prevent re-initialization when exercises array changes
+    // Only initialize ONCE per muscle group - prevent re-initialization when exercises array changes
     if (!hasInitialized.current && exercises.length > 0 && numberOfSets) {
       // Collect all exercises that need initialization
       const exercisesToInit = [];
@@ -68,12 +68,27 @@ function MuscleGroupWorkout({
 
       hasInitialized.current = true; // Mark as initialized
     }
-  }, [exercises.length, numberOfSets]);
+  }, [exercises.length, numberOfSets, muscleGroup]);
 
-  // Reset initialization flag when muscle group ACTUALLY changes (not on first mount)
+  // Reset initialization flag and rebuild exercises when muscle group ACTUALLY changes (not on first mount)
   useEffect(() => {
     if (prevMuscleGroup.current !== null && prevMuscleGroup.current !== muscleGroup) {
       hasInitialized.current = false;
+
+      // Rebuild exercises array for the new muscle group
+      const isPreset = ['chest', 'back', 'legs', 'shoulders'].includes(muscleGroup);
+
+      if (isPreset) {
+        setExercises(getDefaultExercises(muscleGroup));
+      } else {
+        // Custom muscle group - start with one empty custom exercise
+        setExercises([{
+          id: `custom_${Date.now()}`,
+          selected: '',
+          options: [],
+          isCustom: true,
+        }]);
+      }
     }
     prevMuscleGroup.current = muscleGroup;
   }, [muscleGroup]);
