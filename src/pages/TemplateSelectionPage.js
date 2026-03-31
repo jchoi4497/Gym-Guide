@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import { auth } from '../firebase';
 import db from '../firebase';
-import Navbar from '../Navbar';
+import Navbar from '../components/Navbar';
 import TemplateCard from '../components/TemplateCard';
 import { FIREBASE_FIELDS } from '../constants';
 

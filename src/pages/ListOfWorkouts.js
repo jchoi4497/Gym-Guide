@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import db, { auth } from './firebase';
+import db, { auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, query, orderBy, deleteDoc, doc, where } from 'firebase/firestore';
-import Navbar from './Navbar';
-import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from './constants';
+import Navbar from '../components/Navbar';
+import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from '../constants';
 
 function ListOfWorkouts() {
   const [workouts, setWorkouts] = useState([]);

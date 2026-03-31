@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { collection, doc, getDoc, setDoc, query, where, getDocs } from 'firebase/firestore';
 import { auth } from '../firebase';
 import db from '../firebase';
-import Navbar from '../Navbar';
+import Navbar from '../components/Navbar';
 import { EXERCISE_CATEGORIES } from '../config/exerciseConfig';
 import { FIREBASE_FIELDS } from '../constants';
 import { getMuscleGroupFromCategory, detectCategoryFromName } from '../utils/categoryDetection';

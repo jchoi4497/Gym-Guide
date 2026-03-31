@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import DropDown from '../DropDown';
+import DropDown from './DropDown';
 import MuscleGroupAutocomplete from './MuscleGroupAutocomplete';
 import TemplateExercisePicker from './TemplateExercisePicker';
 import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS } from '../constants';
