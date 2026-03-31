@@ -65,6 +65,9 @@ function HypertrophyPage() {
   // Sticky button state for mobile
   const [isButtonSticky, setIsButtonSticky] = useState(true);
 
+  // Edit sets mode state (shared across all workout sections)
+  const [isEditingSets, setIsEditingSets] = useState(false);
+
   // Determine actual muscle group name to use
   const actualMuscleGroup = useMemo(() => {
     if (selectedMuscleGroup === 'custom' && customMuscleGroupName) {
@@ -1354,6 +1357,7 @@ function HypertrophyPage() {
               showAbs={showAbs}
               setShowAbs={setShowAbs}
               position="top"
+              isEditingSets={isEditingSets}
             />
           </div>
         )}
@@ -1373,6 +1377,8 @@ function HypertrophyPage() {
               previousCustomExercises={previousCustomExercises}
               favoriteExercises={favoriteExercises}
               onToggleFavorite={toggleFavorite}
+              isEditingSets={isEditingSets}
+              onEditingSetsChange={setIsEditingSets}
             />
           )}
         </div>
@@ -1394,6 +1400,7 @@ function HypertrophyPage() {
               showAbs={showAbs}
               setShowAbs={setShowAbs}
               position="bottom"
+              isEditingSets={isEditingSets}
             />
           </div>
         )}
