@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { collection, addDoc, query, where, orderBy, limit, getDocs, getDoc, doc, setDoc } from 'firebase/firestore';
 import { auth } from '../firebase'; // Make sure auth is imported
 import db from '../firebase';
@@ -17,6 +17,7 @@ import { loadTemplate, templateToExerciseData, updateTemplateLastUsed } from '..
 
 function HypertrophyPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const templateId = searchParams.get('template'); // Get template ID from URL
 
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(null);
@@ -169,6 +170,58 @@ function HypertrophyPage() {
         localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
       }
       return;
+    }
+
+    // First check for active workout session (from StartWorkoutPage)
+    const activeSession = localStorage.getItem('activeWorkoutSession');
+    if (activeSession) {
+      try {
+        const session = JSON.parse(activeSession);
+
+        // Restore from active session - rebuild exerciseData from exercises array
+        const restoredExerciseData = {};
+        session.exercises.forEach(ex => {
+          restoredExerciseData[ex.key] = {
+            exerciseName: ex.exerciseName,
+            sets: ex.completedSets.map(s => {
+              if (s.weight) {
+                return `${s.weight}x${s.reps}`;
+              }
+              return s.reps || '';
+            }),
+          };
+        });
+        setExerciseData(restoredExerciseData);
+
+        // Restore other workout settings from session.workoutData
+        if (session.workoutData) {
+          if (session.workoutData.selectedMuscleGroup) {
+            setSelectedMuscleGroup(session.workoutData.selectedMuscleGroup);
+          }
+          if (session.workoutData.numberOfSets) {
+            setNumberOfSets(session.workoutData.numberOfSets);
+          }
+          if (session.workoutData.note) {
+            setNote(session.workoutData.note);
+          }
+          if (session.workoutData.showCardio !== undefined) {
+            setShowCardio(session.workoutData.showCardio);
+          }
+          if (session.workoutData.showAbs !== undefined) {
+            setShowAbs(session.workoutData.showAbs);
+          }
+          if (session.workoutData.cardioAtTop !== undefined) {
+            setCardioAtTop(session.workoutData.cardioAtTop);
+          }
+          if (session.workoutData.absAtTop !== undefined) {
+            setAbsAtTop(session.workoutData.absAtTop);
+          }
+        }
+
+        return; // Don't check draft if we have active session
+      } catch (err) {
+        console.error('Failed to restore active session:', err);
+      }
     }
 
     const savedDraft = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
@@ -464,15 +517,15 @@ function HypertrophyPage() {
           setIsButtonSticky(true);
         } else {
           // Use hysteresis to prevent flickering:
-          // - Unstick when within 200px of bottom
-          // - Re-stick when scrolling back up beyond 300px from bottom
+          // - Unstick when within 150px of bottom
+          // - Re-stick when scrolling back up beyond 400px from bottom
           setIsButtonSticky((prevSticky) => {
             if (prevSticky) {
               // Currently sticky - unstick only if very close to bottom
-              return distanceFromBottom >= 200;
+              return distanceFromBottom >= 150;
             } else {
               // Currently not sticky - stick only if far enough from bottom
-              return distanceFromBottom >= 300;
+              return distanceFromBottom >= 400;
             }
           });
         }
@@ -830,6 +883,27 @@ function HypertrophyPage() {
       setIsSaving(false); // End loading
       setIsGeneratingSummary(false);
     }
+  };
+
+  // Start Workout (navigate to workout tracker)
+  const handleStartWorkout = () => {
+    // Prepare workout data to pass to StartWorkoutPage
+    const workoutDataToPass = {
+      workoutName: actualMuscleGroup || 'Workout',
+      selectedMuscleGroup: actualMuscleGroup,
+      numberOfSets: actualNumberOfSets,
+      exerciseData,
+      note,
+      templateId: templateId || selectedTemplateFromDropdown,
+      templateName: loadedTemplate?.name,
+      showCardio,
+      showAbs,
+      cardioAtTop,
+      absAtTop,
+    };
+
+    // Navigate to StartWorkoutPage with workout data
+    navigate('/start-workout', { state: { workoutData: workoutDataToPass } });
   };
 
   const handleReset = () => {
@@ -1309,7 +1383,7 @@ function HypertrophyPage() {
           </div>
         )}
 
-        {/* Save Workout button - sticky on mobile when not at bottom */}
+        {/* Action buttons - sticky on mobile when not at bottom */}
         {isWorkoutConfigured && (
           <div className={`flex flex-col justify-end space-y-4 ${
             isButtonSticky
@@ -1321,17 +1395,30 @@ function HypertrophyPage() {
                 🤖 Generating AI summary...
               </div>
             )}
-            <button
-              onClick={handleSaveWorkout}
-              disabled={isSaving}
-              className={`px-6 py-3 w-full rounded-3xl shadow-lg text-sky-50 transition-all duration-300 ${
-                isSaving
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-700 hover:bg-blue-800 active:bg-blue-600 active:scale-95'
-              } sm:w-auto self-start`}
-            >
-              {isSaving ? (isGeneratingSummary ? 'Generating Summary...' : 'Saving...') : 'Save Workout'}
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <button
+                onClick={handleStartWorkout}
+                disabled={isSaving}
+                className={`px-6 py-3 rounded-3xl shadow-lg text-white font-semibold transition-all duration-300 ${
+                  isSaving
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-green-600 hover:bg-green-700 active:bg-green-500 active:scale-95'
+                }`}
+              >
+                ▶️ Start Workout
+              </button>
+              <button
+                onClick={handleSaveWorkout}
+                disabled={isSaving}
+                className={`px-6 py-3 rounded-3xl shadow-lg text-sky-50 transition-all duration-300 ${
+                  isSaving
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-blue-700 hover:bg-blue-800 active:bg-blue-600 active:scale-95'
+                }`}
+              >
+                {isSaving ? (isGeneratingSummary ? 'Generating Summary...' : 'Saving...') : 'Save Workout'}
+              </button>
+            </div>
           </div>
         )}
       </div>

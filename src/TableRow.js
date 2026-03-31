@@ -19,6 +19,7 @@ function TableRow({
   isEditingSets = false,
   favoriteExercises = [],
   onToggleFavorite,
+  expandAll,
 }) {
 
   // Calculate current set count consistently
@@ -29,6 +30,16 @@ function TableRow({
   const [pickerOpen, setPickerOpen] = useState(false);
   const [editingSetIndex, setEditingSetIndex] = useState(null);
   const [initialField, setInitialField] = useState('weight'); // Track which field was clicked
+
+  // Collapse/expand state - controlled by expandAll prop
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  // Sync with expandAll prop
+  useEffect(() => {
+    if (expandAll !== undefined) {
+      setIsExpanded(expandAll);
+    }
+  }, [expandAll]);
 
   // Mobile detection
   const [isMobile, setIsMobile] = useState(false);
@@ -216,9 +227,12 @@ function TableRow({
   else if (isTimed) exerciseType = 'timed';
   else if (placeholder === 'Reps') exerciseType = 'bodyweight';
 
+  // Count filled sets
+  const filledSetsCount = setInputs ? setInputs.filter(s => s && s.trim() !== '').length : 0;
+
   return (
     <>
-      <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 border border-gray-300 rounded-md p-4 bg-sky-50 shadow-sm mb-4 overflow-visible">
+      <div className="relative border border-gray-300 rounded-lg bg-white shadow-sm mb-3 overflow-hidden">
         {(isCustom || isEditingSets) && (
           <button
             onClick={onRemove}
@@ -228,60 +242,76 @@ function TableRow({
             <span className="text-xs font-bold">✕</span>
           </button>
         )}
-        {/* Conditional Rendering: Dropdown vs Text Input */}
-        <div className="w-full sm:w-1/3">
-          {isCustom || value === 'custom' || !options.find(opt => opt.value === value) ? (
-            <ExerciseAutocomplete
-              value={value === 'custom' ? '' : value}
-              onChange={onChange}
-              onSelect={(exercise) => {
-                // Pass the full exercise object with category to the parent
-                onChange(exercise.name, exercise.category);
-              }}
-              previousCustomExercises={previousCustomExercises}
-              placeholder="Enter exercise name..."
-              className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
-            />
-          ) : (
-            <DropDown
-              options={[...options, { label: 'Custom', value: 'custom' }]}
-              onChange={onChange}
-              value={value}
-              favorites={favoriteExercises}
-              onToggleFavorite={onToggleFavorite}
-            />
-          )}
-        </div>
 
-        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:gap-2 w-full items-center">
-          {recordInputCells()}
-
-          {isEditingSets && (
-            <div className="ml-2 flex-shrink-0 flex flex-row gap-1 sm:gap-2">
-              {/* + Add */}
-              <button
-                onClick={handleAddSet}
-                className="px-2 sm:px-4 py-2 rounded-md bg-green-500 hover:bg-green-600 text-white font-bold transition-colors cursor-pointer whitespace-nowrap text-sm sm:text-base"
-                title="Add another set"
-              >
-                + Add
-              </button>
-              {/* Remove */}
-              <button
-                onClick={handleRemoveLastSet}
-                disabled={currentSetCount <= 1}
-                className={`px-2 sm:px-4 py-2 rounded-md font-bold transition-colors whitespace-nowrap text-sm sm:text-base ${
-                  currentSetCount <= 1
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-red-500 hover:bg-red-600 text-white cursor-pointer active:bg-red-700'
-                }`}
-                title="Remove last set"
-              >
-                - Remove
-              </button>
+        {/* Header - Always Visible */}
+        <div className="flex items-center bg-sky-50 hover:bg-sky-100 transition-colors">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex-1 flex items-center justify-between p-3 text-left"
+          >
+            <div className="flex items-center gap-2 flex-1">
+              <span className="text-gray-400 text-sm">{isExpanded ? '▼' : '▶'}</span>
+              <div className="flex-1">
+                {isCustom || value === 'custom' || !options.find(opt => opt.value === value) ? (
+                  <ExerciseAutocomplete
+                    value={value === 'custom' ? '' : value}
+                    onChange={onChange}
+                    onSelect={(exercise) => {
+                      onChange(exercise.name, exercise.category);
+                    }}
+                    previousCustomExercises={previousCustomExercises}
+                    placeholder="Enter exercise name..."
+                    className="w-full px-3 py-1 border border-blue-200 rounded-md focus:border-blue-500 outline-none transition-all text-sm"
+                  />
+                ) : (
+                  <DropDown
+                    options={[...options, { label: 'Custom', value: 'custom' }]}
+                    onChange={onChange}
+                    value={value}
+                    favorites={favoriteExercises}
+                    onToggleFavorite={onToggleFavorite}
+                  />
+                )}
+              </div>
             </div>
-          )}
+            <span className="text-sm font-semibold text-gray-600 ml-2">
+              {filledSetsCount}/{currentSetCount}
+            </span>
+          </button>
         </div>
+
+        {/* Expandable Content */}
+        {isExpanded && (
+          <div className="p-4 bg-sky-50 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:gap-2 items-center">
+              {recordInputCells()}
+
+              {isEditingSets && (
+                <div className="ml-2 flex-shrink-0 flex flex-row gap-1 sm:gap-2 mt-2 sm:mt-0">
+                  <button
+                    onClick={handleAddSet}
+                    className="px-2 sm:px-4 py-2 rounded-md bg-green-500 hover:bg-green-600 text-white font-bold transition-colors cursor-pointer whitespace-nowrap text-sm sm:text-base"
+                    title="Add another set"
+                  >
+                    + Add
+                  </button>
+                  <button
+                    onClick={handleRemoveLastSet}
+                    disabled={currentSetCount <= 1}
+                    className={`px-2 sm:px-4 py-2 rounded-md font-bold transition-colors whitespace-nowrap text-sm sm:text-base ${
+                      currentSetCount <= 1
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-red-500 hover:bg-red-600 text-white cursor-pointer active:bg-red-700'
+                    }`}
+                    title="Remove last set"
+                  >
+                    - Remove
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Wheel Picker Modal */}
