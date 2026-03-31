@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import DropDown from "../components/DropDown";
 import MuscleGroupWorkout from "../components/MuscleGroupWorkout";
-import db from '../firebase';
+import db from '../config/firebase';
 import { collection, addDoc } from "firebase/firestore";
 
 

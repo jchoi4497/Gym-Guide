@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { collection, addDoc, query, where, orderBy, limit, getDocs, getDoc, doc, setDoc } from 'firebase/firestore';
-import { auth } from '../firebase'; // Make sure auth is imported
-import db from '../firebase';
+import { auth } from '../config/firebase'; // Make sure auth is imported
+import db from '../config/firebase';
 import DropDown from '../components/DropDown';
 import MuscleGroupWorkout from '../components/MuscleGroupWorkout';
 import OptionalWorkoutSections from '../components/OptionalWorkoutSections';
@@ -11,7 +11,7 @@ import TemplateSelector from '../components/TemplateSelector';
 import Navbar from '../components/Navbar';
 import WorkoutNotesInput from '../components/WorkoutNotesInput';
 import { generateSummary } from '../utils/summaryUtil';
-import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS, FIREBASE_FIELDS } from '../constants';
+import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS, FIREBASE_FIELDS } from '../config/constants';
 import { getMuscleGroupFromCategory } from '../utils/categoryDetection';
 import { loadTemplate, templateToExerciseData, updateTemplateLastUsed } from '../utils/templateHelpers';
 import { useWorkout } from '../context/WorkoutContext';

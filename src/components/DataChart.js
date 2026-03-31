@@ -9,7 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { parseWeightReps } from '../parsing';
+import { parseWeightReps } from '../utils/parsing';
 import { format } from 'date-fns';
 import exerciseNames from '../config/exerciseNames';
 import { getExerciseById } from '../config/exerciseConfig';

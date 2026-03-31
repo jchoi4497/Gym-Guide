@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { collection, doc, getDoc, setDoc, query, where, getDocs } from 'firebase/firestore';
-import { auth } from '../firebase';
-import db from '../firebase';
+import { auth } from '../config/firebase';
+import db from '../config/firebase';
 import Navbar from '../components/Navbar';
 import { EXERCISE_CATEGORIES } from '../config/exerciseConfig';
-import { FIREBASE_FIELDS } from '../constants';
+import { FIREBASE_FIELDS } from '../config/constants';
 import { getMuscleGroupFromCategory, detectCategoryFromName } from '../utils/categoryDetection';
 
 function MyExercisesPage() {

@@ -11,7 +11,7 @@ import {
   getDoc,
   updateDoc,
 } from 'firebase/firestore';
-import db, { auth } from '../firebase';
+import db, { auth } from '../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import Navbar from '../components/Navbar';
 import { generateSummary } from '../utils/summaryUtil';
@@ -20,7 +20,7 @@ import WorkoutNotes from './WorkoutNotes';
 import WorkoutAnalysis from './WorkoutAnalysis';
 import AddExerciseButton from '../components/AddExerciseButton';
 import OptionalWorkoutSections from '../components/OptionalWorkoutSections';
-import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from '../constants';
+import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from '../config/constants';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 function SavedWorkout() {
