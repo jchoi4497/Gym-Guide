@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { loginWithGoogle } from '../googleAuth';
+import { loginWithGoogle } from '../config/googleAuth';
 
 function LandingPage() {
   const navigate = useNavigate();

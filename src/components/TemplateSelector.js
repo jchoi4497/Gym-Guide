@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
-import { auth } from '../firebase';
-import db from '../firebase';
+import { auth } from '../config/firebase';
+import db from '../config/firebase';
 
 function TemplateSelector({ onSelectTemplate, selectedTemplateId }) {
   const [templates, setTemplates] = useState([]);

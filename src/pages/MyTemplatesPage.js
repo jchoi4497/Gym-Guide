@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { auth } from '../firebase';
-import db from '../firebase';
+import { auth } from '../config/firebase';
+import db from '../config/firebase';
 import Navbar from '../components/Navbar';
 import TemplateEditor from '../components/TemplateEditor';
 

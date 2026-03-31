@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth } from '../firebase';
-import db from '../firebase';
+import { auth } from '../config/firebase';
+import db from '../config/firebase';
 
 function TemplateCard({ template, onUpdate, isBuiltIn = false }) {
   const navigate = useNavigate();

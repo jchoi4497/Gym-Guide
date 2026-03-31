@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
-import { auth } from '../firebase';
-import db from '../firebase';
+import { auth } from '../config/firebase';
+import db from '../config/firebase';
 import Navbar from '../components/Navbar';
 import TemplateCard from '../components/TemplateCard';
-import { FIREBASE_FIELDS } from '../constants';
+import { FIREBASE_FIELDS } from '../config/constants';
 
 // Built-in templates (expand this array for more training styles in the future)
 const BUILTIN_TEMPLATES = [
