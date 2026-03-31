@@ -146,7 +146,7 @@ function WorkoutTable({
   };
 
   return (
-    <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-2 sm:p-4 overflow-hidden">
+    <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-2 sm:p-4 overflow-visible">
       <div className="flex items-center justify-between mb-4 p-2 sm:p-3 bg-blue-50 rounded-md">
         <div className="text-lg sm:text-xl font-bold">
           {setRangeLabel} - {muscleGroup}
