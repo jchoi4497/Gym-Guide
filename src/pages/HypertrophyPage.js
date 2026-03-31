@@ -11,84 +11,78 @@ import TemplateSelector from '../components/TemplateSelector';
 import Navbar from '../Navbar';
 import WorkoutNotesInput from '../WorkoutNotesInput';
 import { generateSummary } from '../summaryUtil';
-import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS, STORAGE_KEYS, FIREBASE_FIELDS } from '../constants';
+import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS, FIREBASE_FIELDS } from '../constants';
 import { getMuscleGroupFromCategory } from '../utils/categoryDetection';
 import { loadTemplate, templateToExerciseData, updateTemplateLastUsed } from '../utils/templateHelpers';
+import { useWorkout } from '../context/WorkoutContext';
+import { workoutDraft, workoutSession } from '../services/storageService';
 
 function HypertrophyPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const templateId = searchParams.get('template'); // Get template ID from URL
 
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(null);
-  const [numberOfSets, setNumberOfSets] = useState(null);
-  const [exerciseData, setExerciseData] = useState({});
-  const [note, setNote] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
-  const [previousWorkoutData, setPreviousWorkoutData] = useState(null);
-  const [previousCustomExercises, setPreviousCustomExercises] = useState([]);
-  const [previousCustomMuscleGroups, setPreviousCustomMuscleGroups] = useState([]);
-  const [loadedTemplate, setLoadedTemplate] = useState(null);
-  const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
-  const [selectedTemplateFromDropdown, setSelectedTemplateFromDropdown] = useState(null);
+  // ===== USE WORKOUT CONTEXT (replaces 20+ useState calls) =====
+  const {
+    workout,
+    workflowMode,
+    customMuscleGroupName,
+    customSetCount,
+    customRepCount,
+    loadedTemplate,
+    isLoadingTemplate,
+    selectedTemplateFromDropdown,
+    isSaving,
+    isGeneratingSummary,
+    previousWorkoutData,
+    previousCustomExercises,
+    previousCustomMuscleGroups,
+    favoriteExercises,
+    workoutDate,
+    actualMuscleGroup,
+    actualNumberOfSets,
+    isWorkoutConfigured,
+    updateWorkout,
+    updateExercise,
+    setWorkflowMode,
+    setCustomMuscleGroupName,
+    setCustomSetCount,
+    setCustomRepCount,
+    setLoadedTemplate,
+    setIsLoadingTemplate,
+    setSelectedTemplateFromDropdown,
+    setIsSaving,
+    setIsGeneratingSummary,
+    setPreviousWorkoutData,
+    setPreviousCustomExercises,
+    setPreviousCustomMuscleGroups,
+    setFavoriteExercises,
+    setWorkoutDate,
+  } = useWorkout();
+
+  // Extract frequently used fields from workout object
+  const selectedMuscleGroup = workout.selectedMuscleGroup;
+  const numberOfSets = workout.numberOfSets;
+  const exerciseData = workout.exerciseData;
+  const note = workout.note;
+  const showCardio = workout.showCardio;
+  const showAbs = workout.showAbs;
+  const cardioAtTop = workout.cardioAtTop;
+  const absAtTop = workout.absAtTop;
+
+  // Convenience setters (delegates to updateWorkout)
+  const setSelectedMuscleGroup = (value) => updateWorkout({ selectedMuscleGroup: value });
+  const setNumberOfSets = (value) => updateWorkout({ numberOfSets: value });
+  const setExerciseData = (value) => updateWorkout({ exerciseData: value });
+  const setNote = (value) => updateWorkout({ note: value });
+  const setShowCardio = (value) => updateWorkout({ showCardio: value });
+  const setShowAbs = (value) => updateWorkout({ showAbs: value });
+  const setCardioAtTop = (value) => updateWorkout({ cardioAtTop: value });
+  const setAbsAtTop = (value) => updateWorkout({ absAtTop: value });
+
+  // ===== LOCAL STATE (not in context) =====
   const [justLoadedTemplate, setJustLoadedTemplate] = useState(false);
-
-  // Workflow mode: 'choose' | 'template' | 'custom'
-  const [workflowMode, setWorkflowMode] = useState('choose');
-
-  // Custom input states
-  const [customMuscleGroupName, setCustomMuscleGroupName] = useState('');
-  const [customSetCount, setCustomSetCount] = useState('');
-  const [customRepCount, setCustomRepCount] = useState('');
-
-  // Section position states (true = top, false = bottom)
-  const [cardioAtTop, setCardioAtTop] = useState(false);
-  const [absAtTop, setAbsAtTop] = useState(false);
-
-  // Section visibility states
-  const [showCardio, setShowCardio] = useState(false);
-  const [showAbs, setShowAbs] = useState(false);
-
-  // Favorite exercises
-  const [favoriteExercises, setFavoriteExercises] = useState([]);
-
-  // Workout date (default to today in local timezone)
-  const [workoutDate, setWorkoutDate] = useState(() => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`; // Format: YYYY-MM-DD in local timezone
-  });
-
-  // Sticky button state for mobile
   const [isButtonSticky, setIsButtonSticky] = useState(true);
-
-  // Determine actual muscle group name to use
-  const actualMuscleGroup = useMemo(() => {
-    if (selectedMuscleGroup === 'custom' && customMuscleGroupName) {
-      return customMuscleGroupName;
-    }
-    return selectedMuscleGroup;
-  }, [selectedMuscleGroup, customMuscleGroupName]);
-
-  // Determine actual number of sets to use
-  const actualNumberOfSets = useMemo(() => {
-    if (numberOfSets === 'custom' && customSetCount) {
-      return parseInt(customSetCount);
-    }
-    return numberOfSets;
-  }, [numberOfSets, customSetCount]);
-
-  // Check if both required selections are complete
-  const isWorkoutConfigured = useMemo(() => {
-    const hasMuscleGroup = selectedMuscleGroup &&
-      (selectedMuscleGroup !== 'custom' || customMuscleGroupName.trim());
-    const hasSets = numberOfSets &&
-      (numberOfSets !== 'custom' || (customSetCount && parseInt(customSetCount) > 0));
-    return hasMuscleGroup && hasSets;
-  }, [selectedMuscleGroup, customMuscleGroupName, numberOfSets, customSetCount]);
 
   // LOAD TEMPLATE FROM URL ---
   useEffect(() => {
