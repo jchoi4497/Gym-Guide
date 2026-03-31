@@ -102,6 +102,8 @@ export const GRAPH_VIEWS = {
 /**
  * Keys used for localStorage
  */
+// Storage keys moved to services/storageService.js for centralized management
+// Import with: import { STORAGE_KEYS } from './services/storageService';
 export const STORAGE_KEYS = {
   ACTIVE_WORKOUT_DRAFT: 'active_workout_draft',
 };
