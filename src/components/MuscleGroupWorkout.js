@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import WorkoutTable from '../WorkoutTable';
 import AddExerciseButton from '../AddExerciseButton';
-import { getDefaultExercises } from '../config/exerciseConfig';
+import { getDefaultExercises, getExerciseName } from '../config/exerciseConfig';
 
 function MuscleGroupWorkout({
   muscleGroup,
@@ -9,6 +9,7 @@ function MuscleGroupWorkout({
   setRangeLabel,
   exerciseData,
   onExerciseDataChange,
+  onBatchInitializeExercises,
   onRemoveSet,
   previousExerciseData,
   previousCustomExercises = [],
@@ -17,6 +18,11 @@ function MuscleGroupWorkout({
 }) {
   // State to track if user is editing sets (add/remove functionality)
   const [isEditingSets, setIsEditingSets] = useState(false);
+
+  // Track if we've already initialized to prevent re-initialization
+  const hasInitialized = useRef(false);
+  // Track the previous muscle group to detect actual changes
+  const prevMuscleGroup = useRef(muscleGroup);
 
   // Initialize exercises based on muscle group
   const [exercises, setExercises] = useState(() => {
@@ -35,6 +41,42 @@ function MuscleGroupWorkout({
       }];
     }
   });
+
+  // Initialize default exercises in exerciseData on first load ONLY
+  useEffect(() => {
+    // Only initialize ONCE - prevent re-initialization when exercises array changes
+    if (!hasInitialized.current && exercises.length > 0 && numberOfSets) {
+      // Collect all exercises that need initialization
+      const exercisesToInit = [];
+
+      exercises.forEach(exercise => {
+        if (exercise.selected && exercise.selected !== 'custom') {
+          const existingData = exerciseData[exercise.id];
+          if (!existingData || !existingData.exerciseName) {
+            exercisesToInit.push({
+              categoryKey: exercise.id,
+              exerciseName: getExerciseName(exercise.selected),
+            });
+          }
+        }
+      });
+
+      // Batch initialize all exercises in a single state update (optimal performance)
+      if (exercisesToInit.length > 0 && onBatchInitializeExercises) {
+        onBatchInitializeExercises(exercisesToInit);
+      }
+
+      hasInitialized.current = true; // Mark as initialized
+    }
+  }, [exercises.length, numberOfSets]);
+
+  // Reset initialization flag when muscle group ACTUALLY changes (not on first mount)
+  useEffect(() => {
+    if (prevMuscleGroup.current !== null && prevMuscleGroup.current !== muscleGroup) {
+      hasInitialized.current = false;
+    }
+    prevMuscleGroup.current = muscleGroup;
+  }, [muscleGroup]);
 
   // Sync exercises array with exerciseData (for template loading ONLY)
   // Only rebuild when a template is loaded (exerciseData has MORE keys than current exercises)
@@ -87,6 +129,8 @@ function MuscleGroupWorkout({
         isCustom: true,
       },
     ]);
+    // Initialize in exerciseData with empty value
+    onExerciseDataChange(customId, '', -1, null, null);
   };
 
   // Remove an exercise row

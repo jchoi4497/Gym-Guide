@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { getExercisesByCategory, EXERCISE_CATEGORIES, getPlaceholderForExercise } from '../config/exerciseConfig';
+import { getExercisesByCategory, EXERCISE_CATEGORIES, getPlaceholderForExercise, getExerciseName } from '../config/exerciseConfig';
 
 // Field templates for different cardio exercise types
 const CARDIO_FIELD_TEMPLATES = {
@@ -80,15 +80,17 @@ function OptionalWorkoutSections({
         }));
         setCardioExercises(restoredCardio);
       } else {
-        // No existing data, add default
-        setCardioExercises([
-          {
-            id: 'cardio_section',
-            selected: 'treadmill',
-            options: getExercisesByCategory(EXERCISE_CATEGORIES.CARDIO),
-            isCustom: false,
-          },
-        ]);
+        // No existing data, add default and initialize in exerciseData
+        const defaultCardio = {
+          id: 'cardio_section',
+          selected: 'treadmill',
+          options: getExercisesByCategory(EXERCISE_CATEGORIES.CARDIO),
+          isCustom: false,
+        };
+        setCardioExercises([defaultCardio]);
+        // Initialize the default cardio exercise in exerciseData with proper name
+        const cardioName = getExerciseName('treadmill');
+        onExerciseDataChange('cardio_section', cardioName, -1, null, null);
       }
       cardioInitialized.current = true;
     } else if (!showCardio) {
@@ -115,15 +117,17 @@ function OptionalWorkoutSections({
         }));
         setAbsExercises(restoredAbs);
       } else {
-        // No existing data, add default
-        setAbsExercises([
-          {
-            id: 'abs_section',
-            selected: 'abcrunchmachine',
-            options: getExercisesByCategory(EXERCISE_CATEGORIES.ABS),
-            isCustom: false,
-          },
-        ]);
+        // No existing data, add default and initialize in exerciseData
+        const defaultAbs = {
+          id: 'abs_section',
+          selected: 'abcrunchmachine',
+          options: getExercisesByCategory(EXERCISE_CATEGORIES.ABS),
+          isCustom: false,
+        };
+        setAbsExercises([defaultAbs]);
+        // Initialize the default abs exercise in exerciseData with proper name
+        const absName = getExerciseName('abcrunchmachine');
+        onExerciseDataChange('abs_section', absName, -1, null, null);
       }
       absInitialized.current = true;
     } else if (!showAbs) {
@@ -144,6 +148,8 @@ function OptionalWorkoutSections({
         isCustom: true,
       },
     ]);
+    // Initialize in exerciseData with empty values
+    onExerciseDataChange(customId, '', -1, null, null);
   };
 
   // Add custom abs exercise
@@ -158,6 +164,8 @@ function OptionalWorkoutSections({
         isCustom: true,
       },
     ]);
+    // Initialize in exerciseData with empty values
+    onExerciseDataChange(customId, '', -1, null, null);
   };
 
   // Remove cardio exercise
@@ -171,11 +179,15 @@ function OptionalWorkoutSections({
   };
 
   const handleCardioChange = (rowId, newValue) => {
-    onExerciseDataChange(rowId, newValue, -1, null, null);
+    // Convert exercise ID to display name if it's a preset exercise
+    const exerciseName = getExerciseName(newValue) || newValue;
+    onExerciseDataChange(rowId, exerciseName, -1, null, null);
   };
 
   const handleAbsChange = (rowId, newValue) => {
-    onExerciseDataChange(rowId, newValue, -1, null, null);
+    // Convert exercise ID to display name if it's a preset exercise
+    const exerciseName = getExerciseName(newValue) || newValue;
+    onExerciseDataChange(rowId, exerciseName, -1, null, null);
   };
 
   const handleCardioInput = (rowId, selected, index, inputValue) => {
@@ -275,7 +287,14 @@ function OptionalWorkoutSections({
                         />
                       ) : (
                         <select
-                          value={exerciseData[exercise.id]?.exerciseName || exercise.selected}
+                          value={(() => {
+                            // Find the option that matches the stored exercise name
+                            const currentName = exerciseData[exercise.id]?.exerciseName;
+                            const matchingOption = exercise.options.find(opt =>
+                              opt.label === currentName || opt.value === currentName || opt.value === exercise.selected
+                            );
+                            return matchingOption ? matchingOption.value : exercise.selected;
+                          })()}
                           onChange={(e) => handleCardioChange(exercise.id, e.target.value)}
                           className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
                         >
@@ -372,7 +391,14 @@ function OptionalWorkoutSections({
                         />
                       ) : (
                         <select
-                          value={exerciseData[exercise.id]?.exerciseName || exercise.selected}
+                          value={(() => {
+                            // Find the option that matches the stored exercise name
+                            const currentName = exerciseData[exercise.id]?.exerciseName;
+                            const matchingOption = exercise.options.find(opt =>
+                              opt.label === currentName || opt.value === currentName || opt.value === exercise.selected
+                            );
+                            return matchingOption ? matchingOption.value : exercise.selected;
+                          })()}
                           onChange={(e) => handleAbsChange(exercise.id, e.target.value)}
                           className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
                         >

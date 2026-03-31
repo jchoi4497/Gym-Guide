@@ -99,7 +99,7 @@ function WorkoutTable({
   favoriteExercises = [],
   onToggleFavorite,
 }) {
-  const [expandAll, setExpandAll] = useState(true);
+  const [expandAll, setExpandAll] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
