@@ -1,6 +1,6 @@
-import WorkoutType from '../WorkoutType';
+import WorkoutType from '../components/WorkoutType';
 import HypertrophyImage from '../images/Hypertrophy.png';
-import Navbar from '../Navbar';
+import Navbar from '../components/Navbar';
 import StrengthImage from '../images/Strength.jpg';
 
 function TrainingStylePage() {
