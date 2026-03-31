@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { getExercisesByCategory, EXERCISE_CATEGORIES, getPlaceholderForExercise, getExerciseName } from '../config/exerciseConfig';
+import { getExercisesByCategory, EXERCISE_CATEGORIES, getPlaceholderForExercise, getExerciseName, getExerciseById } from '../config/exerciseConfig';
+import WeightRepsPicker from './WeightRepsPicker';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { parseSet, combineSet } from '../utils/setHelpers';
 
 // Field templates for different cardio exercise types
 const CARDIO_FIELD_TEMPLATES = {
@@ -61,6 +64,13 @@ function OptionalWorkoutSections({
   const [absExercises, setAbsExercises] = useState([]);
   const cardioInitialized = useRef(false);
   const absInitialized = useRef(false);
+
+  // Mobile picker state for abs
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerExerciseId, setPickerExerciseId] = useState(null);
+  const [pickerSetIndex, setPickerSetIndex] = useState(null);
+  const [pickerInitialField, setPickerInitialField] = useState('weight');
+  const isMobile = useIsMobile();
 
   // Populate cardio exercises from existing exerciseData when cardio is enabled
   useEffect(() => {
@@ -181,12 +191,24 @@ function OptionalWorkoutSections({
   const handleCardioChange = (rowId, newValue) => {
     // Convert exercise ID to display name if it's a preset exercise
     const exerciseName = getExerciseName(newValue) || newValue;
+
+    // Update the cardioExercises state with new selected value
+    setCardioExercises(prev => prev.map(ex =>
+      ex.id === rowId ? { ...ex, selected: newValue } : ex
+    ));
+
     onExerciseDataChange(rowId, exerciseName, -1, null, null);
   };
 
   const handleAbsChange = (rowId, newValue) => {
     // Convert exercise ID to display name if it's a preset exercise
     const exerciseName = getExerciseName(newValue) || newValue;
+
+    // Update the absExercises state with new selected value
+    setAbsExercises(prev => prev.map(ex =>
+      ex.id === rowId ? { ...ex, selected: newValue } : ex
+    ));
+
     onExerciseDataChange(rowId, exerciseName, -1, null, null);
   };
 
@@ -216,6 +238,23 @@ function OptionalWorkoutSections({
     const currentSetCount = currentSets.length || Number(numberOfSets);
     if (currentSetCount > 1 && onRemoveSet) {
       onRemoveSet(rowId, currentSetCount - 1);
+    }
+  };
+
+  // Handle opening picker modal for abs
+  const handleOpenAbsPicker = (exerciseId, setIndex, field = 'weight') => {
+    setPickerExerciseId(exerciseId);
+    setPickerSetIndex(setIndex);
+    setPickerInitialField(field);
+    setPickerOpen(true);
+  };
+
+  // Handle saving from picker modal for abs
+  const handleAbsPickerSave = (weight, reps) => {
+    if (pickerExerciseId && pickerSetIndex !== null) {
+      const combined = combineSet(weight, reps);
+      const selectedExercise = exerciseData[pickerExerciseId]?.exerciseName || absExercises.find(ex => ex.id === pickerExerciseId)?.selected;
+      onExerciseDataChange(pickerExerciseId, selectedExercise, pickerSetIndex, combined, null);
     }
   };
 
@@ -308,7 +347,7 @@ function OptionalWorkoutSections({
                     </div>
                     <div className="flex flex-col sm:flex-row sm:gap-2 w-full">
                       {/* Dynamic fields based on cardio type */}
-                      {getCardioFields(exerciseData[exercise.id]?.exerciseName || exercise.selected).map((label, idx) => (
+                      {getCardioFields(exercise.selected).map((label, idx) => (
                         <input
                           key={idx}
                           placeholder={label}
@@ -416,20 +455,79 @@ function OptionalWorkoutSections({
                         const currentSetCount = exerciseData[exercise.id]?.sets?.length || baseSetCount;
                         const isEditMode = absEditMode[exercise.id];
                         const selectedExercise = exerciseData[exercise.id]?.exerciseName || exercise.selected;
-                        const placeholder = getPlaceholderForExercise(selectedExercise);
+                        const exerciseById = getExerciseById(exercise.selected);
+                        const placeholder = getPlaceholderForExercise(exercise.selected);
+
+                        // Determine exercise type
+                        const isBodyweight = exerciseById?.metricType === 'bodyweight' || placeholder === 'Reps';
+                        const isTimed = exerciseById?.metricType === 'timed' || placeholder.includes('Duration') || placeholder.includes('sec');
+                        const showWeightInput = !isBodyweight && !isTimed;
 
                         return (
                           <>
-                            {Array.from({ length: currentSetCount }).map((_, idx) => (
-                              <input
-                                key={idx}
-                                placeholder={placeholder}
-                                className="px-3 py-2 w-full rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 placeholder-gray-400 text-gray-900 mb-2 sm:mb-0"
-                                type="text"
-                                value={(exerciseData[exercise.id]?.sets || [])[idx] || ''}
-                                onChange={(e) => handleAbsInput(exercise.id, selectedExercise, idx, e.target.value)}
-                              />
-                            ))}
+                            {Array.from({ length: currentSetCount }).map((_, idx) => {
+                              const currentSet = parseSet((exerciseData[exercise.id]?.sets || [])[idx] || '');
+
+                              return (
+                                <div key={idx} className="flex items-center gap-1 mb-2 sm:mb-0">
+                                  {isMobile ? (
+                                    // MOBILE: Buttons that open picker
+                                    <>
+                                      {showWeightInput && (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() => handleOpenAbsPicker(exercise.id, idx, 'weight')}
+                                            className="px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
+                                          >
+                                            {currentSet.weight || <span className="text-gray-400">lbs</span>}
+                                          </button>
+                                          <span className="text-gray-500 font-bold text-xs">×</span>
+                                        </>
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={() => handleOpenAbsPicker(exercise.id, idx, 'reps')}
+                                        className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95 ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
+                                      >
+                                        {currentSet.reps || <span className="text-gray-400">{isTimed ? "sec" : "reps"}</span>}
+                                      </button>
+                                    </>
+                                  ) : (
+                                    // DESKTOP: Regular inputs
+                                    <>
+                                      {showWeightInput && (
+                                        <>
+                                          <input
+                                            type="number"
+                                            step="0.5"
+                                            value={currentSet.weight}
+                                            onChange={(e) => {
+                                              const combined = combineSet(e.target.value, currentSet.reps);
+                                              handleAbsInput(exercise.id, selectedExercise, idx, combined);
+                                            }}
+                                            placeholder="lbs"
+                                            className="px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm"
+                                          />
+                                          <span className="text-gray-500 font-bold text-xs">×</span>
+                                        </>
+                                      )}
+                                      <input
+                                        type="number"
+                                        step="1"
+                                        value={currentSet.reps}
+                                        onChange={(e) => {
+                                          const combined = combineSet(currentSet.weight, e.target.value);
+                                          handleAbsInput(exercise.id, selectedExercise, idx, combined);
+                                        }}
+                                        placeholder={isTimed ? "sec" : "reps"}
+                                        className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
+                                      />
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })}
 
                             <div className="ml-2 flex-shrink-0 flex flex-row gap-1 sm:gap-2">
                               {isEditMode && (
@@ -482,6 +580,35 @@ function OptionalWorkoutSections({
         )}
         </div>
       )}
+
+      {/* Weight/Reps Picker Modal for Abs (Mobile) */}
+      {pickerOpen && pickerExerciseId && (() => {
+        const exercise = absExercises.find(ex => ex.id === pickerExerciseId);
+        if (!exercise) return null;
+
+        const currentSet = pickerSetIndex !== null ? parseSet((exerciseData[pickerExerciseId]?.sets || [])[pickerSetIndex] || '') : { weight: '', reps: '' };
+        const exerciseById = getExerciseById(exercise.selected);
+        const placeholder = getPlaceholderForExercise(exercise.selected);
+
+        const isBodyweight = exerciseById?.metricType === 'bodyweight' || placeholder === 'Reps';
+        const isTimed = exerciseById?.metricType === 'timed' || placeholder.includes('Duration') || placeholder.includes('sec');
+
+        let exerciseType = 'weight';
+        if (isTimed) exerciseType = 'timed';
+        else if (isBodyweight) exerciseType = 'bodyweight';
+
+        return (
+          <WeightRepsPicker
+            isOpen={pickerOpen}
+            onClose={() => setPickerOpen(false)}
+            weight={currentSet.weight}
+            reps={currentSet.reps}
+            onSave={handleAbsPickerSave}
+            exerciseType={exerciseType}
+            initialField={pickerInitialField}
+          />
+        );
+      })()}
     </div>
   );
 }

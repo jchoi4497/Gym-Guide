@@ -11,6 +11,7 @@ function MuscleGroupWorkout({
   onExerciseDataChange,
   onBatchInitializeExercises,
   onRemoveSet,
+  onRemoveExercise,
   previousExerciseData,
   previousCustomExercises = [],
   favoriteExercises = [],
@@ -98,6 +99,7 @@ function MuscleGroupWorkout({
   useEffect(() => {
     const exerciseDataKeys = Object.keys(exerciseData || {});
     const currentExerciseCount = exercises.length;
+    const currentExerciseIds = new Set(exercises.map(ex => ex.id));
 
     // Only rebuild if exerciseData has MORE exercises than current (template loaded)
     // OR if we have no exercises yet (initial load)
@@ -116,20 +118,25 @@ function MuscleGroupWorkout({
         // No exercise data - load defaults
         setExercises(getDefaultExercises(muscleGroup));
       }
-    } else if (exerciseDataKeys.length > currentExerciseCount &&
-               exerciseDataKeys.length > 0 &&
-               exerciseData[exerciseDataKeys[0]]?.exerciseName) {
-      // Template loaded - has more exercises with names
-      const exercisesFromData = exerciseDataKeys.map((categoryId) => ({
-        id: categoryId,
-        selected: exerciseData[categoryId]?.exerciseName || '',
-        options: [],
-        isCustom: true,
-      }));
+    } else if (exerciseDataKeys.length > currentExerciseCount) {
+      // Only rebuild if there are NEW keys in exerciseData that aren't in current exercises
+      // This indicates a template was loaded, not that user added/removed exercises
+      const newKeys = exerciseDataKeys.filter(key => !currentExerciseIds.has(key));
+      const hasSignificantNewData = newKeys.length > 1 || (newKeys.length === 1 && exerciseData[newKeys[0]]?.exerciseName);
 
-      setExercises(exercisesFromData);
+      if (hasSignificantNewData) {
+        // Template loaded - rebuild from exerciseData
+        const exercisesFromData = exerciseDataKeys.map((categoryId) => ({
+          id: categoryId,
+          selected: exerciseData[categoryId]?.exerciseName || '',
+          options: [],
+          isCustom: true,
+        }));
+
+        setExercises(exercisesFromData);
+      }
     }
-    // Otherwise skip rebuild - user is just typing set data
+    // Otherwise skip rebuild - user is just typing set data or managing exercises manually
   }, [muscleGroup, exerciseData]);
 
   // Add a custom exercise row
@@ -151,6 +158,10 @@ function MuscleGroupWorkout({
   // Remove an exercise row
   const removeExercise = (rowId) => {
     setExercises(exercises.filter((exercise) => exercise.id !== rowId));
+    // Also clean up the exerciseData for this exercise
+    if (onRemoveExercise) {
+      onRemoveExercise(rowId);
+    }
   };
 
   // Handle exercise selection change
