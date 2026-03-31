@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 
 function WorkoutProgress({ exercises, currentSetIndex, onUpdateSet, onOpenPicker, onReorderExercise }) {
-  const [expandedExerciseIndex, setExpandedExerciseIndex] = useState(null);
+  const [expandedExerciseIndex, setExpandedExerciseIndex] = useState(null); // null = all collapsed
   const [isMobile, setIsMobile] = useState(false);
 
   // Mobile detection
@@ -78,7 +78,7 @@ function WorkoutProgress({ exercises, currentSetIndex, onUpdateSet, onOpenPicker
                         onReorderExercise(idx, 'up');
                       }}
                       disabled={idx === 0}
-                      className={`px-2 py-1 ${idx === 0 ? 'text-gray-300' : 'text-gray-600 hover:bg-gray-200'}`}
+                      className={`px-2 py-1 ${idx === 0 ? 'text-gray-300' : 'text-gray-500'}`}
                     >
                       ▲
                     </button>
@@ -88,7 +88,7 @@ function WorkoutProgress({ exercises, currentSetIndex, onUpdateSet, onOpenPicker
                         onReorderExercise(idx, 'down');
                       }}
                       disabled={idx === exercises.length - 1}
-                      className={`px-2 py-1 ${idx === exercises.length - 1 ? 'text-gray-300' : 'text-gray-600 hover:bg-gray-200'}`}
+                      className={`px-2 py-1 ${idx === exercises.length - 1 ? 'text-gray-300' : 'text-gray-500'}`}
                     >
                       ▼
                     </button>

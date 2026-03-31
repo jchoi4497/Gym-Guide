@@ -232,11 +232,11 @@ function TableRow({
 
   return (
     <>
-      <div className="relative border border-gray-300 rounded-lg bg-white shadow-sm mb-3 overflow-hidden">
+      <div className="relative border border-gray-300 rounded-lg bg-white shadow-sm mb-3">
         {(isCustom || isEditingSets) && (
           <button
             onClick={onRemove}
-            className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90 z-20 cursor-pointer"
+            className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90 z-30 cursor-pointer"
             title="Remove Exercise"
           >
             <span className="text-xs font-bold">✕</span>
@@ -244,40 +244,38 @@ function TableRow({
         )}
 
         {/* Header - Always Visible */}
-        <div className="flex items-center bg-sky-50 hover:bg-sky-100 transition-colors">
+        <div className="flex items-center bg-sky-50 transition-colors">
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex-1 flex items-center justify-between p-3 text-left"
+            className="p-3 hover:bg-sky-100 transition-colors"
+            type="button"
           >
-            <div className="flex items-center gap-2 flex-1">
-              <span className="text-gray-400 text-sm">{isExpanded ? '▼' : '▶'}</span>
-              <div className="flex-1">
-                {isCustom || value === 'custom' || !options.find(opt => opt.value === value) ? (
-                  <ExerciseAutocomplete
-                    value={value === 'custom' ? '' : value}
-                    onChange={onChange}
-                    onSelect={(exercise) => {
-                      onChange(exercise.name, exercise.category);
-                    }}
-                    previousCustomExercises={previousCustomExercises}
-                    placeholder="Enter exercise name..."
-                    className="w-full px-3 py-1 border border-blue-200 rounded-md focus:border-blue-500 outline-none transition-all text-sm"
-                  />
-                ) : (
-                  <DropDown
-                    options={[...options, { label: 'Custom', value: 'custom' }]}
-                    onChange={onChange}
-                    value={value}
-                    favorites={favoriteExercises}
-                    onToggleFavorite={onToggleFavorite}
-                  />
-                )}
-              </div>
-            </div>
-            <span className="text-sm font-semibold text-gray-600 ml-2">
-              {filledSetsCount}/{currentSetCount}
-            </span>
+            <span className="text-gray-400 text-sm">{isExpanded ? '▼' : '▶'}</span>
           </button>
+          <div className="flex-1 flex items-center gap-2 py-3 pr-3">
+            <div className="flex-1">
+              {isCustom || value === 'custom' || !options.find(opt => opt.value === value) ? (
+                <ExerciseAutocomplete
+                  value={value === 'custom' ? '' : value}
+                  onChange={onChange}
+                  onSelect={(exercise) => {
+                    onChange(exercise.name, exercise.category);
+                  }}
+                  previousCustomExercises={previousCustomExercises}
+                  placeholder="Enter exercise name..."
+                  className="w-full px-3 py-1 border border-blue-200 rounded-md focus:border-blue-500 outline-none transition-all text-sm"
+                />
+              ) : (
+                <DropDown
+                  options={[...options, { label: 'Custom', value: 'custom' }]}
+                  onChange={onChange}
+                  value={value}
+                  favorites={favoriteExercises}
+                  onToggleFavorite={onToggleFavorite}
+                />
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Expandable Content */}
