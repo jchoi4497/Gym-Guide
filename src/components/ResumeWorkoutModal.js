@@ -6,7 +6,7 @@ function ResumeWorkoutModal() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showModal, setShowModal] = useState(false);
-  const [workoutSession, setWorkoutSession] = useState(null);
+  const [savedSession, setSavedSession] = useState(null);
 
   useEffect(() => {
     // Don't show modal if already on StartWorkoutPage
@@ -17,7 +17,7 @@ function ResumeWorkoutModal() {
     // Check for active workout session (using storageService)
     const session = workoutSession.get();
     if (session) {
-      setWorkoutSession(session);
+      setSavedSession(session);
       setShowModal(true);
     }
   }, [location.pathname]);
@@ -30,16 +30,16 @@ function ResumeWorkoutModal() {
   const handleDiscard = () => {
     workoutSession.clear();
     setShowModal(false);
-    setWorkoutSession(null);
+    setSavedSession(null);
   };
 
-  if (!showModal || !workoutSession) {
+  if (!showModal || !savedSession) {
     return null;
   }
 
   // Calculate workout progress
-  const totalSets = workoutSession.exercises?.reduce((sum, ex) => sum + ex.totalSets, 0) || 0;
-  const completedSets = workoutSession.exercises?.reduce((sum, ex) => sum + ex.completedSets.length, 0) || 0;
+  const totalSets = savedSession.exercises?.reduce((sum, ex) => sum + ex.totalSets, 0) || 0;
+  const completedSets = savedSession.exercises?.reduce((sum, ex) => sum + ex.completedSets.length, 0) || 0;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex items-center justify-center p-4">
@@ -57,7 +57,7 @@ function ResumeWorkoutModal() {
         {/* Workout Info */}
         <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 mb-6">
           <h3 className="font-semibold text-lg text-gray-800 mb-2">
-            {workoutSession.workoutName}
+            {savedSession.workoutName}
           </h3>
           <div className="flex justify-between text-sm text-gray-600">
             <span>Progress:</span>
