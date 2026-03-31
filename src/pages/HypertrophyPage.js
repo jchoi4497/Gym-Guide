@@ -122,7 +122,7 @@ function HypertrophyPage() {
         await updateTemplateLastUsed(user.uid, templateId);
 
         // Clear any existing draft since we're starting fresh with a template
-        localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
+        workoutDraft.clear();
 
         // Set flag to prevent auto-save from immediately triggering
         setJustLoadedTemplate(true);
@@ -161,16 +161,16 @@ function HypertrophyPage() {
     if (templateId || isLoadingTemplate || selectedTemplateFromDropdown) {
       // Clear draft when using a template
       if (templateId || selectedTemplateFromDropdown) {
-        localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
+        workoutDraft.clear();
       }
       return;
     }
 
     // First check for active workout session (from StartWorkoutPage)
-    const activeSession = localStorage.getItem('activeWorkoutSession');
+    const activeSession = workoutSession.get();
     if (activeSession) {
       try {
-        const session = JSON.parse(activeSession);
+        const session = activeSession;
 
         // Restore from active session - rebuild exerciseData from exercises array
         const restoredExerciseData = {};
@@ -218,9 +218,9 @@ function HypertrophyPage() {
       }
     }
 
-    const savedDraft = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
+    const savedDraft = workoutDraft.get();
     if (savedDraft) {
-      const parsed = JSON.parse(savedDraft);
+      const parsed = savedDraft;
       // Check for data in both old and new format
       const hasData = (parsed.inputs && Object.keys(parsed.inputs).length > 0) ||
                       (parsed.exerciseData && Object.keys(parsed.exerciseData).length > 0);
@@ -285,7 +285,7 @@ function HypertrophyPage() {
           if (parsed.absAtTop !== undefined) setAbsAtTop(parsed.absAtTop);
         } else {
           // If they say No, clear the old draft so they start fresh
-          localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
+          workoutDraft.clear();
         }
       }
     }
@@ -314,7 +314,7 @@ function HypertrophyPage() {
         cardioAtTop,
         absAtTop,
       };
-      localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT, JSON.stringify(draft));
+      workoutDraft.save(draft);
     }
   }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount, selectedTemplateFromDropdown, showCardio, showAbs, cardioAtTop, absAtTop, justLoadedTemplate]);
 
@@ -726,7 +726,7 @@ function HypertrophyPage() {
       setShowCardio(false);
       setShowAbs(false);
       setJustLoadedTemplate(false);
-      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
+      workoutDraft.clear();
       return;
     }
 
@@ -763,7 +763,7 @@ function HypertrophyPage() {
       await updateTemplateLastUsed(user.uid, templateId);
 
       // Clear any existing draft since we're starting fresh with a template
-      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
+      workoutDraft.clear();
 
       // Set flag to prevent auto-save from immediately triggering
       setJustLoadedTemplate(true);
@@ -885,7 +885,7 @@ function HypertrophyPage() {
       const docRef = await addDoc(collection(db, 'workoutLogs'), workoutData);
 
       // CLEAR LOCAL STORAGE ON SUCCESS ---
-      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
+      workoutDraft.clear();
 
       // Get the document ID
       const workoutId = docRef.id;
@@ -945,7 +945,7 @@ function HypertrophyPage() {
       setWorkflowMode('choose'); // Reset to choice screen
 
       // 2. Clear the local storage draft
-      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
+      workoutDraft.clear();
 
       // 3. Scroll to top so user sees the choice screen
       window.scrollTo({ top: 0, behavior: 'smooth' });
