@@ -6,14 +6,17 @@ import TemplateSelectionPage from './pages/TemplateSelectionPage';
 import MyTemplatesPage from './pages/MyTemplatesPage';
 import StrengthPage from './pages/StrengthPage';
 import HypertrophyPage from './pages/HypertrophyPage';
+import StartWorkoutPage from './pages/StartWorkoutPage';
 import ColorDesignPage from './pages/ColorDesignPage';
 import SavedWorkout from './SavedWorkout/SavedWorkout';
 import ListOfWorkouts from './ListOfWorkouts';
 import MyExercisesPage from './pages/MyExercisesPage';
+import ResumeWorkoutModal from './components/ResumeWorkoutModal';
 
 function Main() {
     return (
         <BrowserRouter>
+            <ResumeWorkoutModal />
             <Routes>
                 <Route exact path="/" element={<LandingPage />} />
                 <Route exact path="/Templates" element={<TemplateSelectionPage />} />
@@ -21,6 +24,7 @@ function Main() {
                 <Route exact path="/TrainingStyle" element={<TrainingStylePage />} />
                 <Route exact path="/Strength" element={<StrengthPage />} />
                 <Route exact path="/Hypertrophy" element={<HypertrophyPage />} />
+                <Route exact path="/start-workout" element={<StartWorkoutPage />} />
                 <Route exact path="ColorDesign" element={<ColorDesignPage />} />
                 <Route exact path="/SavedWorkout/:workoutId" element={<SavedWorkout />} />
                 <Route exact path="/SavedWorkouts" element={<ListOfWorkouts />} />

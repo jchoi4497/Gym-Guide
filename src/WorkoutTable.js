@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import TableRow from './TableRow';
 import {
   DndContext,
@@ -17,7 +18,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 // Sortable wrapper for TableRow
-function SortableTableRow({ exercise, isEditingSets, onMoveUp, onMoveDown, isFirst, isLast, ...props }) {
+function SortableTableRow({ exercise, isEditingSets, onMoveUp, onMoveDown, isFirst, isLast, expandAll, ...props }) {
   const {
     attributes,
     listeners,
@@ -77,7 +78,7 @@ function SortableTableRow({ exercise, isEditingSets, onMoveUp, onMoveDown, isFir
           </div>
         </>
       )}
-      <TableRow {...props} isEditingSets={isEditingSets} />
+      <TableRow {...props} isEditingSets={isEditingSets} expandAll={expandAll} />
     </div>
   );
 }
@@ -98,6 +99,8 @@ function WorkoutTable({
   favoriteExercises = [],
   onToggleFavorite,
 }) {
+  const [expandAll, setExpandAll] = useState(true);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -140,8 +143,16 @@ function WorkoutTable({
 
   return (
     <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4">
-      <div className="text-xl font-bold mb-4 py-3 bg-blue-50 rounded-md text-center">
-        {setRangeLabel} - {muscleGroup}
+      <div className="flex items-center justify-between mb-4 p-3 bg-blue-50 rounded-md">
+        <div className="text-xl font-bold">
+          {setRangeLabel} - {muscleGroup}
+        </div>
+        <button
+          onClick={() => setExpandAll(!expandAll)}
+          className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
+        >
+          {expandAll ? '▼ Collapse All' : '▶ Expand All'}
+        </button>
       </div>
 
       <DndContext
@@ -174,6 +185,7 @@ function WorkoutTable({
                 previousCustomExercises={previousCustomExercises}
                 isEditingSets={isEditingSets}
                 favoriteExercises={favoriteExercises}
+                expandAll={expandAll}
                 onToggleFavorite={onToggleFavorite}
                 onMoveUp={moveUp}
                 onMoveDown={moveDown}
