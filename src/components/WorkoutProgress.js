@@ -1,18 +1,11 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
+import { useIsMobile } from '../hooks/useIsMobile';
 
 function WorkoutProgress({ exercises, currentSetIndex, onUpdateSet, onOpenPicker, onReorderExercise }) {
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState(null); // null = all collapsed
-  const [isMobile, setIsMobile] = useState(false);
 
-  // Mobile detection
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  // Mobile detection (using shared hook)
+  const isMobile = useIsMobile();
   // Calculate progress statistics
   const stats = useMemo(() => {
     let totalSets = 0;
