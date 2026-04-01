@@ -43,6 +43,7 @@ function OptionalWorkoutSections({
   position, // "top" or "bottom"
   isEditingSets = false, // Control visibility of remove buttons
   previousCustomExercises = [], // For autocomplete suggestions
+  disableCheckboxes = false, // Disable checkboxes (for saved workouts in view mode)
 }) {
   const [absEditMode, setAbsEditMode] = useState({}); // Track edit mode per abs exercise
 
@@ -330,14 +331,15 @@ function OptionalWorkoutSections({
         <div key="abs">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-3 cursor-pointer group">
+              <label className={`flex items-center gap-3 ${disableCheckboxes ? 'cursor-not-allowed' : 'cursor-pointer'} group`}>
                 <input
                   type="checkbox"
                   checked={showAbs}
                   onChange={(e) => setShowAbs(e.target.checked)}
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  disabled={disableCheckboxes}
+                  className={`w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 ${disableCheckboxes ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                 />
-                <span className="text-xl font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">
+                <span className={`text-xl font-semibold text-gray-700 ${disableCheckboxes ? 'opacity-50' : 'group-hover:text-blue-600'} transition-colors`}>
                   Add Abs/Core
                 </span>
               </label>
@@ -392,7 +394,8 @@ function OptionalWorkoutSections({
                           }}
                           previousCustomExercises={previousCustomExercises}
                           placeholder="Enter abs exercise name..."
-                          className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
+                          className={`w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all ${disableCheckboxes ? 'opacity-60 cursor-not-allowed' : ''}`}
+                          disabled={disableCheckboxes}
                         />
                       ) : (
                         <select
@@ -405,7 +408,8 @@ function OptionalWorkoutSections({
                             return matchingOption ? matchingOption.value : exercise.selected;
                           })()}
                           onChange={(e) => handleAbsChange(exercise.id, e.target.value)}
-                          className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
+                          disabled={disableCheckboxes}
+                          className={`w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all ${disableCheckboxes ? 'opacity-60 cursor-not-allowed' : ''}`}
                         >
                           {exercise.options.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -443,8 +447,9 @@ function OptionalWorkoutSections({
                                         <>
                                           <button
                                             type="button"
-                                            onClick={() => handleOpenAbsPicker(exercise.id, idx, 'weight')}
-                                            className="px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
+                                            onClick={() => !disableCheckboxes && handleOpenAbsPicker(exercise.id, idx, 'weight')}
+                                            disabled={disableCheckboxes}
+                                            className={`px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : 'hover:bg-blue-200 active:scale-95'}`}
                                           >
                                             {currentSet.weight || <span className="text-gray-400">lbs</span>}
                                           </button>
@@ -453,8 +458,9 @@ function OptionalWorkoutSections({
                                       )}
                                       <button
                                         type="button"
-                                        onClick={() => handleOpenAbsPicker(exercise.id, idx, 'reps')}
-                                        className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95 ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
+                                        onClick={() => !disableCheckboxes && handleOpenAbsPicker(exercise.id, idx, 'reps')}
+                                        disabled={disableCheckboxes}
+                                        className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : 'hover:bg-blue-200 active:scale-95'} ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
                                       >
                                         {currentSet.reps || <span className="text-gray-400">{isTimed ? "sec" : "reps"}</span>}
                                       </button>
@@ -473,7 +479,8 @@ function OptionalWorkoutSections({
                                               handleAbsInput(exercise.id, selectedExercise, idx, combined);
                                             }}
                                             placeholder="lbs"
-                                            className="px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm"
+                                            readOnly={disableCheckboxes}
+                                            className={`px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : ''}`}
                                           />
                                           <span className="text-gray-500 font-bold text-xs">×</span>
                                         </>
@@ -487,7 +494,8 @@ function OptionalWorkoutSections({
                                           handleAbsInput(exercise.id, selectedExercise, idx, combined);
                                         }}
                                         placeholder={isTimed ? "sec" : "reps"}
-                                        className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
+                                        readOnly={disableCheckboxes}
+                                        className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : ''} ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
                                       />
                                     </>
                                   )}
@@ -550,14 +558,15 @@ function OptionalWorkoutSections({
         <div key="cardio">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-3">
-              <label className="flex items-center gap-3 cursor-pointer group">
+              <label className={`flex items-center gap-3 ${disableCheckboxes ? 'cursor-not-allowed' : 'cursor-pointer'} group`}>
                 <input
                   type="checkbox"
                   checked={showCardio}
                   onChange={(e) => setShowCardio(e.target.checked)}
-                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                  disabled={disableCheckboxes}
+                  className={`w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 ${disableCheckboxes ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                 />
-                <span className="text-xl font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">
+                <span className={`text-xl font-semibold text-gray-700 ${disableCheckboxes ? 'opacity-50' : 'group-hover:text-blue-600'} transition-colors`}>
                   Add Cardio
                 </span>
               </label>
@@ -612,7 +621,8 @@ function OptionalWorkoutSections({
                           }}
                           previousCustomExercises={previousCustomExercises}
                           placeholder="Enter cardio exercise name..."
-                          className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
+                          className={`w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all ${disableCheckboxes ? 'opacity-60 cursor-not-allowed' : ''}`}
+                          disabled={disableCheckboxes}
                         />
                       ) : (
                         <select
@@ -625,7 +635,8 @@ function OptionalWorkoutSections({
                             return matchingOption ? matchingOption.value : exercise.selected;
                           })()}
                           onChange={(e) => handleCardioChange(exercise.id, e.target.value)}
-                          className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
+                          disabled={disableCheckboxes}
+                          className={`w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all ${disableCheckboxes ? 'opacity-60 cursor-not-allowed' : ''}`}
                         >
                           {exercise.options.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -652,8 +663,9 @@ function OptionalWorkoutSections({
                                     // MOBILE: Button that opens picker
                                     <button
                                       type="button"
-                                      onClick={() => handleOpenCardioPicker(exercise.id, idx, label)}
-                                      className="px-2 py-2 w-24 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
+                                      onClick={() => !disableCheckboxes && handleOpenCardioPicker(exercise.id, idx, label)}
+                                      disabled={disableCheckboxes}
+                                      className={`px-2 py-2 w-24 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : 'hover:bg-blue-200 active:scale-95'}`}
                                     >
                                       {value || <span className="text-gray-400">{label}</span>}
                                     </button>
@@ -665,7 +677,8 @@ function OptionalWorkoutSections({
                                       placeholder={label}
                                       value={value}
                                       onChange={(e) => handleCardioInput(exercise.id, exercise.selected, idx, e.target.value)}
-                                      className="px-2 py-2 w-24 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm"
+                                      readOnly={disableCheckboxes}
+                                      className={`px-2 py-2 w-24 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : ''}`}
                                     />
                                   )}
                                 </div>
