@@ -46,6 +46,9 @@ function HypertrophyPage() {
   const [cardioAtTop, setCardioAtTop] = useState(false);
   const [absAtTop, setAbsAtTop] = useState(false);
 
+  // Order when both sections are in same position ('abs-first' | 'cardio-first')
+  const [sectionOrder, setSectionOrder] = useState('abs-first');
+
   // Section visibility states
   const [showCardio, setShowCardio] = useState(false);
   const [showAbs, setShowAbs] = useState(false);
@@ -121,6 +124,7 @@ function HypertrophyPage() {
         setCardioAtTop(template.cardioAtTop || false);
         setShowAbs(template.includeAbs || false);
         setAbsAtTop(template.absAtTop || false);
+        setSectionOrder(template.sectionOrder || 'abs-first');
 
         // Pre-fill exercises once we have the set count
         const setsCount = template.customSetCount || template.numberOfSets || 4;
@@ -219,6 +223,9 @@ function HypertrophyPage() {
           if (session.workoutData.absAtTop !== undefined) {
             setAbsAtTop(session.workoutData.absAtTop);
           }
+          if (session.workoutData.sectionOrder) {
+            setSectionOrder(session.workoutData.sectionOrder);
+          }
           if (session.workoutData.workflowMode) {
             setWorkflowMode(session.workoutData.workflowMode);
           }
@@ -295,6 +302,7 @@ function HypertrophyPage() {
           if (parsed.showAbs !== undefined) setShowAbs(parsed.showAbs);
           if (parsed.cardioAtTop !== undefined) setCardioAtTop(parsed.cardioAtTop);
           if (parsed.absAtTop !== undefined) setAbsAtTop(parsed.absAtTop);
+          if (parsed.sectionOrder) setSectionOrder(parsed.sectionOrder);
 
           // Restore workflow mode if present
           if (parsed.workflowMode) setWorkflowMode(parsed.workflowMode);
@@ -328,11 +336,12 @@ function HypertrophyPage() {
         showAbs,
         cardioAtTop,
         absAtTop,
+        sectionOrder,
         workflowMode, // Save workflow mode to restore correct screen
       };
       localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT, JSON.stringify(draft));
     }
-  }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount, selectedTemplateFromDropdown, showCardio, showAbs, cardioAtTop, absAtTop, workflowMode, justLoadedTemplate]);
+  }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount, selectedTemplateFromDropdown, showCardio, showAbs, cardioAtTop, absAtTop, sectionOrder, workflowMode, justLoadedTemplate]);
 
   // PREVENT ACCIDENTAL TAB CLOSING ---
   useEffect(() => {
@@ -664,9 +673,15 @@ function HypertrophyPage() {
     if (setIndex === -1) {
       // -1 means changing the exercise selection
       updatedExerciseData[categoryKey].exerciseName = exerciseName;
-      // Store detected category if provided
+      // Store detected category or selection ID
       if (detectedCategory) {
-        updatedExerciseData[categoryKey].detectedCategory = detectedCategory;
+        if (isCardioOrAbs) {
+          // For cardio/abs, store the exercise ID as "selection" for field lookup
+          updatedExerciseData[categoryKey].selection = detectedCategory;
+        } else {
+          // For regular exercises, store as detectedCategory
+          updatedExerciseData[categoryKey].detectedCategory = detectedCategory;
+        }
       }
       // Ensure sets array exists and has correct length
       if (!updatedExerciseData[categoryKey].sets || updatedExerciseData[categoryKey].sets.length === 0) {
@@ -710,6 +725,130 @@ function HypertrophyPage() {
     // Now remove the set
     updatedExerciseData[categoryKey].sets = updatedExerciseData[categoryKey].sets.filter((_, i) => i !== setIndex);
     setExerciseData(updatedExerciseData);
+  };
+
+  // Handle moving cardio section up
+  const handleCardioMoveUp = () => {
+    if (!cardioAtTop) {
+      // Cardio is at bottom
+      if (!absAtTop) {
+        // Both at bottom - check order
+        if (sectionOrder === 'abs-first') {
+          // Abs is first, Cardio is second - swap them
+          setSectionOrder('cardio-first');
+        } else {
+          // Cardio is already first at bottom - move to top
+          setCardioAtTop(true);
+        }
+      } else {
+        // Abs is at top, Cardio at bottom - just move Cardio to top
+        setCardioAtTop(true);
+      }
+    } else {
+      // Cardio is at top
+      if (absAtTop) {
+        // Both at top - check order
+        if (sectionOrder === 'abs-first') {
+          // Abs is first, Cardio is second - swap them
+          setSectionOrder('cardio-first');
+        }
+        // else Cardio is already first, can't go higher
+      }
+      // else Cardio is alone at top, can't go higher
+    }
+  };
+
+  // Handle moving cardio section down
+  const handleCardioMoveDown = () => {
+    if (cardioAtTop) {
+      // Cardio is at top
+      if (absAtTop) {
+        // Both at top - check order
+        if (sectionOrder === 'cardio-first') {
+          // Cardio is first, Abs is second - swap them
+          setSectionOrder('abs-first');
+        } else {
+          // Cardio is already second at top - move to bottom
+          setCardioAtTop(false);
+        }
+      } else {
+        // Abs is at bottom, Cardio at top - just move Cardio to bottom
+        setCardioAtTop(false);
+      }
+    } else {
+      // Cardio is at bottom
+      if (!absAtTop) {
+        // Both at bottom - check order
+        if (sectionOrder === 'cardio-first') {
+          // Cardio is first, Abs is second - swap them
+          setSectionOrder('abs-first');
+        }
+        // else Cardio is already second, can't go lower
+      }
+      // else Cardio is alone at bottom, can't go lower
+    }
+  };
+
+  // Handle moving abs section up
+  const handleAbsMoveUp = () => {
+    if (!absAtTop) {
+      // Abs is at bottom
+      if (!cardioAtTop) {
+        // Both at bottom - check order
+        if (sectionOrder === 'cardio-first') {
+          // Cardio is first, Abs is second - swap them
+          setSectionOrder('abs-first');
+        } else {
+          // Abs is already first at bottom - move to top
+          setAbsAtTop(true);
+        }
+      } else {
+        // Cardio is at top, Abs at bottom - just move Abs to top
+        setAbsAtTop(true);
+      }
+    } else {
+      // Abs is at top
+      if (cardioAtTop) {
+        // Both at top - check order
+        if (sectionOrder === 'cardio-first') {
+          // Cardio is first, Abs is second - swap them
+          setSectionOrder('abs-first');
+        }
+        // else Abs is already first, can't go higher
+      }
+      // else Abs is alone at top, can't go higher
+    }
+  };
+
+  // Handle moving abs section down
+  const handleAbsMoveDown = () => {
+    if (absAtTop) {
+      // Abs is at top
+      if (cardioAtTop) {
+        // Both at top - check order
+        if (sectionOrder === 'abs-first') {
+          // Abs is first, Cardio is second - swap them
+          setSectionOrder('cardio-first');
+        } else {
+          // Abs is already second at top - move to bottom
+          setAbsAtTop(false);
+        }
+      } else {
+        // Cardio is at bottom, Abs at top - just move Abs to bottom
+        setAbsAtTop(false);
+      }
+    } else {
+      // Abs is at bottom
+      if (!cardioAtTop) {
+        // Both at bottom - check order
+        if (sectionOrder === 'abs-first') {
+          // Abs is first, Cardio is second - swap them
+          setSectionOrder('cardio-first');
+        }
+        // else Abs is already second, can't go lower
+      }
+      // else Abs is alone at bottom, can't go lower
+    }
   };
 
   const handleMuscleGroupSelect = (option) => {
@@ -776,6 +915,7 @@ function HypertrophyPage() {
       setCardioAtTop(template.cardioAtTop || false);
       setShowAbs(template.includeAbs || false);
       setAbsAtTop(template.absAtTop || false);
+      setSectionOrder(template.sectionOrder || 'abs-first');
 
       // Pre-fill exercises once we have the set count
       const setsCount = template.customSetCount || template.numberOfSets || 4;
@@ -872,12 +1012,40 @@ function HypertrophyPage() {
       const absKeys = allKeys.filter(k => k.startsWith('abs') || k.startsWith('custom_abs'));
       const mainKeys = allKeys.filter(k => !cardioKeys.includes(k) && !absKeys.includes(k));
 
+      // Build sections at top respecting order
+      const topSections = [];
+      if (cardioAtTop && absAtTop) {
+        if (sectionOrder === 'abs-first') {
+          if (showAbs) topSections.push(...absKeys);
+          if (showCardio) topSections.push(...cardioKeys);
+        } else {
+          if (showCardio) topSections.push(...cardioKeys);
+          if (showAbs) topSections.push(...absKeys);
+        }
+      } else {
+        if (cardioAtTop && showCardio) topSections.push(...cardioKeys);
+        if (absAtTop && showAbs) topSections.push(...absKeys);
+      }
+
+      // Build sections at bottom respecting order
+      const bottomSections = [];
+      if (!cardioAtTop && !absAtTop) {
+        if (sectionOrder === 'abs-first') {
+          if (showAbs) bottomSections.push(...absKeys);
+          if (showCardio) bottomSections.push(...cardioKeys);
+        } else {
+          if (showCardio) bottomSections.push(...cardioKeys);
+          if (showAbs) bottomSections.push(...absKeys);
+        }
+      } else {
+        if (!cardioAtTop && showCardio) bottomSections.push(...cardioKeys);
+        if (!absAtTop && showAbs) bottomSections.push(...absKeys);
+      }
+
       const exerciseOrder = [
-        ...(cardioAtTop && showCardio ? cardioKeys : []),
-        ...(absAtTop && showAbs ? absKeys : []),
+        ...topSections,
         ...mainKeys,
-        ...(!cardioAtTop && showCardio ? cardioKeys : []),
-        ...(!absAtTop && showAbs ? absKeys : []),
+        ...bottomSections,
       ];
 
       // Generate New Summary (no monthly data on initial save, only has previous workout)
@@ -939,6 +1107,7 @@ function HypertrophyPage() {
       showAbs,
       cardioAtTop,
       absAtTop,
+      sectionOrder,
       workflowMode,
     };
 
@@ -1350,8 +1519,11 @@ function HypertrophyPage() {
               onRemoveSet={handleRemoveSet}
               cardioAtTop={cardioAtTop}
               absAtTop={absAtTop}
-              onToggleCardioPosition={() => setCardioAtTop(!cardioAtTop)}
-              onToggleAbsPosition={() => setAbsAtTop(!absAtTop)}
+              sectionOrder={sectionOrder}
+              onCardioMoveUp={handleCardioMoveUp}
+              onCardioMoveDown={handleCardioMoveDown}
+              onAbsMoveUp={handleAbsMoveUp}
+              onAbsMoveDown={handleAbsMoveDown}
               showCardio={showCardio}
               setShowCardio={setShowCardio}
               showAbs={showAbs}
@@ -1393,8 +1565,11 @@ function HypertrophyPage() {
               onRemoveSet={handleRemoveSet}
               cardioAtTop={cardioAtTop}
               absAtTop={absAtTop}
-              onToggleCardioPosition={() => setCardioAtTop(!cardioAtTop)}
-              onToggleAbsPosition={() => setAbsAtTop(!absAtTop)}
+              sectionOrder={sectionOrder}
+              onCardioMoveUp={handleCardioMoveUp}
+              onCardioMoveDown={handleCardioMoveDown}
+              onAbsMoveUp={handleAbsMoveUp}
+              onAbsMoveDown={handleAbsMoveDown}
               showCardio={showCardio}
               setShowCardio={setShowCardio}
               showAbs={showAbs}
