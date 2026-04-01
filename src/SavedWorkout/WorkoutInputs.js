@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import exerciseNames from '../exerciseNames';
-import DataChart from '../DataChart';
+import exerciseNames from '../config/exerciseNames';
+import DataChart from '../components/DataChart';
 import ExerciseAutocomplete from '../components/ExerciseAutocomplete';
 import { getPlaceholderForExercise, getExerciseById, getExerciseIdByName, EXERCISE_CATEGORIES, MUSCLE_GROUPS } from '../config/exerciseConfig';
 import WeightRepsPicker from '../components/WeightRepsPicker';
