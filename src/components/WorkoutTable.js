@@ -39,31 +39,35 @@ function SortableTableRow({ exercise, isEditingSets, onMoveUp, onMoveDown, isFir
       {/* Reorder Controls - Only visible when editing sets */}
       {isEditingSets && (
         <>
-          {/* Arrow Buttons (Mobile - sm and below) */}
-          <div className="absolute -left-3 top-1/2 -translate-y-1/2 flex flex-col gap-1 sm:hidden z-10">
+          {/* Arrow Buttons (Mobile - sm and below) - Positioned inside the card on the left */}
+          <div className="absolute left-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 sm:hidden z-20">
             <button
               onClick={() => onMoveUp(exercise.id)}
               disabled={isFirst}
-              className={`w-7 h-7 rounded flex items-center justify-center shadow-md transition-all ${
+              className={`w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all ${
                 isFirst
-                  ? 'bg-gray-300 text-gray-400 cursor-not-allowed'
-                  : 'bg-blue-500 text-white hover:bg-blue-600 active:scale-90'
+                  ? 'bg-gray-200 cursor-not-allowed'
+                  : 'bg-gray-400 hover:bg-gray-500 active:scale-90'
               }`}
               title="Move up"
             >
-              ↑
+              <svg className={`w-3 h-3 ${isFirst ? 'text-gray-400' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 15l7-7 7 7" />
+              </svg>
             </button>
             <button
               onClick={() => onMoveDown(exercise.id)}
               disabled={isLast}
-              className={`w-7 h-7 rounded flex items-center justify-center shadow-md transition-all ${
+              className={`w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all ${
                 isLast
-                  ? 'bg-gray-300 text-gray-400 cursor-not-allowed'
-                  : 'bg-blue-500 text-white hover:bg-blue-600 active:scale-90'
+                  ? 'bg-gray-200 cursor-not-allowed'
+                  : 'bg-gray-400 hover:bg-gray-500 active:scale-90'
               }`}
               title="Move down"
             >
-              ↓
+              <svg className={`w-3 h-3 ${isLast ? 'text-gray-400' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+              </svg>
             </button>
           </div>
 
@@ -98,8 +102,9 @@ function WorkoutTable({
   onReorder,
   favoriteExercises = [],
   onToggleFavorite,
+  expandAll = true, // Controlled by parent
+  onExpandAllChange, // Handler to update parent state
 }) {
-  const [expandAll, setExpandAll] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -142,14 +147,14 @@ function WorkoutTable({
   };
 
   return (
-    <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4">
-      <div className="flex items-center justify-between mb-4 p-3 bg-blue-50 rounded-md">
-        <div className="text-xl font-bold">
+    <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-2 sm:p-4 overflow-visible">
+      <div className="flex items-center justify-between mb-4 p-2 sm:p-3 bg-blue-50 rounded-md">
+        <div className="text-lg sm:text-xl font-bold">
           {setRangeLabel} - {muscleGroup}
         </div>
         <button
-          onClick={() => setExpandAll(!expandAll)}
-          className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
+          onClick={() => onExpandAllChange && onExpandAllChange(!expandAll)}
+          className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
         >
           {expandAll ? '▼ Collapse All' : '▶ Expand All'}
         </button>

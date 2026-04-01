@@ -16,6 +16,7 @@ function ExerciseAutocomplete({
   placeholder = "Exercise Name",
   className = "",
   autoFocus = false,
+  disabled = false,
 }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
@@ -208,6 +209,7 @@ function ExerciseAutocomplete({
         className={className}
         autoComplete="off"
         autoFocus={autoFocus}
+        disabled={disabled}
       />
 
       {/* Suggestions Dropdown */}
