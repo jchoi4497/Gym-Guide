@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getExercisesByCategory, EXERCISE_CATEGORIES, getPlaceholderForExercise, getExerciseName, getExerciseById, getExerciseIdByName } from '../config/exerciseConfig';
 import WeightRepsPicker from './WeightRepsPicker';
+import ExerciseAutocomplete from './ExerciseAutocomplete';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { parseSet, combineSet } from '../utils/setHelpers';
 
@@ -41,6 +42,7 @@ function OptionalWorkoutSections({
   setShowAbs,
   position, // "top" or "bottom"
   isEditingSets = false, // Control visibility of remove buttons
+  previousCustomExercises = [], // For autocomplete suggestions
 }) {
   const [absEditMode, setAbsEditMode] = useState({}); // Track edit mode per abs exercise
 
@@ -382,12 +384,15 @@ function OptionalWorkoutSections({
 
                     <div className="w-full sm:w-1/3">
                       {exercise.isCustom ? (
-                        <input
-                          type="text"
+                        <ExerciseAutocomplete
+                          value={exerciseData[exercise.id]?.exerciseName || exercise.selected}
+                          onChange={(value) => handleAbsChange(exercise.id, value)}
+                          onSelect={(exerciseObj) => {
+                            handleAbsChange(exercise.id, exerciseObj.name);
+                          }}
+                          previousCustomExercises={previousCustomExercises}
                           placeholder="Enter abs exercise name..."
                           className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
-                          value={exerciseData[exercise.id]?.exerciseName || exercise.selected}
-                          onChange={(e) => handleAbsChange(exercise.id, e.target.value)}
                         />
                       ) : (
                         <select
@@ -599,12 +604,15 @@ function OptionalWorkoutSections({
 
                     <div className="w-full sm:w-1/3">
                       {exercise.isCustom ? (
-                        <input
-                          type="text"
+                        <ExerciseAutocomplete
+                          value={exerciseData[exercise.id]?.exerciseName || exercise.selected}
+                          onChange={(value) => handleCardioChange(exercise.id, value)}
+                          onSelect={(exerciseObj) => {
+                            handleCardioChange(exercise.id, exerciseObj.name);
+                          }}
+                          previousCustomExercises={previousCustomExercises}
                           placeholder="Enter cardio exercise name..."
                           className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
-                          value={exerciseData[exercise.id]?.exerciseName || exercise.selected}
-                          onChange={(e) => handleCardioChange(exercise.id, e.target.value)}
                         />
                       ) : (
                         <select

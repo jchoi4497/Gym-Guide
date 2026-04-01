@@ -97,7 +97,16 @@ function MuscleGroupWorkout({
   // Sync exercises array with exerciseData (for template loading ONLY)
   // Only rebuild when a template is loaded (exerciseData has MORE keys than current exercises)
   useEffect(() => {
-    const exerciseDataKeys = Object.keys(exerciseData || {});
+    // Filter out cardio and abs exercises - they're handled by OptionalWorkoutSections
+    const filterOutCardioAbs = (key) => {
+      const lowerKey = key.toLowerCase();
+      return !lowerKey.startsWith('cardio') &&
+             !lowerKey.startsWith('abs') &&
+             !lowerKey.startsWith('custom_cardio') &&
+             !lowerKey.startsWith('custom_abs');
+    };
+
+    const exerciseDataKeys = Object.keys(exerciseData || {}).filter(filterOutCardioAbs);
     const currentExerciseCount = exercises.length;
     const currentExerciseIds = new Set(exercises.map(ex => ex.id));
 
