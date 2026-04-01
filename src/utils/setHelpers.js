@@ -1,11 +1,6 @@
 /**
- * Set Parsing & Manipulation Utilities
- * Consolidates all logic for handling "145x12" format sets
- */
-
-/**
- * Parse set string into weight and reps object
- * @param {string} setString - Format: "145x12" or "12" (bodyweight)
+ * Parse "145x12" format into weight and reps
+ * @param {string} setString - String in format "weightxreps"
  * @returns {{weight: string, reps: string}}
  */
 export const parseSet = (setString) => {
@@ -23,14 +18,14 @@ export const parseSet = (setString) => {
 };
 
 /**
- * Combine weight and reps into set string
+ * Combine weight and reps back to "145x12" format
  * @param {string} weight
  * @param {string} reps
- * @returns {string} - Format: "145x12" or "12" (bodyweight)
+ * @returns {string}
  */
 export const combineSet = (weight, reps) => {
-  const w = weight.trim();
-  const r = reps.trim();
+  const w = weight?.toString().trim() || '';
+  const r = reps?.toString().trim() || '';
 
   if (!w && !r) return '';
   if (!w) return r; // Bodyweight - just reps
@@ -39,83 +34,26 @@ export const combineSet = (weight, reps) => {
 };
 
 /**
- * Check if a set has any data
- * @param {string} setString
- * @returns {boolean}
+ * Get previous set from setInputs array
+ * @param {Array<string>} setInputs
+ * @param {number} setIndex
+ * @returns {string|null}
  */
-export const hasSetData = (setString) => {
-  if (!setString) return false;
-  const { weight, reps } = parseSet(setString);
-  return Boolean(weight || reps);
+export const getPreviousSet = (setInputs, setIndex) => {
+  if (setIndex === 0 || !setInputs) return null;
+
+  const previousSetString = setInputs[setIndex - 1];
+  if (!previousSetString || previousSetString.trim() === '') return null;
+
+  return previousSetString;
 };
 
 /**
- * Copy previous set data
- * @param {Array<string>} sets - Array of set strings
- * @param {number} currentIndex - Index of current set
- * @returns {string|null} - Previous set string or null if not available
- */
-export const getPreviousSet = (sets, currentIndex) => {
-  if (currentIndex === 0 || !sets || sets.length === 0) return null;
-
-  const previousSet = sets[currentIndex - 1];
-  return hasSetData(previousSet) ? previousSet : null;
-};
-
-/**
- * Count filled sets in array
- * @param {Array<string>} sets
+ * Count filled sets
+ * @param {Array<string>} setInputs
  * @returns {number}
  */
-export const countFilledSets = (sets) => {
-  if (!sets || !Array.isArray(sets)) return 0;
-  return sets.filter(hasSetData).length;
-};
-
-/**
- * Parse weight/reps for calculations (returns numbers)
- * @param {string} input - Format: "145x12"
- * @returns {{weight: number, reps: number, volume: number}|null}
- */
-export const parseSetForCalculations = (input) => {
-  if (typeof input !== 'string') return null;
-
-  if (input.includes('x')) {
-    const parts = input.split('x').map(str => str.trim());
-    if (parts.length !== 2) return null;
-
-    const weight = parseFloat(parts[0]);
-    const reps = parseInt(parts[1]);
-    if (isNaN(weight) || isNaN(reps)) return null;
-
-    return {
-      weight,
-      reps,
-      volume: weight * reps
-    };
-  }
-
-  // Bodyweight - treat as reps only
-  const reps = parseInt(input.trim());
-  if (isNaN(reps)) return null;
-
-  return {
-    weight: 0,
-    reps,
-    volume: reps
-  };
-};
-
-/**
- * Calculate total volume for an exercise
- * @param {Array<string>} sets
- * @returns {number}
- */
-export const calculateExerciseVolume = (sets) => {
-  if (!sets || !Array.isArray(sets)) return 0;
-
-  return sets.reduce((total, set) => {
-    const parsed = parseSetForCalculations(set);
-    return total + (parsed?.volume || 0);
-  }, 0);
+export const countFilledSets = (setInputs) => {
+  if (!setInputs) return 0;
+  return setInputs.filter(s => s && s.trim() !== '').length;
 };
