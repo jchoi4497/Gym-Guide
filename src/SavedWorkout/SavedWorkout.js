@@ -47,9 +47,13 @@ function SavedWorkout() {
   const [showAbs, setShowAbs] = useState(false);
   const [cardioAtTop, setCardioAtTop] = useState(false);
   const [absAtTop, setAbsAtTop] = useState(false);
+  const [sectionOrder, setSectionOrder] = useState('abs-first'); // 'abs-first' or 'cardio-first'
 
   // Sticky button state for mobile
   const [isButtonSticky, setIsButtonSticky] = useState(true);
+
+  // Expand/collapse all state - default to expanded (true)
+  const [expandAll, setExpandAll] = useState(true);
 
   //used to get label of workout on savedworkout page
   const getLabel = (value) =>
@@ -218,10 +222,6 @@ function SavedWorkout() {
         if (hasCardio) setShowCardio(true);
         if (hasAbs) setShowAbs(true);
 
-        // Load exercise order if available (fallback to object keys for old workouts)
-        const savedOrder = data.exerciseOrder || Object.keys(exerciseData);
-        setExerciseOrder(savedOrder);
-
         // Set the date for editing (convert Firebase timestamp to YYYY-MM-DD)
         if (data.date) {
           const workoutDate = data.date.toDate ? data.date.toDate() : new Date(data.date.seconds * 1000);
@@ -231,16 +231,32 @@ function SavedWorkout() {
           setEditedDate(`${year}-${month}-${day}`);
         }
 
-        // CREATE THE INITIAL ORDER
-        const inputKeys = Object.keys(exerciseData);
-        const muscleGroup = data.muscleGroup || data.target;
-        const orderedKeysFromCategory = categoryOrder[muscleGroup] || [];
-        // Filter existing keys based on your preferred order, then append any extras (custom ones)
-        const sorted = [
-          ...orderedKeysFromCategory.filter((key) => inputKeys.includes(key)),
-          ...inputKeys.filter((key) => !orderedKeysFromCategory.includes(key)),
-        ];
-        setExerciseOrder(sorted);
+        // Load exercise order - use saved order if available, otherwise create default
+        if (data.exerciseOrder && data.exerciseOrder.length > 0) {
+          // Use saved order
+          setExerciseOrder(data.exerciseOrder);
+        } else {
+          // No saved order - create default from category order (for old workouts)
+          const inputKeys = Object.keys(exerciseData);
+          const muscleGroup = data.muscleGroup || data.target;
+          const orderedKeysFromCategory = categoryOrder[muscleGroup] || [];
+          const sorted = [
+            ...orderedKeysFromCategory.filter((key) => inputKeys.includes(key)),
+            ...inputKeys.filter((key) => !orderedKeysFromCategory.includes(key)),
+          ];
+          setExerciseOrder(sorted);
+        }
+
+        // Load section order and positions if available
+        if (data.sectionOrder) {
+          setSectionOrder(data.sectionOrder);
+        }
+        if (data.cardioAtTop !== undefined) {
+          setCardioAtTop(data.cardioAtTop);
+        }
+        if (data.absAtTop !== undefined) {
+          setAbsAtTop(data.absAtTop);
+        }
       } else {
         setError('No such document found.');
       }
@@ -322,6 +338,107 @@ function SavedWorkout() {
 
   const handleToggleAbsPosition = () => {
     setAbsAtTop(!absAtTop);
+    setHasUnsavedChanges(true);
+  };
+
+  // Move handlers for cardio/abs sections
+  const handleCardioMoveUp = () => {
+    if (!cardioAtTop) {
+      // Cardio is at bottom
+      if (!absAtTop) {
+        // Both at bottom - check order
+        if (sectionOrder === 'abs-first') {
+          // Abs is first, Cardio is second - swap them
+          setSectionOrder('cardio-first');
+        } else {
+          // Cardio is already first at bottom - move to top
+          setCardioAtTop(true);
+        }
+      } else {
+        // Abs is at top, Cardio at bottom - just move Cardio to top
+        setCardioAtTop(true);
+      }
+    } else {
+      // Cardio is already at top - maybe swap order if both at top
+      if (absAtTop && sectionOrder === 'cardio-first') {
+        setSectionOrder('abs-first');
+      }
+    }
+    setHasUnsavedChanges(true);
+  };
+
+  const handleCardioMoveDown = () => {
+    if (cardioAtTop) {
+      // Cardio is at top
+      if (absAtTop) {
+        // Both at top - check order
+        if (sectionOrder === 'cardio-first') {
+          // Cardio is first, Abs is second - swap them
+          setSectionOrder('abs-first');
+        } else {
+          // Cardio is already second at top - move to bottom
+          setCardioAtTop(false);
+        }
+      } else {
+        // Abs is at bottom, Cardio at top - just move Cardio to bottom
+        setCardioAtTop(false);
+      }
+    } else {
+      // Cardio is already at bottom - maybe swap order if both at bottom
+      if (!absAtTop && sectionOrder === 'abs-first') {
+        setSectionOrder('cardio-first');
+      }
+    }
+    setHasUnsavedChanges(true);
+  };
+
+  const handleAbsMoveUp = () => {
+    if (!absAtTop) {
+      // Abs is at bottom
+      if (!cardioAtTop) {
+        // Both at bottom - check order
+        if (sectionOrder === 'cardio-first') {
+          // Cardio is first, Abs is second - swap them
+          setSectionOrder('abs-first');
+        } else {
+          // Abs is already first at bottom - move to top
+          setAbsAtTop(true);
+        }
+      } else {
+        // Cardio is at top, Abs at bottom - just move Abs to top
+        setAbsAtTop(true);
+      }
+    } else {
+      // Abs is already at top - maybe swap order if both at top
+      if (cardioAtTop && sectionOrder === 'abs-first') {
+        setSectionOrder('cardio-first');
+      }
+    }
+    setHasUnsavedChanges(true);
+  };
+
+  const handleAbsMoveDown = () => {
+    if (absAtTop) {
+      // Abs is at top
+      if (cardioAtTop) {
+        // Both at top - check order
+        if (sectionOrder === 'abs-first') {
+          // Abs is first, Cardio is second - swap them
+          setSectionOrder('cardio-first');
+        } else {
+          // Abs is already second at top - move to bottom
+          setAbsAtTop(false);
+        }
+      } else {
+        // Cardio is at bottom, Abs at top - just move Abs to bottom
+        setAbsAtTop(false);
+      }
+    } else {
+      // Abs is already at bottom - maybe swap order if both at bottom
+      if (!cardioAtTop && sectionOrder === 'cardio-first') {
+        setSectionOrder('abs-first');
+      }
+    }
     setHasUnsavedChanges(true);
   };
 
@@ -450,12 +567,15 @@ function SavedWorkout() {
       const orderChanged = JSON.stringify(exerciseOrder) !== JSON.stringify(
         Object.keys(originalExerciseData)
       );
+      const sectionOrderChanged = workoutData.sectionOrder !== sectionOrder;
+      const cardioPositionChanged = workoutData.cardioAtTop !== cardioAtTop;
+      const absPositionChanged = workoutData.absAtTop !== absAtTop;
 
-      if (inputsChanged || noteChanged || dateChanged || orderChanged) {
+      if (inputsChanged || noteChanged || dateChanged || orderChanged || sectionOrderChanged || cardioPositionChanged || absPositionChanged) {
         setHasUnsavedChanges(true);
       }
     }
-  }, [editedInputs, note, editedDate, exerciseOrder, isEditing, workoutData]);
+  }, [editedInputs, note, editedDate, exerciseOrder, sectionOrder, cardioAtTop, absAtTop, isEditing, workoutData]);
 
   // Warn before leaving page with unsaved changes (browser close/refresh)
   useEffect(() => {
@@ -558,6 +678,9 @@ function SavedWorkout() {
         [FIREBASE_FIELDS.SUMMARY]: newSummary,
         [FIREBASE_FIELDS.DATE]: updatedDate,
         exerciseOrder: exerciseOrder, // Save the exercise order
+        sectionOrder: sectionOrder, // Save cardio/abs section order
+        cardioAtTop: cardioAtTop, // Save cardio position
+        absAtTop: absAtTop, // Save abs position
       });
 
       // Refetch data from Firebase to ensure UI is in sync with database
@@ -589,15 +712,24 @@ function SavedWorkout() {
     setEditedInputs(originalExerciseData);
     setNote(workoutData.note || '');
 
-    // Reset order
-    const inputKeys = Object.keys(originalExerciseData);
-    const muscleGroup = workoutData.muscleGroup || workoutData.target;
-    const orderedKeysFromCategory = categoryOrder[muscleGroup] || [];
-    const sorted = [
-      ...orderedKeysFromCategory.filter((key) => inputKeys.includes(key)),
-      ...inputKeys.filter((key) => !orderedKeysFromCategory.includes(key)),
-    ];
-    setExerciseOrder(sorted);
+    // Reset order - use saved order if available, otherwise recreate from category order
+    if (workoutData.exerciseOrder && workoutData.exerciseOrder.length > 0) {
+      setExerciseOrder(workoutData.exerciseOrder);
+    } else {
+      const inputKeys = Object.keys(originalExerciseData);
+      const muscleGroup = workoutData.muscleGroup || workoutData.target;
+      const orderedKeysFromCategory = categoryOrder[muscleGroup] || [];
+      const sorted = [
+        ...orderedKeysFromCategory.filter((key) => inputKeys.includes(key)),
+        ...inputKeys.filter((key) => !orderedKeysFromCategory.includes(key)),
+      ];
+      setExerciseOrder(sorted);
+    }
+
+    // Reset section order and positions
+    setSectionOrder(workoutData.sectionOrder || 'abs-first');
+    setCardioAtTop(workoutData.cardioAtTop || false);
+    setAbsAtTop(workoutData.absAtTop || false);
 
     setIsEditing(false);
     setHasUnsavedChanges(false);
@@ -702,6 +834,48 @@ function SavedWorkout() {
           </button>
         </div>
 
+        {/* Expand/Collapse All Button */}
+        <div className="mb-4 px-4 sm:px-0 flex justify-end">
+          <button
+            onClick={() => setExpandAll(!expandAll)}
+            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors text-sm"
+          >
+            {expandAll ? 'Collapse All' : 'Expand All'}
+          </button>
+        </div>
+
+        {/* Optional Cardio & Abs Sections at TOP - Show in both edit and view mode */}
+        {(showAbs || showCardio) && (
+          <div className="mb-6">
+            <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
+              <OptionalWorkoutSections
+                numberOfSets={workoutData?.numberOfSets || 4}
+                exerciseData={isEditing ? editedInputs : exerciseData}
+                onExerciseDataChange={handleOptionalExerciseChange}
+                onRemoveSet={handleRemoveOptionalSet}
+                position="top"
+                showCardio={showCardio}
+                setShowCardio={setShowCardio}
+                showAbs={showAbs}
+                setShowAbs={setShowAbs}
+                cardioAtTop={cardioAtTop}
+                absAtTop={absAtTop}
+                sectionOrder={sectionOrder}
+                onToggleCardioPosition={handleToggleCardioPosition}
+                onToggleAbsPosition={handleToggleAbsPosition}
+                onCardioMoveUp={handleCardioMoveUp}
+                onCardioMoveDown={handleCardioMoveDown}
+                onAbsMoveUp={handleAbsMoveUp}
+                onAbsMoveDown={handleAbsMoveDown}
+                isEditingSets={isEditing}
+                disableCheckboxes={!isEditing}
+                previousCustomExercises={previousCustomExercises}
+                expandAll={expandAll}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Workout Inputs */}
         <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
           <WorkoutInputs
@@ -716,6 +890,7 @@ function SavedWorkout() {
             onRemove={handleRemoveExercise}
             onReorder={handleReorderExercises}
             previousCustomExercises={previousCustomExercises}
+            expandAll={expandAll}
           />
         </div>
 
@@ -727,7 +902,7 @@ function SavedWorkout() {
           </div>
         )}
 
-        {/* Optional Cardio & Abs Sections - Show in both edit and view mode */}
+        {/* Optional Cardio & Abs Sections at BOTTOM - Show in both edit and view mode */}
         {(showAbs || showCardio) && (
           <div className="mb-6">
             <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
@@ -743,10 +918,17 @@ function SavedWorkout() {
                 setShowAbs={setShowAbs}
                 cardioAtTop={cardioAtTop}
                 absAtTop={absAtTop}
+                sectionOrder={sectionOrder}
                 onToggleCardioPosition={handleToggleCardioPosition}
                 onToggleAbsPosition={handleToggleAbsPosition}
+                onCardioMoveUp={handleCardioMoveUp}
+                onCardioMoveDown={handleCardioMoveDown}
+                onAbsMoveUp={handleAbsMoveUp}
+                onAbsMoveDown={handleAbsMoveDown}
                 isEditingSets={isEditing}
                 disableCheckboxes={!isEditing}
+                previousCustomExercises={previousCustomExercises}
+                expandAll={expandAll}
               />
             </div>
           </div>

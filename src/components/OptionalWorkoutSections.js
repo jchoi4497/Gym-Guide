@@ -44,8 +44,30 @@ function OptionalWorkoutSections({
   isEditingSets = false, // Control visibility of remove buttons
   previousCustomExercises = [], // For autocomplete suggestions
   disableCheckboxes = false, // Disable checkboxes (for saved workouts in view mode)
+  expandAll = true, // Control expand/collapse from parent
+  absExpanded: absExpandedProp, // Controlled state from parent (optional)
+  setAbsExpanded: setAbsExpandedProp,
+  cardioExpanded: cardioExpandedProp, // Controlled state from parent (optional)
+  setCardioExpanded: setCardioExpandedProp,
 }) {
   const [absEditMode, setAbsEditMode] = useState({}); // Track edit mode per abs exercise
+
+  // Use controlled state from parent if provided, otherwise use local state
+  const [absExpandedLocal, setAbsExpandedLocal] = useState(true);
+  const [cardioExpandedLocal, setCardioExpandedLocal] = useState(true);
+
+  const absExpanded = absExpandedProp !== undefined ? absExpandedProp : absExpandedLocal;
+  const setAbsExpanded = setAbsExpandedProp || setAbsExpandedLocal;
+  const cardioExpanded = cardioExpandedProp !== undefined ? cardioExpandedProp : cardioExpandedLocal;
+  const setCardioExpanded = setCardioExpandedProp || setCardioExpandedLocal;
+
+  // Sync with expandAll prop
+  useEffect(() => {
+    if (expandAll !== undefined) {
+      setAbsExpanded(expandAll);
+      setCardioExpanded(expandAll);
+    }
+  }, [expandAll, setAbsExpanded, setCardioExpanded]);
 
   // Warn user if they try to refresh/leave while in abs edit mode
   useEffect(() => {
@@ -330,46 +352,56 @@ function OptionalWorkoutSections({
         /* Abs Section */
         <div key="abs">
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <label className={`flex items-center gap-3 ${disableCheckboxes ? 'cursor-not-allowed' : 'cursor-pointer'} group`}>
-                <input
-                  type="checkbox"
-                  checked={showAbs}
-                  onChange={(e) => setShowAbs(e.target.checked)}
-                  disabled={disableCheckboxes}
-                  className={`w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 ${disableCheckboxes ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                />
-                <span className={`text-xl font-semibold text-gray-700 ${disableCheckboxes ? 'opacity-50' : 'group-hover:text-blue-600'} transition-colors`}>
-                  Add Abs/Core
-                </span>
-              </label>
-              {showAbs && isEditingSets && (
-                <div className="flex gap-1">
-                  <button
-                    onClick={onAbsMoveUp}
-                    className="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium transition-colors"
-                    title="Move up"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    onClick={onAbsMoveDown}
-                    className="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium transition-colors"
-                    title="Move down"
-                  >
-                    ↓
-                  </button>
-                </div>
-              )}
-            </div>
+            <label className={`flex items-center gap-3 ${disableCheckboxes ? 'cursor-not-allowed' : 'cursor-pointer'} group`}>
+              <input
+                type="checkbox"
+                checked={showAbs}
+                onChange={(e) => setShowAbs(e.target.checked)}
+                disabled={disableCheckboxes}
+                className={`w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 ${disableCheckboxes ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+              />
+              <span className={`text-xl font-semibold text-gray-700 ${disableCheckboxes ? 'opacity-50' : 'group-hover:text-blue-600'} transition-colors`}>
+                Add Abs/Core
+              </span>
+            </label>
           </div>
 
         {showAbs && (
           <div className="mt-4">
-            <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4">
-              <div className="text-xl font-bold mb-4 py-3 bg-blue-50 rounded-md text-center">
-                Abs
-              </div>
+            <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4 relative">
+              {/* Reorder Arrows - Left side when editing */}
+              {isEditingSets && (
+                <div className="absolute left-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 z-20">
+                  <button
+                    onClick={onAbsMoveUp}
+                    className="w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all bg-gray-400 hover:bg-gray-500 active:scale-90"
+                    title="Move up"
+                  >
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={onAbsMoveDown}
+                    className="w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all bg-gray-400 hover:bg-gray-500 active:scale-90"
+                    title="Move down"
+                  >
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              {/* Collapsible Header */}
+              <button
+                onClick={() => setAbsExpanded(!absExpanded)}
+                className="w-full flex items-center justify-between text-xl font-bold mb-4 py-3 bg-blue-50 rounded-md px-4 hover:bg-blue-100 transition-colors"
+                type="button"
+              >
+                <span className="flex-1 text-center">Abs</span>
+                <span className="text-gray-600 font-bold flex-shrink-0">{absExpanded ? '▼' : '▶'}</span>
+              </button>
+              {absExpanded && (
               <div className="flex flex-col">
                 {absExercises.map((exercise) => (
                   <div key={exercise.id} className="relative flex flex-col sm:flex-row sm:items-center gap-4 border border-gray-300 rounded-md p-4 bg-sky-50 shadow-sm mb-4">
@@ -543,12 +575,15 @@ function OptionalWorkoutSections({
                   </div>
                 ))}
               </div>
+              )}
+              {absExpanded && (
               <button
                 onClick={addCustomAbs}
                 className="w-full mt-4 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold shadow-md transition-all active:scale-95"
               >
                 + Add Custom Abs Exercise
               </button>
+              )}
             </div>
           </div>
         )}
@@ -557,46 +592,56 @@ function OptionalWorkoutSections({
         /* Cardio Section */
         <div key="cardio">
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <label className={`flex items-center gap-3 ${disableCheckboxes ? 'cursor-not-allowed' : 'cursor-pointer'} group`}>
-                <input
-                  type="checkbox"
-                  checked={showCardio}
-                  onChange={(e) => setShowCardio(e.target.checked)}
-                  disabled={disableCheckboxes}
-                  className={`w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 ${disableCheckboxes ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
-                />
-                <span className={`text-xl font-semibold text-gray-700 ${disableCheckboxes ? 'opacity-50' : 'group-hover:text-blue-600'} transition-colors`}>
-                  Add Cardio
-                </span>
-              </label>
-              {showCardio && isEditingSets && (
-                <div className="flex gap-1">
-                  <button
-                    onClick={onCardioMoveUp}
-                    className="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium transition-colors"
-                    title="Move up"
-                  >
-                    ↑
-                  </button>
-                  <button
-                    onClick={onCardioMoveDown}
-                    className="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium transition-colors"
-                    title="Move down"
-                  >
-                    ↓
-                  </button>
-                </div>
-              )}
-            </div>
+            <label className={`flex items-center gap-3 ${disableCheckboxes ? 'cursor-not-allowed' : 'cursor-pointer'} group`}>
+              <input
+                type="checkbox"
+                checked={showCardio}
+                onChange={(e) => setShowCardio(e.target.checked)}
+                disabled={disableCheckboxes}
+                className={`w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 ${disableCheckboxes ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+              />
+              <span className={`text-xl font-semibold text-gray-700 ${disableCheckboxes ? 'opacity-50' : 'group-hover:text-blue-600'} transition-colors`}>
+                Add Cardio
+              </span>
+            </label>
           </div>
 
         {showCardio && (
           <div className="mt-4">
-            <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4">
-              <div className="text-xl font-bold mb-4 py-3 bg-blue-50 rounded-md text-center">
-                Cardio
-              </div>
+            <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4 relative">
+              {/* Reorder Arrows - Left side when editing */}
+              {isEditingSets && (
+                <div className="absolute left-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 z-20">
+                  <button
+                    onClick={onCardioMoveUp}
+                    className="w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all bg-gray-400 hover:bg-gray-500 active:scale-90"
+                    title="Move up"
+                  >
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={onCardioMoveDown}
+                    className="w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all bg-gray-400 hover:bg-gray-500 active:scale-90"
+                    title="Move down"
+                  >
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              {/* Collapsible Header */}
+              <button
+                onClick={() => setCardioExpanded(!cardioExpanded)}
+                className="w-full flex items-center justify-between text-xl font-bold mb-4 py-3 bg-blue-50 rounded-md px-4 hover:bg-blue-100 transition-colors"
+                type="button"
+              >
+                <span className="flex-1 text-center">Cardio</span>
+                <span className="text-gray-600 font-bold flex-shrink-0">{cardioExpanded ? '▼' : '▶'}</span>
+              </button>
+              {cardioExpanded && (
               <div className="flex flex-col">
                 {cardioExercises.map((exercise) => (
                   <div key={exercise.id} className="relative flex flex-col sm:flex-row sm:items-center gap-4 border border-gray-300 rounded-md p-4 bg-sky-50 shadow-sm mb-4">
@@ -691,18 +736,20 @@ function OptionalWorkoutSections({
                   </div>
                 ))}
               </div>
+              )}
+              {cardioExpanded && (
               <button
                 onClick={addCustomCardio}
                 className="w-full mt-4 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold shadow-md transition-all active:scale-95"
               >
                 + Add Custom Cardio Exercise
               </button>
+              )}
             </div>
           </div>
         )}
         </div>
-      )
-      )}
+      ))}
 
       {/* Weight/Reps Picker Modal for Abs (Mobile) */}
       {pickerOpen && pickerExerciseId && (() => {

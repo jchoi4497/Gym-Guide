@@ -102,8 +102,9 @@ function WorkoutTable({
   onReorder,
   favoriteExercises = [],
   onToggleFavorite,
+  expandAll = true, // Controlled by parent
+  onExpandAllChange, // Handler to update parent state
 }) {
-  const [expandAll, setExpandAll] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -152,7 +153,7 @@ function WorkoutTable({
           {setRangeLabel} - {muscleGroup}
         </div>
         <button
-          onClick={() => setExpandAll(!expandAll)}
+          onClick={() => onExpandAllChange && onExpandAllChange(!expandAll)}
           className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
         >
           {expandAll ? '▼ Collapse All' : '▶ Expand All'}
