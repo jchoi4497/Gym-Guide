@@ -614,14 +614,21 @@ function SavedWorkout() {
   // Use saved exercise order if available, otherwise fall back to category order
   // When editing, use editedInputs to include newly added exercises
   const dataForOrderFilter = isEditing ? editedInputs : exerciseData;
+
+  // Filter out cardio/abs exercises (they're handled by OptionalWorkoutSections)
+  const filterOutCardioAbs = (key) => {
+    const lowerKey = key.toLowerCase();
+    return !lowerKey.includes('cardio') && !lowerKey.includes('abs');
+  };
+
   let displayOrder;
   if (exerciseOrder && exerciseOrder.length > 0) {
-    // Filter to only include exercises that exist in current data
-    displayOrder = exerciseOrder.filter((key) => key in dataForOrderFilter);
+    // Filter to only include exercises that exist in current data AND exclude cardio/abs
+    displayOrder = exerciseOrder.filter((key) => key in dataForOrderFilter && filterOutCardioAbs(key));
   } else {
     // Fallback to hardcoded order for old workouts
     const orderedKeys = categoryOrder[muscleGroup] || [];
-    const inputKeys = Object.keys(dataForOrderFilter);
+    const inputKeys = Object.keys(dataForOrderFilter).filter(filterOutCardioAbs);
     const orderedInputs = orderedKeys.filter((key) => inputKeys.includes(key));
     const remainingInputs = inputKeys.filter((key) => !orderedKeys.includes(key));
     displayOrder = [...orderedInputs, ...remainingInputs];
@@ -716,11 +723,17 @@ function SavedWorkout() {
           <div className="mb-6">
             <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
               <AddExerciseButton onClick={handleAddExercise} />
+            </div>
+          </div>
+        )}
 
-              {/* Optional Cardio & Abs Sections */}
+        {/* Optional Cardio & Abs Sections - Show in both edit and view mode */}
+        {(showAbs || showCardio) && (
+          <div className="mb-6">
+            <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
               <OptionalWorkoutSections
                 numberOfSets={workoutData?.numberOfSets || 4}
-                exerciseData={editedInputs}
+                exerciseData={isEditing ? editedInputs : exerciseData}
                 onExerciseDataChange={handleOptionalExerciseChange}
                 onRemoveSet={handleRemoveOptionalSet}
                 position="bottom"
@@ -732,6 +745,8 @@ function SavedWorkout() {
                 absAtTop={absAtTop}
                 onToggleCardioPosition={handleToggleCardioPosition}
                 onToggleAbsPosition={handleToggleAbsPosition}
+                isEditingSets={isEditing}
+                disableCheckboxes={!isEditing}
               />
             </div>
           </div>
