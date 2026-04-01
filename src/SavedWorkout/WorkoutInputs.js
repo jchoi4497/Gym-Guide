@@ -75,6 +75,11 @@ function SortableExerciseItem({
   monthlyWorkoutData,
   graphView,
   previousCustomExercises,
+  expandAll,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
 }) {
   const {
     attributes,
@@ -90,6 +95,16 @@ function SortableExerciseItem({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
+  // Collapse/expand state - default expanded
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  // Sync with expandAll prop
+  useEffect(() => {
+    if (expandAll !== undefined) {
+      setIsExpanded(expandAll);
+    }
+  }, [expandAll]);
 
   // Picker modal state
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -136,16 +151,51 @@ function SortableExerciseItem({
       style={style}
       className="mb-8 p-4 bg-sky-50 rounded-2xl shadow-lg relative"
     >
-      {/* Drag Handle - Only visible when editing on DESKTOP */}
+      {/* Reorder Controls - Only visible when editing */}
       {isEditing && (
-        <div
-          {...attributes}
-          {...listeners}
-          className="hidden sm:flex absolute -left-3 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing bg-blue-500 text-white w-8 h-12 rounded-lg items-center justify-center shadow-lg hover:bg-blue-600 transition-colors z-10"
-          title="Drag to reorder"
-        >
-          <span className="text-xl">⋮⋮</span>
-        </div>
+        <>
+          {/* Arrow Buttons (Mobile - sm and below) - Positioned inside the card on the left */}
+          <div className="absolute left-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 sm:hidden z-20">
+            <button
+              onClick={() => onMoveUp && onMoveUp()}
+              disabled={isFirst}
+              className={`w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all ${
+                isFirst
+                  ? 'bg-gray-200 cursor-not-allowed'
+                  : 'bg-gray-400 hover:bg-gray-500 active:scale-90'
+              }`}
+              title="Move up"
+            >
+              <svg className={`w-3 h-3 ${isFirst ? 'text-gray-400' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 15l7-7 7 7" />
+              </svg>
+            </button>
+            <button
+              onClick={() => onMoveDown && onMoveDown()}
+              disabled={isLast}
+              className={`w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all ${
+                isLast
+                  ? 'bg-gray-200 cursor-not-allowed'
+                  : 'bg-gray-400 hover:bg-gray-500 active:scale-90'
+              }`}
+              title="Move down"
+            >
+              <svg className={`w-3 h-3 ${isLast ? 'text-gray-400' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Drag Handle (Desktop - sm and above) */}
+          <div
+            {...attributes}
+            {...listeners}
+            className="hidden sm:flex absolute -left-3 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing bg-blue-500 text-white w-8 h-12 rounded-lg items-center justify-center shadow-lg hover:bg-blue-600 transition-colors z-10"
+            title="Drag to reorder"
+          >
+            <span className="text-xl">⋮⋮</span>
+          </div>
+        </>
       )}
 
       {/* DELETE BUTTON: Only shows when editing */}
@@ -158,7 +208,10 @@ function SortableExerciseItem({
         </button>
       )}
 
-      <div className="text-2xl font-bold mb-2 flex items-center gap-4">
+      {/* Header - Always Visible */}
+      <div className="flex items-center justify-between bg-sky-50 transition-colors rounded-lg pr-2 -m-4 p-4 mb-4">
+        <div className="flex-1 flex items-center gap-4 min-w-0">
+          <div className="text-2xl font-bold flex items-center gap-4 flex-1 min-w-0">
         {/* EXERCISE NAME: If it's a new custom exercise or we are editing, allow name change */}
         {isEditing ? (
           <ExerciseAutocomplete
@@ -186,8 +239,19 @@ function SortableExerciseItem({
         ) : (
           exerciseNames[data.exerciseName || data.selection] || data.exerciseName || data.selection
         )}
+          </div>
+        </div>
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="p-2 hover:bg-sky-100 transition-colors flex-shrink-0 z-10"
+          type="button"
+        >
+          <span className="text-gray-600 font-bold">{isExpanded ? '▼' : '▶'}</span>
+        </button>
       </div>
 
+      {/* Expandable Content */}
+      {isExpanded && (
       <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 sm:space-y-0">
         <div className="flex-1 flex flex-col gap-3">
           {/* Set Inputs */}
@@ -378,6 +442,7 @@ function SortableExerciseItem({
           />
         </div>
       </div>
+      )}
 
       {/* Wheel Picker Modal */}
       {isEditing && (() => {
@@ -427,7 +492,9 @@ function WorkoutInputs({
   onRemove,
   onReorder,
   previousCustomExercises = [],
+  expandAll = true, // Controlled by parent
 }) {
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -449,6 +516,23 @@ function WorkoutInputs({
       onReorder(newOrder);
     }
   };
+
+  // Mobile arrow button handlers
+  const handleMoveUp = (exerciseKey) => {
+    const currentIndex = order.indexOf(exerciseKey);
+    if (currentIndex > 0) {
+      const newOrder = arrayMove(order, currentIndex, currentIndex - 1);
+      onReorder(newOrder);
+    }
+  };
+
+  const handleMoveDown = (exerciseKey) => {
+    const currentIndex = order.indexOf(exerciseKey);
+    if (currentIndex < order.length - 1) {
+      const newOrder = arrayMove(order, currentIndex, currentIndex + 1);
+      onReorder(newOrder);
+    }
+  };
   return (
     <div className="mb-8">
       <DndContext
@@ -461,7 +545,7 @@ function WorkoutInputs({
           strategy={verticalListSortingStrategy}
           disabled={!isEditing}
         >
-          {order.map((key) => {
+          {order.map((key, index) => {
             // Handle both old (inputs) and new (exerciseData) field names
             const workoutExercises = isEditing ? editedInputs : (workoutData.exerciseData || workoutData.inputs);
             const data = workoutExercises[key];
@@ -482,6 +566,11 @@ function WorkoutInputs({
                 monthlyWorkoutData={monthlyWorkoutData}
                 graphView={graphView}
                 previousCustomExercises={previousCustomExercises}
+                expandAll={expandAll}
+                onMoveUp={() => handleMoveUp(key)}
+                onMoveDown={() => handleMoveDown(key)}
+                isFirst={index === 0}
+                isLast={index === order.length - 1}
               />
             );
           })}
