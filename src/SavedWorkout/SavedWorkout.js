@@ -13,14 +13,14 @@ import {
 } from 'firebase/firestore';
 import db, { auth } from '../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import Navbar from '../Navbar';
-import { generateSummary } from '../summaryUtil';
+import Navbar from '../components/Navbar';
+import { generateSummary } from '../utils/summaryUtil';
 import WorkoutInputs from './WorkoutInputs';
 import WorkoutNotes from './WorkoutNotes';
 import WorkoutAnalysis from './WorkoutAnalysis';
-import AddExerciseButton from '../AddExerciseButton';
+import AddExerciseButton from '../components/AddExerciseButton';
 import OptionalWorkoutSections from '../components/OptionalWorkoutSections';
-import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from '../constants';
+import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from '../config/constants';
 
 function SavedWorkout() {
   const { workoutId } = useParams();
