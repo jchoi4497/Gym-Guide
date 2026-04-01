@@ -17,7 +17,11 @@ function MuscleGroupWorkout({
   favoriteExercises = [],
   onToggleFavorite,
   isEditingSets,
-  onEditingSetsChange
+  onEditingSetsChange,
+  expandAll = true,
+  onExpandAllChange,
+  onReorderExercises, // Handler for when user reorders exercises
+  exerciseOrder = [], // Tracked order from parent
 }) {
 
   // Track if we've already initialized to prevent re-initialization
@@ -114,8 +118,13 @@ function MuscleGroupWorkout({
     // OR if we have no exercises yet (initial load)
     if (currentExerciseCount === 0) {
       if (exerciseDataKeys.length > 0) {
+        // Use exerciseOrder from parent if available, otherwise use keys as-is
+        const orderedKeys = exerciseOrder && exerciseOrder.length > 0
+          ? exerciseOrder.filter(key => exerciseDataKeys.includes(key))
+          : exerciseDataKeys;
+
         // Build exercises array from exerciseData (template loading)
-        const exercisesFromData = exerciseDataKeys.map((categoryId) => ({
+        const exercisesFromData = orderedKeys.map((categoryId) => ({
           id: categoryId,
           selected: exerciseData[categoryId]?.exerciseName || '',
           options: [],
@@ -134,8 +143,13 @@ function MuscleGroupWorkout({
       const hasSignificantNewData = newKeys.length > 1 || (newKeys.length === 1 && exerciseData[newKeys[0]]?.exerciseName);
 
       if (hasSignificantNewData) {
+        // Use exerciseOrder from parent if available, otherwise use keys as-is
+        const orderedKeys = exerciseOrder && exerciseOrder.length > 0
+          ? exerciseOrder.filter(key => exerciseDataKeys.includes(key))
+          : exerciseDataKeys;
+
         // Template loaded - rebuild from exerciseData
-        const exercisesFromData = exerciseDataKeys.map((categoryId) => ({
+        const exercisesFromData = orderedKeys.map((categoryId) => ({
           id: categoryId,
           selected: exerciseData[categoryId]?.exerciseName || '',
           options: [],
@@ -146,7 +160,7 @@ function MuscleGroupWorkout({
       }
     }
     // Otherwise skip rebuild - user is just typing set data or managing exercises manually
-  }, [muscleGroup, exerciseData]);
+  }, [muscleGroup, exerciseData, exerciseOrder]);
 
   // Add a custom exercise row
   const addCustomExercise = () => {
@@ -191,6 +205,12 @@ function MuscleGroupWorkout({
   // Handle reordering exercises
   const handleReorder = (newOrderedExercises) => {
     setExercises(newOrderedExercises);
+
+    // Notify parent of the new order (extract IDs)
+    if (onReorderExercises) {
+      const newOrder = newOrderedExercises.map(ex => ex.id);
+      onReorderExercises(newOrder);
+    }
   };
 
   return (
@@ -224,6 +244,8 @@ function MuscleGroupWorkout({
         onReorder={handleReorder}
         favoriteExercises={favoriteExercises}
         onToggleFavorite={onToggleFavorite}
+        expandAll={expandAll}
+        onExpandAllChange={onExpandAllChange}
       />
       <AddExerciseButton onClick={addCustomExercise} />
     </div>

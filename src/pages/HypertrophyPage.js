@@ -70,6 +70,14 @@ function HypertrophyPage() {
 
   // Edit sets mode state (shared across all workout sections)
   const [isEditingSets, setIsEditingSets] = useState(false);
+  const [expandAll, setExpandAll] = useState(false); // Expand/collapse all state - default collapsed
+
+  // Cardio/Abs expanded state (persists across position changes)
+  const [absExpanded, setAbsExpanded] = useState(true);
+  const [cardioExpanded, setCardioExpanded] = useState(true);
+
+  // Exercise order state (tracks user's reordering of main workout exercises)
+  const [mainExerciseOrder, setMainExerciseOrder] = useState([]);
 
   // Determine actual muscle group name to use
   const actualMuscleGroup = useMemo(() => {
@@ -648,6 +656,14 @@ function HypertrophyPage() {
 
       return updatedExerciseData;
     });
+
+    // Also add to mainExerciseOrder
+    const newKeys = exercisesToInit.map(ex => ex.categoryKey);
+    setMainExerciseOrder(prev => {
+      // Only add keys that aren't already in the order
+      const keysToAdd = newKeys.filter(key => !prev.includes(key));
+      return [...prev, ...keysToAdd];
+    });
   };
 
   // Workout Selection: Weight x Reps input
@@ -668,6 +684,11 @@ function HypertrophyPage() {
         sets: setsArray,
         exerciseName: exerciseName,
       };
+
+      // Add to mainExerciseOrder if it's a new main exercise (not cardio/abs)
+      if (!isCardioOrAbs) {
+        setMainExerciseOrder(prev => [...prev, categoryKey]);
+      }
     }
 
     if (setIndex === -1) {
@@ -707,6 +728,18 @@ function HypertrophyPage() {
     const updatedExerciseData = { ...exerciseData };
     delete updatedExerciseData[categoryKey];
     setExerciseData(updatedExerciseData);
+
+    // Also remove from mainExerciseOrder
+    const isCardioOrAbs = categoryKey.startsWith('cardio') || categoryKey.startsWith('custom_cardio') ||
+                          categoryKey.startsWith('abs') || categoryKey.startsWith('custom_abs');
+    if (!isCardioOrAbs) {
+      setMainExerciseOrder(prev => prev.filter(key => key !== categoryKey));
+    }
+  };
+
+  // Handle reordering of main workout exercises
+  const handleReorderExercises = (newOrder) => {
+    setMainExerciseOrder(newOrder);
   };
 
   // Remove a specific set from an exercise
@@ -1010,7 +1043,10 @@ function HypertrophyPage() {
       const allKeys = Object.keys(exerciseData);
       const cardioKeys = allKeys.filter(k => k.startsWith('cardio') || k.startsWith('custom_cardio'));
       const absKeys = allKeys.filter(k => k.startsWith('abs') || k.startsWith('custom_abs'));
-      const mainKeys = allKeys.filter(k => !cardioKeys.includes(k) && !absKeys.includes(k));
+
+      // Use the tracked mainExerciseOrder instead of just filtering keys
+      // This preserves the user's drag-and-drop reordering
+      const mainKeys = mainExerciseOrder.filter(k => k in exerciseData);
 
       // Build sections at top respecting order
       const topSections = [];
@@ -1063,6 +1099,9 @@ function HypertrophyPage() {
         [FIREBASE_FIELDS.NOTE]: note,
         [FIREBASE_FIELDS.SUMMARY]: newSummary,
         exerciseOrder: exerciseOrder, // Store the order exercises were performed
+        sectionOrder: sectionOrder, // Store cardio/abs section order
+        cardioAtTop: cardioAtTop, // Store cardio position
+        absAtTop: absAtTop, // Store abs position
         createdAt: new Date(), // Exact timestamp for ordering
       };
 
@@ -1531,6 +1570,11 @@ function HypertrophyPage() {
               position="top"
               isEditingSets={isEditingSets}
               previousCustomExercises={previousCustomExercises}
+              expandAll={expandAll}
+              absExpanded={absExpanded}
+              setAbsExpanded={setAbsExpanded}
+              cardioExpanded={cardioExpanded}
+              setCardioExpanded={setCardioExpanded}
             />
           </div>
         )}
@@ -1552,6 +1596,10 @@ function HypertrophyPage() {
               onToggleFavorite={toggleFavorite}
               isEditingSets={isEditingSets}
               onEditingSetsChange={setIsEditingSets}
+              expandAll={expandAll}
+              onExpandAllChange={setExpandAll}
+              onReorderExercises={handleReorderExercises}
+              exerciseOrder={mainExerciseOrder}
             />
           )}
         </div>
@@ -1578,6 +1626,11 @@ function HypertrophyPage() {
               position="bottom"
               isEditingSets={isEditingSets}
               previousCustomExercises={previousCustomExercises}
+              expandAll={expandAll}
+              absExpanded={absExpanded}
+              setAbsExpanded={setAbsExpanded}
+              cardioExpanded={cardioExpanded}
+              setCardioExpanded={setCardioExpanded}
             />
           </div>
         )}
