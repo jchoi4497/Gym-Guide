@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { getExercisesByCategory, EXERCISE_CATEGORIES, getPlaceholderForExercise, getExerciseName } from '../config/exerciseConfig';
+import { getExercisesByCategory, EXERCISE_CATEGORIES, getPlaceholderForExercise, getExerciseName, getExerciseById, getExerciseIdByName } from '../config/exerciseConfig';
+import WeightRepsPicker from './WeightRepsPicker';
+import ExerciseAutocomplete from './ExerciseAutocomplete';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { parseSet, combineSet } from '../utils/setHelpers';
 
 // Field templates for different cardio exercise types
 const CARDIO_FIELD_TEMPLATES = {
@@ -27,15 +31,43 @@ function OptionalWorkoutSections({
   onRemoveSet,
   cardioAtTop,
   absAtTop,
-  onToggleCardioPosition,
-  onToggleAbsPosition,
+  sectionOrder,
+  onCardioMoveUp,
+  onCardioMoveDown,
+  onAbsMoveUp,
+  onAbsMoveDown,
   showCardio,
   setShowCardio,
   showAbs,
   setShowAbs,
   position, // "top" or "bottom"
+  isEditingSets = false, // Control visibility of remove buttons
+  previousCustomExercises = [], // For autocomplete suggestions
+  disableCheckboxes = false, // Disable checkboxes (for saved workouts in view mode)
+  expandAll = true, // Control expand/collapse from parent
+  absExpanded: absExpandedProp, // Controlled state from parent (optional)
+  setAbsExpanded: setAbsExpandedProp,
+  cardioExpanded: cardioExpandedProp, // Controlled state from parent (optional)
+  setCardioExpanded: setCardioExpandedProp,
 }) {
   const [absEditMode, setAbsEditMode] = useState({}); // Track edit mode per abs exercise
+
+  // Use controlled state from parent if provided, otherwise use local state
+  const [absExpandedLocal, setAbsExpandedLocal] = useState(true);
+  const [cardioExpandedLocal, setCardioExpandedLocal] = useState(true);
+
+  const absExpanded = absExpandedProp !== undefined ? absExpandedProp : absExpandedLocal;
+  const setAbsExpanded = setAbsExpandedProp || setAbsExpandedLocal;
+  const cardioExpanded = cardioExpandedProp !== undefined ? cardioExpandedProp : cardioExpandedLocal;
+  const setCardioExpanded = setCardioExpandedProp || setCardioExpandedLocal;
+
+  // Sync with expandAll prop
+  useEffect(() => {
+    if (expandAll !== undefined) {
+      setAbsExpanded(expandAll);
+      setCardioExpanded(expandAll);
+    }
+  }, [expandAll, setAbsExpanded, setCardioExpanded]);
 
   // Warn user if they try to refresh/leave while in abs edit mode
   useEffect(() => {
@@ -62,6 +94,21 @@ function OptionalWorkoutSections({
   const cardioInitialized = useRef(false);
   const absInitialized = useRef(false);
 
+  // Mobile picker state for abs
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [pickerExerciseId, setPickerExerciseId] = useState(null);
+  const [pickerSetIndex, setPickerSetIndex] = useState(null);
+  const [pickerInitialField, setPickerInitialField] = useState('weight');
+
+  // Mobile picker state for cardio
+  const [cardioPickerOpen, setCardioPickerOpen] = useState(false);
+  const [cardioPickerExerciseId, setCardioPickerExerciseId] = useState(null);
+  const [cardioPickerFieldIndex, setCardioPickerFieldIndex] = useState(null);
+  const [cardioPickerValue, setCardioPickerValue] = useState('');
+  const [cardioPickerLabel, setCardioPickerLabel] = useState('');
+
+  const isMobile = useIsMobile();
+
   // Populate cardio exercises from existing exerciseData when cardio is enabled
   useEffect(() => {
     if (showCardio && !cardioInitialized.current && exerciseData) {
@@ -74,7 +121,8 @@ function OptionalWorkoutSections({
         // Restore from existing data
         const restoredCardio = existingCardioKeys.map(key => ({
           id: key,
-          selected: exerciseData[key]?.exerciseName || exerciseData[key]?.selection || '',
+          // Try selection ID first, then reverse lookup from name, then fallback to empty
+          selected: exerciseData[key]?.selection || getExerciseIdByName(exerciseData[key]?.exerciseName) || '',
           options: key.startsWith('custom_cardio') ? [] : getExercisesByCategory(EXERCISE_CATEGORIES.CARDIO),
           isCustom: key.startsWith('custom_cardio'),
         }));
@@ -111,7 +159,8 @@ function OptionalWorkoutSections({
         // Restore from existing data
         const restoredAbs = existingAbsKeys.map(key => ({
           id: key,
-          selected: exerciseData[key]?.exerciseName || exerciseData[key]?.selection || '',
+          // Try selection ID first, then reverse lookup from name, then fallback to empty
+          selected: exerciseData[key]?.selection || getExerciseIdByName(exerciseData[key]?.exerciseName) || '',
           options: key.startsWith('custom_abs') ? [] : getExercisesByCategory(EXERCISE_CATEGORIES.ABS),
           isCustom: key.startsWith('custom_abs'),
         }));
@@ -181,13 +230,25 @@ function OptionalWorkoutSections({
   const handleCardioChange = (rowId, newValue) => {
     // Convert exercise ID to display name if it's a preset exercise
     const exerciseName = getExerciseName(newValue) || newValue;
-    onExerciseDataChange(rowId, exerciseName, -1, null, null);
+
+    // Update the cardioExercises state with new selected value
+    setCardioExercises(prev => prev.map(ex =>
+      ex.id === rowId ? { ...ex, selected: newValue } : ex
+    ));
+
+    onExerciseDataChange(rowId, exerciseName, -1, null, newValue);
   };
 
   const handleAbsChange = (rowId, newValue) => {
     // Convert exercise ID to display name if it's a preset exercise
     const exerciseName = getExerciseName(newValue) || newValue;
-    onExerciseDataChange(rowId, exerciseName, -1, null, null);
+
+    // Update the absExercises state with new selected value
+    setAbsExercises(prev => prev.map(ex =>
+      ex.id === rowId ? { ...ex, selected: newValue } : ex
+    ));
+
+    onExerciseDataChange(rowId, exerciseName, -1, null, newValue);
   };
 
   const handleCardioInput = (rowId, selected, index, inputValue) => {
@@ -219,6 +280,46 @@ function OptionalWorkoutSections({
     }
   };
 
+  // Handle opening picker modal for abs
+  const handleOpenAbsPicker = (exerciseId, setIndex, field = 'weight') => {
+    setPickerExerciseId(exerciseId);
+    setPickerSetIndex(setIndex);
+    setPickerInitialField(field);
+    setPickerOpen(true);
+  };
+
+  // Handle saving from picker modal for abs
+  const handleAbsPickerSave = (weight, reps) => {
+    if (pickerExerciseId && pickerSetIndex !== null) {
+      const combined = combineSet(weight, reps);
+      const selectedExercise = exerciseData[pickerExerciseId]?.exerciseName || absExercises.find(ex => ex.id === pickerExerciseId)?.selected;
+      onExerciseDataChange(pickerExerciseId, selectedExercise, pickerSetIndex, combined, null);
+    }
+  };
+
+  // Handle opening picker modal for cardio
+  const handleOpenCardioPicker = (exerciseId, fieldIndex, label) => {
+    const currentValue = (exerciseData[exerciseId]?.sets || [])[fieldIndex] || '';
+    setCardioPickerExerciseId(exerciseId);
+    setCardioPickerFieldIndex(fieldIndex);
+    setCardioPickerValue(currentValue);
+    setCardioPickerLabel(label);
+    setCardioPickerOpen(true);
+  };
+
+  // Handle saving from picker modal for cardio
+  const handleCardioPickerSave = (weight, reps) => {
+    // For cardio, we only use the reps field as a single value
+    const value = reps;
+    if (cardioPickerExerciseId && cardioPickerFieldIndex !== null) {
+      const exercise = cardioExercises.find(ex => ex.id === cardioPickerExerciseId);
+      if (exercise) {
+        handleCardioInput(cardioPickerExerciseId, exercise.selected, cardioPickerFieldIndex, value);
+      }
+    }
+    setCardioPickerOpen(false);
+  };
+
   // Determine which sections to show based on position
   const showCardioHere = (position === "top" && cardioAtTop) || (position === "bottom" && !cardioAtTop);
   const showAbsHere = (position === "top" && absAtTop) || (position === "bottom" && !absAtTop);
@@ -228,149 +329,84 @@ function OptionalWorkoutSections({
     return null;
   }
 
+  // Determine display order when both are in the same position
+  const showAbsFirst = sectionOrder === 'abs-first';
+  const sections = [];
+
+  if (showCardioHere && showAbsHere) {
+    // Both sections here - respect order
+    if (showAbsFirst) {
+      sections.push('abs', 'cardio');
+    } else {
+      sections.push('cardio', 'abs');
+    }
+  } else if (showAbsHere) {
+    sections.push('abs');
+  } else if (showCardioHere) {
+    sections.push('cardio');
+  }
+
   return (
     <div className="mt-8 space-y-6">
-      {/* Cardio Section Toggle */}
-      {showCardioHere && (
-        <div>
+      {sections.map((section) => section === 'abs' ? (
+        /* Abs Section */
+        <div key="abs">
           <div className="flex items-center justify-between mb-2">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={showCardio}
-                onChange={(e) => setShowCardio(e.target.checked)}
-                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              />
-              <span className="text-xl font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">
-                Add Cardio
-              </span>
-            </label>
-            {showCardio && (
-              <button
-                onClick={onToggleCardioPosition}
-                className="px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium transition-colors"
-                title={cardioAtTop ? "Move to bottom" : "Move to top"}
-              >
-                {cardioAtTop ? "↓ Move to Bottom" : "↑ Move to Top"}
-              </button>
-            )}
-          </div>
-
-        {showCardio && (
-          <div className="mt-4">
-            <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4">
-              <div className="text-xl font-bold mb-4 py-3 bg-blue-50 rounded-md text-center">
-                Cardio
-              </div>
-              <div className="flex flex-col">
-                {cardioExercises.map((exercise) => (
-                  <div key={exercise.id} className="relative flex flex-col sm:flex-row sm:items-center gap-4 border border-gray-300 rounded-md p-4 bg-sky-50 shadow-sm mb-4">
-                    {/* Remove button for custom exercises */}
-                    {exercise.isCustom && (
-                      <button
-                        onClick={() => removeCardio(exercise.id)}
-                        className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90 z-10 cursor-pointer"
-                        title="Remove Exercise"
-                      >
-                        <span className="text-xs font-bold">✕</span>
-                      </button>
-                    )}
-
-                    <div className="w-full sm:w-1/3">
-                      {exercise.isCustom ? (
-                        <input
-                          type="text"
-                          placeholder="Enter cardio name..."
-                          className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
-                          value={exerciseData[exercise.id]?.exerciseName || exercise.selected}
-                          onChange={(e) => handleCardioChange(exercise.id, e.target.value)}
-                        />
-                      ) : (
-                        <select
-                          value={(() => {
-                            // Find the option that matches the stored exercise name
-                            const currentName = exerciseData[exercise.id]?.exerciseName;
-                            const matchingOption = exercise.options.find(opt =>
-                              opt.label === currentName || opt.value === currentName || opt.value === exercise.selected
-                            );
-                            return matchingOption ? matchingOption.value : exercise.selected;
-                          })()}
-                          onChange={(e) => handleCardioChange(exercise.id, e.target.value)}
-                          className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
-                        >
-                          {exercise.options.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                    </div>
-                    <div className="flex flex-col sm:flex-row sm:gap-2 w-full">
-                      {/* Dynamic fields based on cardio type */}
-                      {getCardioFields(exerciseData[exercise.id]?.exerciseName || exercise.selected).map((label, idx) => (
-                        <input
-                          key={idx}
-                          placeholder={label}
-                          className="px-3 py-2 w-full rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 placeholder-gray-400 text-gray-900 mb-2 sm:mb-0"
-                          type="text"
-                          value={(exerciseData[exercise.id]?.sets || [])[idx] || ''}
-                          onChange={(e) => handleCardioInput(exercise.id, exerciseData[exercise.id]?.exerciseName || exercise.selected, idx, e.target.value)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={addCustomCardio}
-                className="w-full mt-4 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold shadow-md transition-all active:scale-95"
-              >
-                + Add Custom Cardio
-              </button>
-            </div>
-          </div>
-        )}
-        </div>
-      )}
-
-      {/* Abs Section Toggle */}
-      {showAbsHere && (
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="flex items-center gap-3 cursor-pointer group">
+            <label className={`flex items-center gap-3 ${disableCheckboxes ? 'cursor-not-allowed' : 'cursor-pointer'} group`}>
               <input
                 type="checkbox"
                 checked={showAbs}
                 onChange={(e) => setShowAbs(e.target.checked)}
-                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                disabled={disableCheckboxes}
+                className={`w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 ${disableCheckboxes ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
               />
-              <span className="text-xl font-semibold text-gray-700 group-hover:text-blue-600 transition-colors">
+              <span className={`text-xl font-semibold text-gray-700 ${disableCheckboxes ? 'opacity-50' : 'group-hover:text-blue-600'} transition-colors`}>
                 Add Abs/Core
               </span>
             </label>
-            {showAbs && (
-              <button
-                onClick={onToggleAbsPosition}
-                className="px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium transition-colors"
-                title={absAtTop ? "Move to bottom" : "Move to top"}
-              >
-                {absAtTop ? "↓ Move to Bottom" : "↑ Move to Top"}
-              </button>
-            )}
           </div>
 
         {showAbs && (
           <div className="mt-4">
-            <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4">
-              <div className="text-xl font-bold mb-4 py-3 bg-blue-50 rounded-md text-center">
-                Abs
-              </div>
+            <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4 relative">
+              {/* Reorder Arrows - Left side when editing */}
+              {isEditingSets && (
+                <div className="absolute left-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 z-20">
+                  <button
+                    onClick={onAbsMoveUp}
+                    className="w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all bg-gray-400 hover:bg-gray-500 active:scale-90"
+                    title="Move up"
+                  >
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={onAbsMoveDown}
+                    className="w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all bg-gray-400 hover:bg-gray-500 active:scale-90"
+                    title="Move down"
+                  >
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              {/* Collapsible Header */}
+              <button
+                onClick={() => setAbsExpanded(!absExpanded)}
+                className="w-full flex items-center justify-between text-xl font-bold mb-4 py-3 bg-blue-50 rounded-md px-4 hover:bg-blue-100 transition-colors"
+                type="button"
+              >
+                <span className="flex-1 text-center">Abs</span>
+                <span className="text-gray-600 font-bold flex-shrink-0">{absExpanded ? '▼' : '▶'}</span>
+              </button>
+              {absExpanded && (
               <div className="flex flex-col">
                 {absExercises.map((exercise) => (
                   <div key={exercise.id} className="relative flex flex-col sm:flex-row sm:items-center gap-4 border border-gray-300 rounded-md p-4 bg-sky-50 shadow-sm mb-4">
-                    {/* Remove button for custom exercises */}
-                    {exercise.isCustom && (
+                    {/* Remove button - show when editing sets */}
+                    {isEditingSets && (
                       <button
                         onClick={() => removeAbs(exercise.id)}
                         className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90 z-10 cursor-pointer"
@@ -382,12 +418,16 @@ function OptionalWorkoutSections({
 
                     <div className="w-full sm:w-1/3">
                       {exercise.isCustom ? (
-                        <input
-                          type="text"
-                          placeholder="Enter abs exercise name..."
-                          className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
+                        <ExerciseAutocomplete
                           value={exerciseData[exercise.id]?.exerciseName || exercise.selected}
-                          onChange={(e) => handleAbsChange(exercise.id, e.target.value)}
+                          onChange={(value) => handleAbsChange(exercise.id, value)}
+                          onSelect={(exerciseObj) => {
+                            handleAbsChange(exercise.id, exerciseObj.name);
+                          }}
+                          previousCustomExercises={previousCustomExercises}
+                          placeholder="Enter abs exercise name..."
+                          className={`w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all ${disableCheckboxes ? 'opacity-60 cursor-not-allowed' : ''}`}
+                          disabled={disableCheckboxes}
                         />
                       ) : (
                         <select
@@ -400,7 +440,8 @@ function OptionalWorkoutSections({
                             return matchingOption ? matchingOption.value : exercise.selected;
                           })()}
                           onChange={(e) => handleAbsChange(exercise.id, e.target.value)}
-                          className="w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all"
+                          disabled={disableCheckboxes}
+                          className={`w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all ${disableCheckboxes ? 'opacity-60 cursor-not-allowed' : ''}`}
                         >
                           {exercise.options.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -416,20 +457,83 @@ function OptionalWorkoutSections({
                         const currentSetCount = exerciseData[exercise.id]?.sets?.length || baseSetCount;
                         const isEditMode = absEditMode[exercise.id];
                         const selectedExercise = exerciseData[exercise.id]?.exerciseName || exercise.selected;
-                        const placeholder = getPlaceholderForExercise(selectedExercise);
+                        const exerciseById = getExerciseById(exercise.selected);
+                        const placeholder = getPlaceholderForExercise(exercise.selected);
+
+                        // Determine exercise type
+                        const isBodyweight = exerciseById?.metricType === 'bodyweight' || placeholder === 'Reps';
+                        const isTimed = exerciseById?.metricType === 'timed' || placeholder.includes('Duration') || placeholder.includes('sec');
+                        const showWeightInput = !isBodyweight && !isTimed;
 
                         return (
                           <>
-                            {Array.from({ length: currentSetCount }).map((_, idx) => (
-                              <input
-                                key={idx}
-                                placeholder={placeholder}
-                                className="px-3 py-2 w-full rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 placeholder-gray-400 text-gray-900 mb-2 sm:mb-0"
-                                type="text"
-                                value={(exerciseData[exercise.id]?.sets || [])[idx] || ''}
-                                onChange={(e) => handleAbsInput(exercise.id, selectedExercise, idx, e.target.value)}
-                              />
-                            ))}
+                            {Array.from({ length: currentSetCount }).map((_, idx) => {
+                              const currentSet = parseSet((exerciseData[exercise.id]?.sets || [])[idx] || '');
+
+                              return (
+                                <div key={idx} className="flex items-center gap-1 mb-2 sm:mb-0">
+                                  {isMobile ? (
+                                    // MOBILE: Buttons that open picker
+                                    <>
+                                      {showWeightInput && (
+                                        <>
+                                          <button
+                                            type="button"
+                                            onClick={() => !disableCheckboxes && handleOpenAbsPicker(exercise.id, idx, 'weight')}
+                                            disabled={disableCheckboxes}
+                                            className={`px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : 'hover:bg-blue-200 active:scale-95'}`}
+                                          >
+                                            {currentSet.weight || <span className="text-gray-400">lbs</span>}
+                                          </button>
+                                          <span className="text-gray-500 font-bold text-xs">×</span>
+                                        </>
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={() => !disableCheckboxes && handleOpenAbsPicker(exercise.id, idx, 'reps')}
+                                        disabled={disableCheckboxes}
+                                        className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : 'hover:bg-blue-200 active:scale-95'} ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
+                                      >
+                                        {currentSet.reps || <span className="text-gray-400">{isTimed ? "sec" : "reps"}</span>}
+                                      </button>
+                                    </>
+                                  ) : (
+                                    // DESKTOP: Regular inputs
+                                    <>
+                                      {showWeightInput && (
+                                        <>
+                                          <input
+                                            type="number"
+                                            step="0.5"
+                                            value={currentSet.weight}
+                                            onChange={(e) => {
+                                              const combined = combineSet(e.target.value, currentSet.reps);
+                                              handleAbsInput(exercise.id, selectedExercise, idx, combined);
+                                            }}
+                                            placeholder="lbs"
+                                            readOnly={disableCheckboxes}
+                                            className={`px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : ''}`}
+                                          />
+                                          <span className="text-gray-500 font-bold text-xs">×</span>
+                                        </>
+                                      )}
+                                      <input
+                                        type="number"
+                                        step="1"
+                                        value={currentSet.reps}
+                                        onChange={(e) => {
+                                          const combined = combineSet(currentSet.weight, e.target.value);
+                                          handleAbsInput(exercise.id, selectedExercise, idx, combined);
+                                        }}
+                                        placeholder={isTimed ? "sec" : "reps"}
+                                        readOnly={disableCheckboxes}
+                                        className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : ''} ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
+                                      />
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })}
 
                             <div className="ml-2 flex-shrink-0 flex flex-row gap-1 sm:gap-2">
                               {isEditMode && (
@@ -471,16 +575,223 @@ function OptionalWorkoutSections({
                   </div>
                 ))}
               </div>
+              )}
+              {absExpanded && (
               <button
                 onClick={addCustomAbs}
                 className="w-full mt-4 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold shadow-md transition-all active:scale-95"
               >
                 + Add Custom Abs Exercise
               </button>
+              )}
             </div>
           </div>
         )}
         </div>
+      ) : (
+        /* Cardio Section */
+        <div key="cardio">
+          <div className="flex items-center justify-between mb-2">
+            <label className={`flex items-center gap-3 ${disableCheckboxes ? 'cursor-not-allowed' : 'cursor-pointer'} group`}>
+              <input
+                type="checkbox"
+                checked={showCardio}
+                onChange={(e) => setShowCardio(e.target.checked)}
+                disabled={disableCheckboxes}
+                className={`w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 ${disableCheckboxes ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
+              />
+              <span className={`text-xl font-semibold text-gray-700 ${disableCheckboxes ? 'opacity-50' : 'group-hover:text-blue-600'} transition-colors`}>
+                Add Cardio
+              </span>
+            </label>
+          </div>
+
+        {showCardio && (
+          <div className="mt-4">
+            <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-4 relative">
+              {/* Reorder Arrows - Left side when editing */}
+              {isEditingSets && (
+                <div className="absolute left-1 top-1/2 -translate-y-1/2 flex flex-col gap-0.5 z-20">
+                  <button
+                    onClick={onCardioMoveUp}
+                    className="w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all bg-gray-400 hover:bg-gray-500 active:scale-90"
+                    title="Move up"
+                  >
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 15l7-7 7 7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={onCardioMoveDown}
+                    className="w-6 h-6 rounded flex items-center justify-center shadow-sm transition-all bg-gray-400 hover:bg-gray-500 active:scale-90"
+                    title="Move down"
+                  >
+                    <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              {/* Collapsible Header */}
+              <button
+                onClick={() => setCardioExpanded(!cardioExpanded)}
+                className="w-full flex items-center justify-between text-xl font-bold mb-4 py-3 bg-blue-50 rounded-md px-4 hover:bg-blue-100 transition-colors"
+                type="button"
+              >
+                <span className="flex-1 text-center">Cardio</span>
+                <span className="text-gray-600 font-bold flex-shrink-0">{cardioExpanded ? '▼' : '▶'}</span>
+              </button>
+              {cardioExpanded && (
+              <div className="flex flex-col">
+                {cardioExercises.map((exercise) => (
+                  <div key={exercise.id} className="relative flex flex-col sm:flex-row sm:items-center gap-4 border border-gray-300 rounded-md p-4 bg-sky-50 shadow-sm mb-4">
+                    {/* Remove button - show when editing sets */}
+                    {isEditingSets && (
+                      <button
+                        onClick={() => removeCardio(exercise.id)}
+                        className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90 z-10 cursor-pointer"
+                        title="Remove Exercise"
+                      >
+                        <span className="text-xs font-bold">✕</span>
+                      </button>
+                    )}
+
+                    <div className="w-full sm:w-1/3">
+                      {exercise.isCustom ? (
+                        <ExerciseAutocomplete
+                          value={exerciseData[exercise.id]?.exerciseName || exercise.selected}
+                          onChange={(value) => handleCardioChange(exercise.id, value)}
+                          onSelect={(exerciseObj) => {
+                            handleCardioChange(exercise.id, exerciseObj.name);
+                          }}
+                          previousCustomExercises={previousCustomExercises}
+                          placeholder="Enter cardio exercise name..."
+                          className={`w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all ${disableCheckboxes ? 'opacity-60 cursor-not-allowed' : ''}`}
+                          disabled={disableCheckboxes}
+                        />
+                      ) : (
+                        <select
+                          value={(() => {
+                            // Find the option that matches the stored exercise name
+                            const currentName = exerciseData[exercise.id]?.exerciseName;
+                            const matchingOption = exercise.options.find(opt =>
+                              opt.label === currentName || opt.value === currentName || opt.value === exercise.selected
+                            );
+                            return matchingOption ? matchingOption.value : exercise.selected;
+                          })()}
+                          onChange={(e) => handleCardioChange(exercise.id, e.target.value)}
+                          disabled={disableCheckboxes}
+                          className={`w-full px-4 py-2 border-2 border-blue-200 rounded-lg focus:border-blue-500 outline-none transition-all ${disableCheckboxes ? 'opacity-60 cursor-not-allowed' : ''}`}
+                        >
+                          {exercise.options.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:gap-2 w-full items-center">
+                      {(() => {
+                        const selectedExerciseId = exercise.selected || '';
+                        const cardioFields = getCardioFields(selectedExerciseId);
+
+                        return (
+                          <div className="flex flex-wrap gap-2">
+                            {cardioFields.map((label, idx) => {
+                              const value = (exerciseData[exercise.id]?.sets || [])[idx] || '';
+
+                              return (
+                                <div key={idx} className="flex flex-col">
+                                  <label className="text-xs text-gray-600 mb-1">{label}</label>
+                                  {isMobile ? (
+                                    // MOBILE: Button that opens picker
+                                    <button
+                                      type="button"
+                                      onClick={() => !disableCheckboxes && handleOpenCardioPicker(exercise.id, idx, label)}
+                                      disabled={disableCheckboxes}
+                                      className={`px-2 py-2 w-24 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : 'hover:bg-blue-200 active:scale-95'}`}
+                                    >
+                                      {value || <span className="text-gray-400">{label}</span>}
+                                    </button>
+                                  ) : (
+                                    // DESKTOP: Regular input
+                                    <input
+                                      type="number"
+                                      step="0.1"
+                                      placeholder={label}
+                                      value={value}
+                                      onChange={(e) => handleCardioInput(exercise.id, exercise.selected, idx, e.target.value)}
+                                      readOnly={disableCheckboxes}
+                                      className={`px-2 py-2 w-24 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : ''}`}
+                                    />
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              )}
+              {cardioExpanded && (
+              <button
+                onClick={addCustomCardio}
+                className="w-full mt-4 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold shadow-md transition-all active:scale-95"
+              >
+                + Add Custom Cardio Exercise
+              </button>
+              )}
+            </div>
+          </div>
+        )}
+        </div>
+      ))}
+
+      {/* Weight/Reps Picker Modal for Abs (Mobile) */}
+      {pickerOpen && pickerExerciseId && (() => {
+        const exercise = absExercises.find(ex => ex.id === pickerExerciseId);
+        if (!exercise) return null;
+
+        const currentSet = pickerSetIndex !== null ? parseSet((exerciseData[pickerExerciseId]?.sets || [])[pickerSetIndex] || '') : { weight: '', reps: '' };
+        const exerciseById = getExerciseById(exercise.selected);
+        const placeholder = getPlaceholderForExercise(exercise.selected);
+
+        const isBodyweight = exerciseById?.metricType === 'bodyweight' || placeholder === 'Reps';
+        const isTimed = exerciseById?.metricType === 'timed' || placeholder.includes('Duration') || placeholder.includes('sec');
+
+        let exerciseType = 'weight';
+        if (isTimed) exerciseType = 'timed';
+        else if (isBodyweight) exerciseType = 'bodyweight';
+
+        return (
+          <WeightRepsPicker
+            isOpen={pickerOpen}
+            onClose={() => setPickerOpen(false)}
+            weight={currentSet.weight}
+            reps={currentSet.reps}
+            onSave={handleAbsPickerSave}
+            exerciseType={exerciseType}
+            initialField={pickerInitialField}
+          />
+        );
+      })()}
+
+      {/* Picker Modal for Cardio (Mobile) */}
+      {cardioPickerOpen && (
+        <WeightRepsPicker
+          isOpen={cardioPickerOpen}
+          onClose={() => setCardioPickerOpen(false)}
+          weight=""
+          reps={cardioPickerValue}
+          onSave={handleCardioPickerSave}
+          exerciseType="bodyweight"
+          initialField="reps"
+          customLabel={cardioPickerLabel}
+        />
       )}
     </div>
   );

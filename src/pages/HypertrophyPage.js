@@ -1,88 +1,108 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { collection, addDoc, query, where, orderBy, limit, getDocs, getDoc, doc, setDoc } from 'firebase/firestore';
-import { auth } from '../config/firebase'; // Make sure auth is imported
-import db from '../config/firebase';
-import DropDown from '../components/DropDown';
+import { auth } from '../firebase'; // Make sure auth is imported
+import db from '../firebase';
+import DropDown from '../DropDown';
 import MuscleGroupWorkout from '../components/MuscleGroupWorkout';
 import OptionalWorkoutSections from '../components/OptionalWorkoutSections';
 import MuscleGroupAutocomplete from '../components/MuscleGroupAutocomplete';
 import TemplateSelector from '../components/TemplateSelector';
-import Navbar from '../components/Navbar';
-import WorkoutNotesInput from '../components/WorkoutNotesInput';
-import { generateSummary } from '../utils/summaryUtil';
-import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS, FIREBASE_FIELDS } from '../config/constants';
+import Navbar from '../Navbar';
+import WorkoutNotesInput from '../WorkoutNotesInput';
+import { generateSummary } from '../summaryUtil';
+import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS, STORAGE_KEYS, FIREBASE_FIELDS } from '../constants';
 import { getMuscleGroupFromCategory } from '../utils/categoryDetection';
 import { loadTemplate, templateToExerciseData, updateTemplateLastUsed } from '../utils/templateHelpers';
-import { useWorkout } from '../context/WorkoutContext';
-import { workoutDraft, workoutSession } from '../services/storageService';
 
 function HypertrophyPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const templateId = searchParams.get('template'); // Get template ID from URL
 
-  // ===== USE WORKOUT CONTEXT (replaces 20+ useState calls) =====
-  const {
-    workout,
-    workflowMode,
-    customMuscleGroupName,
-    customSetCount,
-    customRepCount,
-    loadedTemplate,
-    isLoadingTemplate,
-    selectedTemplateFromDropdown,
-    isSaving,
-    isGeneratingSummary,
-    previousWorkoutData,
-    previousCustomExercises,
-    previousCustomMuscleGroups,
-    favoriteExercises,
-    workoutDate,
-    actualMuscleGroup,
-    actualNumberOfSets,
-    isWorkoutConfigured,
-    updateWorkout,
-    updateExercise,
-    setWorkflowMode,
-    setCustomMuscleGroupName,
-    setCustomSetCount,
-    setCustomRepCount,
-    setLoadedTemplate,
-    setIsLoadingTemplate,
-    setSelectedTemplateFromDropdown,
-    setIsSaving,
-    setIsGeneratingSummary,
-    setPreviousWorkoutData,
-    setPreviousCustomExercises,
-    setPreviousCustomMuscleGroups,
-    setFavoriteExercises,
-    setWorkoutDate,
-  } = useWorkout();
-
-  // Extract frequently used fields from workout object
-  const selectedMuscleGroup = workout.selectedMuscleGroup;
-  const numberOfSets = workout.numberOfSets;
-  const exerciseData = workout.exerciseData;
-  const note = workout.note;
-  const showCardio = workout.showCardio;
-  const showAbs = workout.showAbs;
-  const cardioAtTop = workout.cardioAtTop;
-  const absAtTop = workout.absAtTop;
-
-  // Convenience setters (delegates to updateWorkout)
-  const setSelectedMuscleGroup = (value) => updateWorkout({ selectedMuscleGroup: value });
-  const setNumberOfSets = (value) => updateWorkout({ numberOfSets: value });
-  const setExerciseData = (value) => updateWorkout({ exerciseData: value });
-  const setNote = (value) => updateWorkout({ note: value });
-  const setShowCardio = (value) => updateWorkout({ showCardio: value });
-  const setShowAbs = (value) => updateWorkout({ showAbs: value });
-  const setCardioAtTop = (value) => updateWorkout({ cardioAtTop: value });
-  const setAbsAtTop = (value) => updateWorkout({ absAtTop: value });
-
-  // ===== LOCAL STATE (not in context) =====
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(null);
+  const [numberOfSets, setNumberOfSets] = useState(null);
+  const [exerciseData, setExerciseData] = useState({});
+  const [note, setNote] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
+  const [previousWorkoutData, setPreviousWorkoutData] = useState(null);
+  const [previousCustomExercises, setPreviousCustomExercises] = useState([]);
+  const [previousCustomMuscleGroups, setPreviousCustomMuscleGroups] = useState([]);
+  const [loadedTemplate, setLoadedTemplate] = useState(null);
+  const [isLoadingTemplate, setIsLoadingTemplate] = useState(false);
+  const [selectedTemplateFromDropdown, setSelectedTemplateFromDropdown] = useState(null);
   const [justLoadedTemplate, setJustLoadedTemplate] = useState(false);
+
+  // Workflow mode: 'choose' | 'template' | 'custom'
+  const [workflowMode, setWorkflowMode] = useState('choose');
+
+  // Custom input states
+  const [customMuscleGroupName, setCustomMuscleGroupName] = useState('');
+  const [customSetCount, setCustomSetCount] = useState('');
+  const [customRepCount, setCustomRepCount] = useState('');
+
+  // Section position states (true = top, false = bottom)
+  const [cardioAtTop, setCardioAtTop] = useState(false);
+  const [absAtTop, setAbsAtTop] = useState(false);
+
+  // Order when both sections are in same position ('abs-first' | 'cardio-first')
+  const [sectionOrder, setSectionOrder] = useState('abs-first');
+
+  // Section visibility states
+  const [showCardio, setShowCardio] = useState(false);
+  const [showAbs, setShowAbs] = useState(false);
+
+  // Favorite exercises
+  const [favoriteExercises, setFavoriteExercises] = useState([]);
+
+  // Workout date (default to today in local timezone)
+  const [workoutDate, setWorkoutDate] = useState(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`; // Format: YYYY-MM-DD in local timezone
+  });
+
+  // Sticky button state for mobile
   const [isButtonSticky, setIsButtonSticky] = useState(true);
+
+  // Edit sets mode state (shared across all workout sections)
+  const [isEditingSets, setIsEditingSets] = useState(false);
+  const [expandAll, setExpandAll] = useState(false); // Expand/collapse all state - default collapsed
+
+  // Cardio/Abs expanded state (persists across position changes)
+  const [absExpanded, setAbsExpanded] = useState(true);
+  const [cardioExpanded, setCardioExpanded] = useState(true);
+
+  // Exercise order state (tracks user's reordering of main workout exercises)
+  const [mainExerciseOrder, setMainExerciseOrder] = useState([]);
+
+  // Determine actual muscle group name to use
+  const actualMuscleGroup = useMemo(() => {
+    if (selectedMuscleGroup === 'custom' && customMuscleGroupName) {
+      return customMuscleGroupName;
+    }
+    return selectedMuscleGroup;
+  }, [selectedMuscleGroup, customMuscleGroupName]);
+
+  // Determine actual number of sets to use
+  const actualNumberOfSets = useMemo(() => {
+    if (numberOfSets === 'custom' && customSetCount) {
+      return parseInt(customSetCount);
+    }
+    return numberOfSets;
+  }, [numberOfSets, customSetCount]);
+
+  // Check if both required selections are complete
+  const isWorkoutConfigured = useMemo(() => {
+    const hasMuscleGroup = selectedMuscleGroup &&
+      (selectedMuscleGroup !== 'custom' || customMuscleGroupName.trim());
+    const hasSets = numberOfSets &&
+      (numberOfSets !== 'custom' || (customSetCount && parseInt(customSetCount) > 0));
+    return hasMuscleGroup && hasSets;
+  }, [selectedMuscleGroup, customMuscleGroupName, numberOfSets, customSetCount]);
 
   // LOAD TEMPLATE FROM URL ---
   useEffect(() => {
@@ -112,6 +132,7 @@ function HypertrophyPage() {
         setCardioAtTop(template.cardioAtTop || false);
         setShowAbs(template.includeAbs || false);
         setAbsAtTop(template.absAtTop || false);
+        setSectionOrder(template.sectionOrder || 'abs-first');
 
         // Pre-fill exercises once we have the set count
         const setsCount = template.customSetCount || template.numberOfSets || 4;
@@ -122,7 +143,7 @@ function HypertrophyPage() {
         await updateTemplateLastUsed(user.uid, templateId);
 
         // Clear any existing draft since we're starting fresh with a template
-        workoutDraft.clear();
+        localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
 
         // Set flag to prevent auto-save from immediately triggering
         setJustLoadedTemplate(true);
@@ -161,16 +182,16 @@ function HypertrophyPage() {
     if (templateId || isLoadingTemplate || selectedTemplateFromDropdown) {
       // Clear draft when using a template
       if (templateId || selectedTemplateFromDropdown) {
-        workoutDraft.clear();
+        localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
       }
       return;
     }
 
     // First check for active workout session (from StartWorkoutPage)
-    const activeSession = workoutSession.get();
+    const activeSession = localStorage.getItem('activeWorkoutSession');
     if (activeSession) {
       try {
-        const session = activeSession;
+        const session = JSON.parse(activeSession);
 
         // Restore from active session - rebuild exerciseData from exercises array
         const restoredExerciseData = {};
@@ -210,6 +231,12 @@ function HypertrophyPage() {
           if (session.workoutData.absAtTop !== undefined) {
             setAbsAtTop(session.workoutData.absAtTop);
           }
+          if (session.workoutData.sectionOrder) {
+            setSectionOrder(session.workoutData.sectionOrder);
+          }
+          if (session.workoutData.workflowMode) {
+            setWorkflowMode(session.workoutData.workflowMode);
+          }
         }
 
         return; // Don't check draft if we have active session
@@ -218,9 +245,9 @@ function HypertrophyPage() {
       }
     }
 
-    const savedDraft = workoutDraft.get();
+    const savedDraft = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
     if (savedDraft) {
-      const parsed = savedDraft;
+      const parsed = JSON.parse(savedDraft);
       // Check for data in both old and new format
       const hasData = (parsed.inputs && Object.keys(parsed.inputs).length > 0) ||
                       (parsed.exerciseData && Object.keys(parsed.exerciseData).length > 0);
@@ -283,9 +310,13 @@ function HypertrophyPage() {
           if (parsed.showAbs !== undefined) setShowAbs(parsed.showAbs);
           if (parsed.cardioAtTop !== undefined) setCardioAtTop(parsed.cardioAtTop);
           if (parsed.absAtTop !== undefined) setAbsAtTop(parsed.absAtTop);
+          if (parsed.sectionOrder) setSectionOrder(parsed.sectionOrder);
+
+          // Restore workflow mode if present
+          if (parsed.workflowMode) setWorkflowMode(parsed.workflowMode);
         } else {
           // If they say No, clear the old draft so they start fresh
-          workoutDraft.clear();
+          localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
         }
       }
     }
@@ -313,10 +344,12 @@ function HypertrophyPage() {
         showAbs,
         cardioAtTop,
         absAtTop,
+        sectionOrder,
+        workflowMode, // Save workflow mode to restore correct screen
       };
-      workoutDraft.save(draft);
+      localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT, JSON.stringify(draft));
     }
-  }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount, selectedTemplateFromDropdown, showCardio, showAbs, cardioAtTop, absAtTop, justLoadedTemplate]);
+  }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount, selectedTemplateFromDropdown, showCardio, showAbs, cardioAtTop, absAtTop, sectionOrder, workflowMode, justLoadedTemplate]);
 
   // PREVENT ACCIDENTAL TAB CLOSING ---
   useEffect(() => {
@@ -608,28 +641,40 @@ function HypertrophyPage() {
 
   // Batch initialize multiple exercises at once (optimal for initial load)
   const batchInitializeExercises = (exercisesToInit) => {
-    const updatedExerciseData = { ...exerciseData };
+    setExerciseData(prevExerciseData => {
+      const updatedExerciseData = { ...prevExerciseData };
 
-    exercisesToInit.forEach(({ categoryKey, exerciseName }) => {
-      if (!updatedExerciseData[categoryKey] || !updatedExerciseData[categoryKey].exerciseName) {
-        const setsArray = new Array(actualNumberOfSets).fill('');
-        updatedExerciseData[categoryKey] = {
-          sets: setsArray,
-          exerciseName: exerciseName,
-        };
-      }
+      exercisesToInit.forEach(({ categoryKey, exerciseName }) => {
+        if (!updatedExerciseData[categoryKey] || !updatedExerciseData[categoryKey].exerciseName) {
+          const setsArray = new Array(actualNumberOfSets).fill('');
+          updatedExerciseData[categoryKey] = {
+            sets: setsArray,
+            exerciseName: exerciseName,
+          };
+        }
+      });
+
+      return updatedExerciseData;
     });
 
-    setExerciseData(updatedExerciseData);
+    // Also add to mainExerciseOrder
+    const newKeys = exercisesToInit.map(ex => ex.categoryKey);
+    setMainExerciseOrder(prev => {
+      // Only add keys that aren't already in the order
+      const keysToAdd = newKeys.filter(key => !prev.includes(key));
+      return [...prev, ...keysToAdd];
+    });
   };
 
   // Workout Selection: Weight x Reps input
   const handleExerciseDataChange = (categoryKey, exerciseName, setIndex, setInput, detectedCategory) => {
-    const updatedExerciseData = { ...exerciseData };
+    // Use functional setState to ensure we always get the latest state
+    setExerciseData(prevExerciseData => {
+      const updatedExerciseData = { ...prevExerciseData };
 
-    // Check if this is a cardio or abs exercise (they don't use actualNumberOfSets)
-    const isCardioOrAbs = categoryKey.startsWith('cardio') || categoryKey.startsWith('custom_cardio') ||
-                          categoryKey.startsWith('abs') || categoryKey.startsWith('custom_abs');
+      // Check if this is a cardio or abs exercise (they don't use actualNumberOfSets)
+      const isCardioOrAbs = categoryKey.startsWith('cardio') || categoryKey.startsWith('custom_cardio') ||
+                            categoryKey.startsWith('abs') || categoryKey.startsWith('custom_abs');
 
     if (!updatedExerciseData[categoryKey]) {
       // For cardio/abs, start with empty array (will grow dynamically)
@@ -639,14 +684,25 @@ function HypertrophyPage() {
         sets: setsArray,
         exerciseName: exerciseName,
       };
+
+      // Add to mainExerciseOrder if it's a new main exercise (not cardio/abs)
+      if (!isCardioOrAbs) {
+        setMainExerciseOrder(prev => [...prev, categoryKey]);
+      }
     }
 
     if (setIndex === -1) {
       // -1 means changing the exercise selection
       updatedExerciseData[categoryKey].exerciseName = exerciseName;
-      // Store detected category if provided
+      // Store detected category or selection ID
       if (detectedCategory) {
-        updatedExerciseData[categoryKey].detectedCategory = detectedCategory;
+        if (isCardioOrAbs) {
+          // For cardio/abs, store the exercise ID as "selection" for field lookup
+          updatedExerciseData[categoryKey].selection = detectedCategory;
+        } else {
+          // For regular exercises, store as detectedCategory
+          updatedExerciseData[categoryKey].detectedCategory = detectedCategory;
+        }
       }
       // Ensure sets array exists and has correct length
       if (!updatedExerciseData[categoryKey].sets || updatedExerciseData[categoryKey].sets.length === 0) {
@@ -663,7 +719,27 @@ function HypertrophyPage() {
       updatedExerciseData[categoryKey].sets[setIndex] = setInput;
     }
 
+      return updatedExerciseData;
+    });
+  };
+
+  // Remove an entire exercise
+  const handleRemoveExercise = (categoryKey) => {
+    const updatedExerciseData = { ...exerciseData };
+    delete updatedExerciseData[categoryKey];
     setExerciseData(updatedExerciseData);
+
+    // Also remove from mainExerciseOrder
+    const isCardioOrAbs = categoryKey.startsWith('cardio') || categoryKey.startsWith('custom_cardio') ||
+                          categoryKey.startsWith('abs') || categoryKey.startsWith('custom_abs');
+    if (!isCardioOrAbs) {
+      setMainExerciseOrder(prev => prev.filter(key => key !== categoryKey));
+    }
+  };
+
+  // Handle reordering of main workout exercises
+  const handleReorderExercises = (newOrder) => {
+    setMainExerciseOrder(newOrder);
   };
 
   // Remove a specific set from an exercise
@@ -682,6 +758,130 @@ function HypertrophyPage() {
     // Now remove the set
     updatedExerciseData[categoryKey].sets = updatedExerciseData[categoryKey].sets.filter((_, i) => i !== setIndex);
     setExerciseData(updatedExerciseData);
+  };
+
+  // Handle moving cardio section up
+  const handleCardioMoveUp = () => {
+    if (!cardioAtTop) {
+      // Cardio is at bottom
+      if (!absAtTop) {
+        // Both at bottom - check order
+        if (sectionOrder === 'abs-first') {
+          // Abs is first, Cardio is second - swap them
+          setSectionOrder('cardio-first');
+        } else {
+          // Cardio is already first at bottom - move to top
+          setCardioAtTop(true);
+        }
+      } else {
+        // Abs is at top, Cardio at bottom - just move Cardio to top
+        setCardioAtTop(true);
+      }
+    } else {
+      // Cardio is at top
+      if (absAtTop) {
+        // Both at top - check order
+        if (sectionOrder === 'abs-first') {
+          // Abs is first, Cardio is second - swap them
+          setSectionOrder('cardio-first');
+        }
+        // else Cardio is already first, can't go higher
+      }
+      // else Cardio is alone at top, can't go higher
+    }
+  };
+
+  // Handle moving cardio section down
+  const handleCardioMoveDown = () => {
+    if (cardioAtTop) {
+      // Cardio is at top
+      if (absAtTop) {
+        // Both at top - check order
+        if (sectionOrder === 'cardio-first') {
+          // Cardio is first, Abs is second - swap them
+          setSectionOrder('abs-first');
+        } else {
+          // Cardio is already second at top - move to bottom
+          setCardioAtTop(false);
+        }
+      } else {
+        // Abs is at bottom, Cardio at top - just move Cardio to bottom
+        setCardioAtTop(false);
+      }
+    } else {
+      // Cardio is at bottom
+      if (!absAtTop) {
+        // Both at bottom - check order
+        if (sectionOrder === 'cardio-first') {
+          // Cardio is first, Abs is second - swap them
+          setSectionOrder('abs-first');
+        }
+        // else Cardio is already second, can't go lower
+      }
+      // else Cardio is alone at bottom, can't go lower
+    }
+  };
+
+  // Handle moving abs section up
+  const handleAbsMoveUp = () => {
+    if (!absAtTop) {
+      // Abs is at bottom
+      if (!cardioAtTop) {
+        // Both at bottom - check order
+        if (sectionOrder === 'cardio-first') {
+          // Cardio is first, Abs is second - swap them
+          setSectionOrder('abs-first');
+        } else {
+          // Abs is already first at bottom - move to top
+          setAbsAtTop(true);
+        }
+      } else {
+        // Cardio is at top, Abs at bottom - just move Abs to top
+        setAbsAtTop(true);
+      }
+    } else {
+      // Abs is at top
+      if (cardioAtTop) {
+        // Both at top - check order
+        if (sectionOrder === 'cardio-first') {
+          // Cardio is first, Abs is second - swap them
+          setSectionOrder('abs-first');
+        }
+        // else Abs is already first, can't go higher
+      }
+      // else Abs is alone at top, can't go higher
+    }
+  };
+
+  // Handle moving abs section down
+  const handleAbsMoveDown = () => {
+    if (absAtTop) {
+      // Abs is at top
+      if (cardioAtTop) {
+        // Both at top - check order
+        if (sectionOrder === 'abs-first') {
+          // Abs is first, Cardio is second - swap them
+          setSectionOrder('cardio-first');
+        } else {
+          // Abs is already second at top - move to bottom
+          setAbsAtTop(false);
+        }
+      } else {
+        // Cardio is at bottom, Abs at top - just move Abs to bottom
+        setAbsAtTop(false);
+      }
+    } else {
+      // Abs is at bottom
+      if (!cardioAtTop) {
+        // Both at bottom - check order
+        if (sectionOrder === 'abs-first') {
+          // Abs is first, Cardio is second - swap them
+          setSectionOrder('cardio-first');
+        }
+        // else Abs is already second, can't go lower
+      }
+      // else Abs is alone at bottom, can't go lower
+    }
   };
 
   const handleMuscleGroupSelect = (option) => {
@@ -721,7 +921,7 @@ function HypertrophyPage() {
       setShowCardio(false);
       setShowAbs(false);
       setJustLoadedTemplate(false);
-      workoutDraft.clear();
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
       return;
     }
 
@@ -748,6 +948,7 @@ function HypertrophyPage() {
       setCardioAtTop(template.cardioAtTop || false);
       setShowAbs(template.includeAbs || false);
       setAbsAtTop(template.absAtTop || false);
+      setSectionOrder(template.sectionOrder || 'abs-first');
 
       // Pre-fill exercises once we have the set count
       const setsCount = template.customSetCount || template.numberOfSets || 4;
@@ -758,7 +959,7 @@ function HypertrophyPage() {
       await updateTemplateLastUsed(user.uid, templateId);
 
       // Clear any existing draft since we're starting fresh with a template
-      workoutDraft.clear();
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
 
       // Set flag to prevent auto-save from immediately triggering
       setJustLoadedTemplate(true);
@@ -842,14 +1043,45 @@ function HypertrophyPage() {
       const allKeys = Object.keys(exerciseData);
       const cardioKeys = allKeys.filter(k => k.startsWith('cardio') || k.startsWith('custom_cardio'));
       const absKeys = allKeys.filter(k => k.startsWith('abs') || k.startsWith('custom_abs'));
-      const mainKeys = allKeys.filter(k => !cardioKeys.includes(k) && !absKeys.includes(k));
+
+      // Use the tracked mainExerciseOrder instead of just filtering keys
+      // This preserves the user's drag-and-drop reordering
+      const mainKeys = mainExerciseOrder.filter(k => k in exerciseData);
+
+      // Build sections at top respecting order
+      const topSections = [];
+      if (cardioAtTop && absAtTop) {
+        if (sectionOrder === 'abs-first') {
+          if (showAbs) topSections.push(...absKeys);
+          if (showCardio) topSections.push(...cardioKeys);
+        } else {
+          if (showCardio) topSections.push(...cardioKeys);
+          if (showAbs) topSections.push(...absKeys);
+        }
+      } else {
+        if (cardioAtTop && showCardio) topSections.push(...cardioKeys);
+        if (absAtTop && showAbs) topSections.push(...absKeys);
+      }
+
+      // Build sections at bottom respecting order
+      const bottomSections = [];
+      if (!cardioAtTop && !absAtTop) {
+        if (sectionOrder === 'abs-first') {
+          if (showAbs) bottomSections.push(...absKeys);
+          if (showCardio) bottomSections.push(...cardioKeys);
+        } else {
+          if (showCardio) bottomSections.push(...cardioKeys);
+          if (showAbs) bottomSections.push(...absKeys);
+        }
+      } else {
+        if (!cardioAtTop && showCardio) bottomSections.push(...cardioKeys);
+        if (!absAtTop && showAbs) bottomSections.push(...absKeys);
+      }
 
       const exerciseOrder = [
-        ...(cardioAtTop && showCardio ? cardioKeys : []),
-        ...(absAtTop && showAbs ? absKeys : []),
+        ...topSections,
         ...mainKeys,
-        ...(!cardioAtTop && showCardio ? cardioKeys : []),
-        ...(!absAtTop && showAbs ? absKeys : []),
+        ...bottomSections,
       ];
 
       // Generate New Summary (no monthly data on initial save, only has previous workout)
@@ -867,6 +1099,9 @@ function HypertrophyPage() {
         [FIREBASE_FIELDS.NOTE]: note,
         [FIREBASE_FIELDS.SUMMARY]: newSummary,
         exerciseOrder: exerciseOrder, // Store the order exercises were performed
+        sectionOrder: sectionOrder, // Store cardio/abs section order
+        cardioAtTop: cardioAtTop, // Store cardio position
+        absAtTop: absAtTop, // Store abs position
         createdAt: new Date(), // Exact timestamp for ordering
       };
 
@@ -880,7 +1115,7 @@ function HypertrophyPage() {
       const docRef = await addDoc(collection(db, 'workoutLogs'), workoutData);
 
       // CLEAR LOCAL STORAGE ON SUCCESS ---
-      workoutDraft.clear();
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
 
       // Get the document ID
       const workoutId = docRef.id;
@@ -911,6 +1146,8 @@ function HypertrophyPage() {
       showAbs,
       cardioAtTop,
       absAtTop,
+      sectionOrder,
+      workflowMode,
     };
 
     // Navigate to StartWorkoutPage with workout data
@@ -940,7 +1177,7 @@ function HypertrophyPage() {
       setWorkflowMode('choose'); // Reset to choice screen
 
       // 2. Clear the local storage draft
-      workoutDraft.clear();
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
 
       // 3. Scroll to top so user sees the choice screen
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1321,13 +1558,23 @@ function HypertrophyPage() {
               onRemoveSet={handleRemoveSet}
               cardioAtTop={cardioAtTop}
               absAtTop={absAtTop}
-              onToggleCardioPosition={() => setCardioAtTop(!cardioAtTop)}
-              onToggleAbsPosition={() => setAbsAtTop(!absAtTop)}
+              sectionOrder={sectionOrder}
+              onCardioMoveUp={handleCardioMoveUp}
+              onCardioMoveDown={handleCardioMoveDown}
+              onAbsMoveUp={handleAbsMoveUp}
+              onAbsMoveDown={handleAbsMoveDown}
               showCardio={showCardio}
               setShowCardio={setShowCardio}
               showAbs={showAbs}
               setShowAbs={setShowAbs}
               position="top"
+              isEditingSets={isEditingSets}
+              previousCustomExercises={previousCustomExercises}
+              expandAll={expandAll}
+              absExpanded={absExpanded}
+              setAbsExpanded={setAbsExpanded}
+              cardioExpanded={cardioExpanded}
+              setCardioExpanded={setCardioExpanded}
             />
           </div>
         )}
@@ -1342,10 +1589,17 @@ function HypertrophyPage() {
               onExerciseDataChange={handleExerciseDataChange}
               onBatchInitializeExercises={batchInitializeExercises}
               onRemoveSet={handleRemoveSet}
+              onRemoveExercise={handleRemoveExercise}
               previousExerciseData={previousWorkoutData?.exerciseData || previousWorkoutData?.inputs}
               previousCustomExercises={previousCustomExercises}
               favoriteExercises={favoriteExercises}
               onToggleFavorite={toggleFavorite}
+              isEditingSets={isEditingSets}
+              onEditingSetsChange={setIsEditingSets}
+              expandAll={expandAll}
+              onExpandAllChange={setExpandAll}
+              onReorderExercises={handleReorderExercises}
+              exerciseOrder={mainExerciseOrder}
             />
           )}
         </div>
@@ -1360,13 +1614,23 @@ function HypertrophyPage() {
               onRemoveSet={handleRemoveSet}
               cardioAtTop={cardioAtTop}
               absAtTop={absAtTop}
-              onToggleCardioPosition={() => setCardioAtTop(!cardioAtTop)}
-              onToggleAbsPosition={() => setAbsAtTop(!absAtTop)}
+              sectionOrder={sectionOrder}
+              onCardioMoveUp={handleCardioMoveUp}
+              onCardioMoveDown={handleCardioMoveDown}
+              onAbsMoveUp={handleAbsMoveUp}
+              onAbsMoveDown={handleAbsMoveDown}
               showCardio={showCardio}
               setShowCardio={setShowCardio}
               showAbs={showAbs}
               setShowAbs={setShowAbs}
               position="bottom"
+              isEditingSets={isEditingSets}
+              previousCustomExercises={previousCustomExercises}
+              expandAll={expandAll}
+              absExpanded={absExpanded}
+              setAbsExpanded={setAbsExpanded}
+              cardioExpanded={cardioExpanded}
+              setCardioExpanded={setCardioExpanded}
             />
           </div>
         )}

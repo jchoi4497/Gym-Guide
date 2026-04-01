@@ -88,6 +88,9 @@ function TableRow({
     // Get dynamic placeholder based on exercise type
     const placeholder = getPlaceholderForExercise(value);
     const isCardio = placeholder.includes('min') || placeholder.includes('mi');
+    const isBodyweight = placeholder === 'Reps';
+    const isTimed = placeholder.includes('Duration') || placeholder.includes('sec');
+    const showWeightInput = !isBodyweight && !isTimed && !isCardio;
 
     for (let i = 0; i < currentSetCount; i++) {
       const currentSet = parseSet((setInputs && setInputs[i]) || '');
@@ -101,7 +104,7 @@ function TableRow({
           {isMobile ? (
             // MOBILE: Buttons that open picker modal
             <>
-              {!isCardio && (
+              {showWeightInput && (
                 <>
                   <button
                     type="button"
@@ -116,15 +119,15 @@ function TableRow({
               <button
                 type="button"
                 onClick={() => handleOpenPicker(i, 'reps')}
-                className="px-2 py-2 w-14 sm:w-16 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
+                className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95 ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
               >
-                {currentSet.reps || <span className="text-gray-400">{isCardio ? placeholder : "reps"}</span>}
+                {currentSet.reps || <span className="text-gray-400">{isCardio ? placeholder : (isTimed ? "sec" : "reps")}</span>}
               </button>
             </>
           ) : (
             // DESKTOP: Regular text inputs
             <>
-              {!isCardio && (
+              {showWeightInput && (
                 <>
                   <input
                     type="number"
@@ -142,8 +145,8 @@ function TableRow({
                 step={isCardio ? "0.1" : "1"}
                 value={currentSet.reps}
                 onChange={(e) => handleRepsChange(i, e.target.value)}
-                placeholder={isCardio ? placeholder : "reps"}
-                className="px-2 py-2 w-14 sm:w-16 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm"
+                placeholder={isCardio ? placeholder : (isTimed ? "sec" : "reps")}
+                className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
               />
             </>
           )}
@@ -193,8 +196,8 @@ function TableRow({
 
   return (
     <>
-      <div className="relative border border-gray-300 rounded-lg bg-white shadow-sm mb-3">
-        {(isCustom || isEditingSets) && (
+      <div className="relative border border-gray-300 rounded-lg bg-white shadow-sm mb-3 overflow-visible">
+        {isEditingSets && (
           <button
             onClick={onRemove}
             className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90 z-30 cursor-pointer"
@@ -205,16 +208,9 @@ function TableRow({
         )}
 
         {/* Header - Always Visible */}
-        <div className="flex items-center bg-sky-50 transition-colors">
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-3 hover:bg-sky-100 transition-colors"
-            type="button"
-          >
-            <span className="text-gray-400 text-sm">{isExpanded ? '▼' : '▶'}</span>
-          </button>
-          <div className="flex-1 flex items-center gap-2 py-3 pr-3">
-            <div className="flex-1">
+        <div className="flex items-center justify-between bg-sky-50 transition-colors rounded-t-lg pr-2">
+          <div className="flex-1 flex items-center gap-2 py-2 sm:py-3 pl-8 sm:pl-3 min-w-0">
+            <div className="flex-1 min-w-0">
               {isCustom || value === 'custom' || !options.find(opt => opt.value === value) ? (
                 <ExerciseAutocomplete
                   value={value === 'custom' ? '' : value}
@@ -224,7 +220,7 @@ function TableRow({
                   }}
                   previousCustomExercises={previousCustomExercises}
                   placeholder="Enter exercise name..."
-                  className="w-full px-3 py-1 border border-blue-200 rounded-md focus:border-blue-500 outline-none transition-all text-sm"
+                  className="w-full px-2 sm:px-3 py-1 border border-blue-200 rounded-md focus:border-blue-500 outline-none transition-all text-sm"
                 />
               ) : (
                 <DropDown
@@ -237,6 +233,13 @@ function TableRow({
               )}
             </div>
           </div>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="p-2 hover:bg-sky-100 transition-colors flex-shrink-0 z-10"
+            type="button"
+          >
+            <span className="text-gray-600 font-bold">{isExpanded ? '▼' : '▶'}</span>
+          </button>
         </div>
 
         {/* Expandable Content */}

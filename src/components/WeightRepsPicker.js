@@ -10,6 +10,7 @@ function WeightRepsPicker({
   onSave,
   exerciseType = 'weight', // 'weight', 'bodyweight', 'timed', 'cardio'
   initialField = 'weight', // Which field to focus on initially
+  customLabel = null, // Custom label for the reps field (e.g., "Incline", "Speed (mph)")
 }) {
   const [selectedWeight, setSelectedWeight] = useState(weight || '');
   const [selectedReps, setSelectedReps] = useState(reps || '');
@@ -47,18 +48,20 @@ function WeightRepsPicker({
   const showWeight = exerciseType === 'weight';
 
   // Determine reps label and config
-  let repsLabel = 'Reps';
+  let repsLabel = customLabel || 'Reps';
   let repsUnit = '';
   let repsMax = 100;
 
-  if (exerciseType === 'timed') {
-    repsLabel = 'Seconds';
-    repsUnit = ' sec';
-    repsMax = 300; // 5 minutes in seconds
-  } else if (exerciseType === 'cardio') {
-    repsLabel = 'Minutes';
-    repsUnit = ' min';
-    repsMax = 180; // 3 hours in minutes
+  if (!customLabel) {
+    if (exerciseType === 'timed') {
+      repsLabel = 'Seconds';
+      repsUnit = ' sec';
+      repsMax = 300; // 5 minutes in seconds
+    } else if (exerciseType === 'cardio') {
+      repsLabel = 'Minutes';
+      repsUnit = ' min';
+      repsMax = 180; // 3 hours in minutes
+    }
   }
 
   return (
