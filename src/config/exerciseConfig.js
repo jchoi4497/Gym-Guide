@@ -730,6 +730,14 @@ export function getExerciseName(exerciseId) {
   return exercise ? exercise.name : exerciseId; // Fallback to ID if not found
 }
 
+/**
+ * Get exercise ID by name (reverse lookup)
+ */
+export function getExerciseIdByName(exerciseName) {
+  const exercise = Object.values(EXERCISES).find(ex => ex.name === exerciseName);
+  return exercise ? exercise.id : exerciseName; // Fallback to name if not found
+}
+
 // ====================================
 // DEFAULT EXERCISE CONFIGURATIONS
 // ====================================
