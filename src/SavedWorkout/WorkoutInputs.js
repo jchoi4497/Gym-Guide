@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import exerciseNames from '../exerciseNames';
 import DataChart from '../DataChart';
 import ExerciseAutocomplete from '../components/ExerciseAutocomplete';
-import { getPlaceholderForExercise, getExerciseById } from '../config/exerciseConfig';
+import { getPlaceholderForExercise, getExerciseById, getExerciseIdByName, EXERCISE_CATEGORIES, MUSCLE_GROUPS } from '../config/exerciseConfig';
 import WeightRepsPicker from '../components/WeightRepsPicker';
 import {
   DndContext,
@@ -45,6 +45,22 @@ const combineSet = (weight, reps) => {
   if (!w) return r; // Bodyweight - just reps
   if (!r) return w + 'x'; // Weight entered but no reps yet
   return `${w}x${r}`;
+};
+
+// Field templates for different cardio exercise types
+const CARDIO_FIELD_TEMPLATES = {
+  treadmill: ['Incline', 'Time (min)', 'Speed (mph)'],
+  bike: ['Resistance', 'Time (min)', 'Speed (mph)'],
+  elliptical: ['Resistance', 'Time (min)'],
+  stairmaster: ['Level', 'Time (min)'],
+  running: ['Distance (mi)', 'Time (min)', 'Pace (min/mi)'],
+  // Default for custom cardio
+  default: ['Metric 1', 'Metric 2', 'Metric 3'],
+};
+
+// Helper function to get fields for a cardio exercise
+const getCardioFields = (exerciseId) => {
+  return CARDIO_FIELD_TEMPLATES[exerciseId] || CARDIO_FIELD_TEMPLATES.default;
 };
 
 // Sortable Exercise Item Component
@@ -120,12 +136,12 @@ function SortableExerciseItem({
       style={style}
       className="mb-8 p-4 bg-sky-50 rounded-2xl shadow-lg relative"
     >
-      {/* Drag Handle - Only visible when editing */}
+      {/* Drag Handle - Only visible when editing on DESKTOP */}
       {isEditing && (
         <div
           {...attributes}
           {...listeners}
-          className="absolute -left-3 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing bg-blue-500 text-white w-8 h-12 rounded-lg flex items-center justify-center shadow-lg hover:bg-blue-600 transition-colors z-10"
+          className="hidden sm:flex absolute -left-3 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing bg-blue-500 text-white w-8 h-12 rounded-lg items-center justify-center shadow-lg hover:bg-blue-600 transition-colors z-10"
           title="Drag to reorder"
         >
           <span className="text-xl">⋮⋮</span>
@@ -176,22 +192,62 @@ function SortableExerciseItem({
         <div className="flex-1 flex flex-col gap-3">
           {/* Set Inputs */}
           <div className="flex flex-wrap gap-3">
-            {(data.sets || data.input || []).map((setData, idx) => {
-              const currentSet = parseSet((editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input)?.[idx] || setData || '');
-
-              // Determine exercise type for proper input display
-              const exerciseId = data.selection || data.exerciseName;
+            {/* Determine exercise type once for all sets */}
+            {(() => {
+              const exerciseId = data.selection || getExerciseIdByName(data.exerciseName) || data.exerciseName;
               const exercise = getExerciseById(exerciseId);
               const placeholder = getPlaceholderForExercise(exerciseId);
 
-              // Check metric type for determining which inputs to show
+              // Better cardio detection using category/muscleGroup
+              const isCardio = exercise?.category === EXERCISE_CATEGORIES.CARDIO ||
+                               exercise?.muscleGroup === MUSCLE_GROUPS.CARDIO ||
+                               exerciseKey.includes('cardio');
+
               const isBodyweight = exercise?.metricType === 'bodyweight' || placeholder === 'Reps';
               const isTimed = exercise?.metricType === 'timed' || placeholder.includes('Duration') || placeholder.includes('sec');
-              const isCardio = placeholder.includes('min') || placeholder.includes('mi');
               const showWeightInput = !isBodyweight && !isTimed && !isCardio;
 
-              return (
-                <div key={idx}>
+              // For cardio exercises, show labeled input fields
+              if (isCardio) {
+                const cardioFields = getCardioFields(exerciseId);
+                const sets = data.sets || data.input || [];
+
+                return cardioFields.map((label, idx) => {
+                  const value = isEditing
+                    ? ((editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input)?.[idx] || '')
+                    : (sets[idx] || '');
+
+                  return (
+                    <div key={idx}>
+                      <input
+                        type="text"
+                        value={value}
+                        onChange={isEditing ? (e) => {
+                          const newInputs = { ...editedInputs };
+                          if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
+                          if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
+                          newInputs[exerciseKey].sets[idx] = e.target.value;
+                          newInputs[exerciseKey].input[idx] = e.target.value;
+                          setEditedInputs(newInputs);
+                        } : undefined}
+                        placeholder={label}
+                        readOnly={!isEditing}
+                        className={`px-3 py-2 w-full rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 placeholder-gray-400 text-gray-900 mb-2 sm:mb-0 ${isEditing ? '' : 'cursor-default'}`}
+                      />
+                    </div>
+                  );
+                });
+              }
+
+              // Regular sets display
+              const sets = data.sets || data.input || [];
+              const setsToDisplay = sets.length > 0 ? sets : Array(4).fill('');
+
+              return setsToDisplay.map((setData, idx) => {
+                const currentSet = parseSet((editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input)?.[idx] || setData || '');
+
+                return (
+                  <div key={idx}>
                   {isEditing ? (
                     isMobile ? (
                       // MOBILE: Buttons that open picker modal
@@ -259,13 +315,15 @@ function SortableExerciseItem({
                       </div>
                     )
                   ) : (
+                    // NON-EDIT MODE: Regular display
                     <div className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl min-w-[60px] text-center">
                       {setData || '-'}
                     </div>
                   )}
                 </div>
               );
-            })}
+            });
+            })()}
           </div>
 
           {/* Add/Remove Set Buttons - Only in Edit Mode */}
@@ -327,7 +385,8 @@ function SortableExerciseItem({
         const currentSet = editingSetIndex !== null ? parseSet((editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input)?.[editingSetIndex] || '') : { weight: '', reps: '' };
 
         // Determine exercise type for picker
-        const exerciseId = data.selection || data.exerciseName;
+        // Try selection first (new data), then reverse lookup from name (old data), then fallback to name
+        const exerciseId = data.selection || getExerciseIdByName(data.exerciseName) || data.exerciseName;
         const exercise = getExerciseById(exerciseId);
         const placeholder = getPlaceholderForExercise(exerciseId);
 
