@@ -1530,6 +1530,7 @@ function HypertrophyPage() {
               setShowAbs={setShowAbs}
               position="top"
               isEditingSets={isEditingSets}
+              previousCustomExercises={previousCustomExercises}
             />
           </div>
         )}
@@ -1576,6 +1577,7 @@ function HypertrophyPage() {
               setShowAbs={setShowAbs}
               position="bottom"
               isEditingSets={isEditingSets}
+              previousCustomExercises={previousCustomExercises}
             />
           </div>
         )}
