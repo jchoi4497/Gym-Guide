@@ -11,7 +11,7 @@ import {
   getDoc,
   updateDoc,
 } from 'firebase/firestore';
-import db, { auth } from '../firebase';
+import db, { auth } from '../config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import Navbar from '../Navbar';
 import { generateSummary } from '../summaryUtil';
