@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { STORAGE_KEYS } from '../config/workoutSettings';
+import { loadWorkoutSession, clearWorkoutSession } from '../utils/sessionPersistence';
 
 function ResumeWorkoutModal() {
   const navigate = useNavigate();
@@ -9,24 +9,30 @@ function ResumeWorkoutModal() {
   const [workoutSession, setWorkoutSession] = useState(null);
 
   useEffect(() => {
+    console.log('[ResumeWorkoutModal] Checking for saved session...', {
+      pathname: location.pathname,
+    });
+
     // Don't show modal if already on StartWorkoutPage
     if (location.pathname === '/start-workout') {
+      console.log('[ResumeWorkoutModal] Skipping - already on workout page');
       return;
     }
 
     // Check for active workout session
-    const savedSession = localStorage.getItem(STORAGE_KEYS.ACTIVE_WORKOUT_SESSION);
+    const savedSession = loadWorkoutSession();
+    console.log('[ResumeWorkoutModal] Saved session:', savedSession ? 'FOUND' : 'NOT FOUND');
+
     if (savedSession) {
-      try {
-        const session = JSON.parse(savedSession);
-        setWorkoutSession(session);
-        setShowModal(true);
-      } catch (err) {
-        console.error('Failed to parse workout session:', err);
-        localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_SESSION);
-      }
+      console.log('[ResumeWorkoutModal] Session loaded successfully:', {
+        workoutName: savedSession.workoutName,
+        exerciseCount: savedSession.exercises?.length,
+        ageMinutes: Math.floor((Date.now() - savedSession.lastSaved) / 60000),
+      });
+      setWorkoutSession(savedSession);
+      setShowModal(true);
     }
-  }, [location.pathname]);
+  }, [location.pathname]); // Runs on mount AND when path changes
 
   const handleResume = () => {
     setShowModal(false);
@@ -34,7 +40,8 @@ function ResumeWorkoutModal() {
   };
 
   const handleDiscard = () => {
-    localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_SESSION);
+    console.log('[ResumeWorkoutModal] User discarded workout session');
+    clearWorkoutSession();
     setShowModal(false);
     setWorkoutSession(null);
   };
