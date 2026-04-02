@@ -9,18 +9,30 @@ function ResumeWorkoutModal() {
   const [savedSession, setSavedSession] = useState(null);
 
   useEffect(() => {
+    console.log('[ResumeWorkoutModal] Checking for saved session...', {
+      pathname: location.pathname,
+    });
+
     // Don't show modal if already on StartWorkoutPage
     if (location.pathname === '/start-workout') {
+      console.log('[ResumeWorkoutModal] Skipping - already on workout page');
       return;
     }
 
     // Check for active workout session (using storageService)
     const session = workoutSession.get();
+    console.log('[ResumeWorkoutModal] Saved session:', session ? 'FOUND' : 'NOT FOUND');
+
     if (session) {
+      console.log('[ResumeWorkoutModal] Session loaded successfully:', {
+        workoutName: session.workoutName,
+        exerciseCount: session.exercises?.length,
+        ageMinutes: session.lastSaved ? Math.floor((Date.now() - session.lastSaved) / 60000) : 'N/A',
+      });
       setSavedSession(session);
       setShowModal(true);
     }
-  }, [location.pathname]);
+  }, [location.pathname]); // Runs on mount AND when path changes
 
   const handleResume = () => {
     setShowModal(false);
@@ -28,6 +40,7 @@ function ResumeWorkoutModal() {
   };
 
   const handleDiscard = () => {
+    console.log('[ResumeWorkoutModal] User discarded workout session');
     workoutSession.clear();
     setShowModal(false);
     setSavedSession(null);
