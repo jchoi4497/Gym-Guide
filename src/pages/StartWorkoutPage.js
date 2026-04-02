@@ -14,8 +14,23 @@ function StartWorkoutPage() {
   const location = useLocation();
   const db = getFirestore();
 
-  // Workout data passed from HypertrophyPage or SavedWorkout
-  const workoutData = location.state?.workoutData;
+  // Try to recover workoutData from location.state or localStorage
+  const getInitialWorkoutData = () => {
+    // First try location.state (normal flow)
+    if (location.state?.workoutData) {
+      return location.state.workoutData;
+    }
+
+    // If page was refreshed, try to recover from session persistence
+    const savedSession = workoutSession.get();
+    if (savedSession) {
+      return savedSession.workoutData;
+    }
+
+    return null;
+  };
+
+  const workoutData = getInitialWorkoutData();
 
   // State
   const [exercises, setExercises] = useState([]);
@@ -42,6 +57,21 @@ function StartWorkoutPage() {
       return;
     }
 
+    // Check if we have a saved session to restore from
+    const savedSession = workoutSession.get();
+    if (savedSession) {
+      // Verify the session matches the current workout
+      if (savedSession.workoutName === workoutName) {
+        // Restore full session state
+        setExercises(savedSession.exercises);
+        setCurrentSetIndex(savedSession.currentSetIndex || 0);
+        workoutStartRef.current = savedSession.startTime;
+        console.log('[StartWorkoutPage] Restored workout session');
+        return; // Skip initializing from scratch
+      }
+    }
+
+    // No saved session or session doesn't match - initialize from workout data
     // Convert workout data to exercise array
     const exerciseArray = [];
     const exerciseDataKeys = Object.keys(workoutData.exerciseData || {});
@@ -147,26 +177,7 @@ function StartWorkoutPage() {
     if (!workoutData.absAtTop) finalExercises.push(...absExercises);
 
     setExercises(finalExercises);
-    loadSessionFromStorage(finalExercises);
-  }, [workoutData, navigate]);
-
-  // Load session from localStorage if exists
-  const loadSessionFromStorage = (exerciseArray) => {
-    const savedSession = workoutSession.get();
-    if (savedSession) {
-      try {
-        const session = savedSession;
-        if (session.workoutName === workoutName) {
-          // Restore progress
-          setExercises(session.exercises);
-          setCurrentSetIndex(session.currentSetIndex || 0);
-          workoutStartRef.current = session.startTime;
-        }
-      } catch (err) {
-        console.error('Failed to load session:', err);
-      }
-    }
-  };
+  }, [workoutData, navigate, workoutName]);
 
   // Save session to localStorage whenever state changes
   useEffect(() => {
@@ -306,15 +317,6 @@ function StartWorkoutPage() {
       setCurrentSetIndex(currentSetIndex - 1);
       // Load data from that set if it exists
       loadSetData(currentSetIndex - 1);
-    }
-  };
-
-  // Navigate to next set (without completing)
-  const handleNext = () => {
-    if (currentSetIndex < totalSets - 1) {
-      setCurrentSetIndex(currentSetIndex + 1);
-      // Load data from that set if it exists
-      loadSetData(currentSetIndex + 1);
     }
   };
 
@@ -463,7 +465,6 @@ function StartWorkoutPage() {
 
   // Determine exercise type for picker
   const isCardioExercise = currentExercise?.key?.startsWith('cardio') || currentExercise?.key?.startsWith('custom_cardio');
-  const isAbsExercise = currentExercise?.key?.startsWith('abs') || currentExercise?.key?.startsWith('custom_abs');
 
   const placeholder = getPlaceholderForExercise(currentExercise?.key || '');
   const isCardio = isCardioExercise || placeholder.includes('min') || placeholder.includes('mi');
