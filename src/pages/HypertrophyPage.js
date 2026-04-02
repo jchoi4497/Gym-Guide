@@ -1084,9 +1084,30 @@ function HypertrophyPage() {
         ...bottomSections,
       ];
 
+      // Validate exerciseData - filter out exercises without names (corrupted/incomplete data)
+      const validatedExerciseData = {};
+      let removedExercises = [];
+
+      Object.entries(exerciseData).forEach(([key, exercise]) => {
+        const exerciseName = exercise.exerciseName || exercise.selection;
+        if (exerciseName && exerciseName.trim()) {
+          validatedExerciseData[key] = exercise;
+        } else {
+          removedExercises.push(key);
+          console.warn('[HandleSaveWorkout] Skipping exercise with no name:', key, exercise);
+        }
+      });
+
+      // Alert user if we're removing exercises
+      if (removedExercises.length > 0) {
+        alert(`Warning: ${removedExercises.length} exercise(s) had no name and were not saved. Please make sure all exercises have names before saving.`);
+        setIsSaving(false);
+        return;
+      }
+
       // Generate New Summary (no monthly data on initial save, only has previous workout)
       setIsGeneratingSummary(true);
-      const newSummary = await generateSummary(exerciseData, note, prevExerciseData, [], exerciseOrder);
+      const newSummary = await generateSummary(validatedExerciseData, note, prevExerciseData, [], exerciseOrder);
       setIsGeneratingSummary(false);
 
       // Save WorkoutLog with new field names (use actual values for custom)
@@ -1095,7 +1116,7 @@ function HypertrophyPage() {
         [FIREBASE_FIELDS.MUSCLE_GROUP]: actualMuscleGroup,
         [FIREBASE_FIELDS.NUMBER_OF_SETS]: actualNumberOfSets,
         [FIREBASE_FIELDS.DATE]: selectedDate,
-        [FIREBASE_FIELDS.EXERCISE_DATA]: exerciseData,
+        [FIREBASE_FIELDS.EXERCISE_DATA]: validatedExerciseData,
         [FIREBASE_FIELDS.NOTE]: note,
         [FIREBASE_FIELDS.SUMMARY]: newSummary,
         exerciseOrder: exerciseOrder, // Store the order exercises were performed

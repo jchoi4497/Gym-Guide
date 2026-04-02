@@ -115,13 +115,35 @@ export function useWorkoutSaver({
       const newSummary = await generateSummary(exerciseData, note, prevExerciseData, [], exerciseOrder);
       setIsGeneratingSummary(false);
 
+      // Validate exerciseData - filter out exercises without names (corrupted/incomplete data)
+      const validatedExerciseData = {};
+      let removedExercises = [];
+
+      Object.entries(exerciseData).forEach(([key, exercise]) => {
+        const exerciseName = exercise.exerciseName || exercise.selection;
+        if (exerciseName && exerciseName.trim()) {
+          validatedExerciseData[key] = exercise;
+        } else {
+          removedExercises.push(key);
+          console.warn('[WorkoutSaver] Skipping exercise with no name:', key, exercise);
+        }
+      });
+
+      // Alert user if we're removing exercises
+      if (removedExercises.length > 0) {
+        alert(`Warning: ${removedExercises.length} exercise(s) had no name and were not saved. Please make sure all exercises have names before saving.`);
+        setIsSaving(false);
+        setIsGeneratingSummary(false);
+        return;
+      }
+
       // Save WorkoutLog with new field names
       const workoutData = {
         [FIREBASE_FIELDS.USER_ID]: user.uid,
         [FIREBASE_FIELDS.MUSCLE_GROUP]: actualMuscleGroup,
         [FIREBASE_FIELDS.NUMBER_OF_SETS]: actualNumberOfSets,
         [FIREBASE_FIELDS.DATE]: selectedDate,
-        [FIREBASE_FIELDS.EXERCISE_DATA]: exerciseData,
+        [FIREBASE_FIELDS.EXERCISE_DATA]: validatedExerciseData,
         [FIREBASE_FIELDS.NOTE]: note,
         [FIREBASE_FIELDS.SUMMARY]: newSummary,
         exerciseOrder: exerciseOrder,
