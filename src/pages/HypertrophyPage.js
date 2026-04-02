@@ -196,15 +196,20 @@ function HypertrophyPage() {
         // Restore from active session - rebuild exerciseData from exercises array
         const restoredExerciseData = {};
         session.exercises.forEach(ex => {
-          restoredExerciseData[ex.key] = {
-            exerciseName: ex.exerciseName,
-            sets: ex.completedSets.map(s => {
-              if (s.weight) {
-                return `${s.weight}x${s.reps}`;
-              }
-              return s.reps || '';
-            }),
-          };
+          // Only restore exercises with valid names
+          if (ex.exerciseName && ex.exerciseName.trim()) {
+            restoredExerciseData[ex.key] = {
+              exerciseName: ex.exerciseName,
+              sets: ex.completedSets.map(s => {
+                if (s.weight) {
+                  return `${s.weight}x${s.reps}`;
+                }
+                return s.reps || '';
+              }),
+            };
+          } else {
+            console.warn('[Session Recovery] Skipping exercise with no name:', ex.key, ex);
+          }
         });
         setExerciseData(restoredExerciseData);
 
@@ -276,11 +281,18 @@ function HypertrophyPage() {
             const convertedData = {};
             Object.keys(dataToRestore).forEach(key => {
               const exercise = dataToRestore[key];
-              convertedData[key] = {
-                ...exercise, // Keep all existing fields (selection, linkedExerciseId, detectedCategory, etc.)
-                sets: exercise.sets || exercise.input || [],
-                exerciseName: exercise.exerciseName || exercise.selection || '',
-              };
+              const exerciseName = exercise.exerciseName || exercise.selection || '';
+
+              // Only restore exercises that have valid names
+              if (exerciseName && exerciseName.trim()) {
+                convertedData[key] = {
+                  ...exercise, // Keep all existing fields (selection, linkedExerciseId, detectedCategory, etc.)
+                  sets: exercise.sets || exercise.input || [],
+                  exerciseName: exerciseName,
+                };
+              } else {
+                console.warn('[Draft Recovery] Skipping exercise with no name:', key, exercise);
+              }
             });
 
             setExerciseData(convertedData);
@@ -641,6 +653,12 @@ function HypertrophyPage() {
 
   // Batch initialize multiple exercises at once (optimal for initial load)
   const batchInitializeExercises = (exercisesToInit) => {
+    // Safety check - don't initialize if actualNumberOfSets is invalid
+    if (!actualNumberOfSets || actualNumberOfSets < 1) {
+      console.warn('[batchInitializeExercises] Skipping - invalid actualNumberOfSets:', actualNumberOfSets);
+      return;
+    }
+
     setExerciseData(prevExerciseData => {
       const updatedExerciseData = { ...prevExerciseData };
 
@@ -678,8 +696,9 @@ function HypertrophyPage() {
 
     if (!updatedExerciseData[categoryKey]) {
       // For cardio/abs, start with empty array (will grow dynamically)
-      // For regular exercises, use actualNumberOfSets
-      const setsArray = isCardioOrAbs ? [] : new Array(actualNumberOfSets).fill('');
+      // For regular exercises, use actualNumberOfSets (default to 4 if not set)
+      const safeSetsCount = actualNumberOfSets && actualNumberOfSets > 0 ? actualNumberOfSets : 4;
+      const setsArray = isCardioOrAbs ? [] : new Array(safeSetsCount).fill('');
       updatedExerciseData[categoryKey] = {
         sets: setsArray,
         exerciseName: exerciseName,
@@ -706,8 +725,9 @@ function HypertrophyPage() {
       }
       // Ensure sets array exists and has correct length
       if (!updatedExerciseData[categoryKey].sets || updatedExerciseData[categoryKey].sets.length === 0) {
-        // For cardio/abs, start empty. For regular exercises, use actualNumberOfSets
-        updatedExerciseData[categoryKey].sets = isCardioOrAbs ? [] : new Array(actualNumberOfSets).fill('');
+        // For cardio/abs, start empty. For regular exercises, use actualNumberOfSets (default to 4)
+        const safeSetsCount = actualNumberOfSets && actualNumberOfSets > 0 ? actualNumberOfSets : 4;
+        updatedExerciseData[categoryKey].sets = isCardioOrAbs ? [] : new Array(safeSetsCount).fill('');
       }
     } else {
       // Auto-expand array if user is adding a set beyond current length
@@ -885,6 +905,21 @@ function HypertrophyPage() {
   };
 
   const handleMuscleGroupSelect = (option) => {
+    // Check if user has entered any workout data before clearing
+    const hasWorkoutData = Object.keys(exerciseData).some(key => {
+      const exercise = exerciseData[key];
+      return exercise.sets && exercise.sets.some(set => set && set.trim() !== '');
+    });
+
+    if (hasWorkoutData) {
+      const confirmed = window.confirm(
+        'Changing the muscle group will clear all your current workout data. Are you sure you want to continue?'
+      );
+      if (!confirmed) {
+        return; // Don't change if user cancels
+      }
+    }
+
     setSelectedMuscleGroup(option);
     // Clear custom name if switching away from custom
     if (option !== 'custom') {
@@ -895,6 +930,21 @@ function HypertrophyPage() {
   };
 
   const handleSetCountSelect = (option) => {
+    // Check if user has entered any workout data before clearing
+    const hasWorkoutData = Object.keys(exerciseData).some(key => {
+      const exercise = exerciseData[key];
+      return exercise.sets && exercise.sets.some(set => set && set.trim() !== '');
+    });
+
+    if (hasWorkoutData) {
+      const confirmed = window.confirm(
+        'Changing the set count will clear all your current workout data. Are you sure you want to continue?'
+      );
+      if (!confirmed) {
+        return; // Don't change if user cancels
+      }
+    }
+
     setNumberOfSets(option);
     // Clear custom values if switching away from custom
     if (option !== 'custom') {
