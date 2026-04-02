@@ -1,5 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { collection, addDoc, getDoc, doc, setDoc } from 'firebase/firestore';
+import { auth } from '../firebase';
+import db from '../firebase';
 import DropDown from '../DropDown';
 import MuscleGroupWorkout from '../components/MuscleGroupWorkout';
 import OptionalWorkoutSections from '../components/OptionalWorkoutSections';
@@ -7,7 +10,9 @@ import MuscleGroupAutocomplete from '../components/MuscleGroupAutocomplete';
 import TemplateSelector from '../components/TemplateSelector';
 import Navbar from '../Navbar';
 import WorkoutNotesInput from '../WorkoutNotesInput';
-import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS, STORAGE_KEYS } from '../constants';
+import { generateSummary } from '../summaryUtil';
+import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS, STORAGE_KEYS, FIREBASE_FIELDS } from '../constants';
+import { getMuscleGroupFromCategory } from '../utils/categoryDetection';
 
 // Custom Hooks
 import { useWorkoutDraft } from '../hooks/useWorkoutDraft';
@@ -19,6 +24,10 @@ import { useWorkoutSaver } from '../hooks/useWorkoutSaver';
 
 // UI Components
 import WorkoutHeader from '../components/WorkoutHeader';
+import WorkflowChoiceCards from '../components/WorkflowChoiceCards';
+import TemplateWorkflowSection from '../components/TemplateWorkflowSection';
+import CustomWorkflowSection from '../components/CustomWorkflowSection';
+import WorkoutActionButtons from '../components/WorkoutActionButtons';
 
 function HypertrophyPage() {
   const [searchParams] = useSearchParams();
@@ -124,6 +133,7 @@ function HypertrophyPage() {
     favoriteExercises,
     toggleFavorite,
     fetchPreviousWorkout,
+    fetchRecentWorkouts,
   } = useWorkoutHistory(actualMuscleGroup);
 
   useWorkoutDraft({
@@ -232,6 +242,7 @@ function HypertrophyPage() {
       setCustomRepCount('');
       setShowCardio(false);
       setShowAbs(false);
+      setJustLoadedTemplate(false);
       setWorkflowMode('choose'); // Reset to choice screen
 
       // 2. Clear the local storage draft
