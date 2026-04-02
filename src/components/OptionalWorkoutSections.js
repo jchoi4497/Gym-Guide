@@ -788,7 +788,7 @@ function OptionalWorkoutSections({
           weight=""
           reps={cardioPickerValue}
           onSave={handleCardioPickerSave}
-          exerciseType="bodyweight"
+          exerciseType="cardio"
           initialField="reps"
           customLabel={cardioPickerLabel}
         />
