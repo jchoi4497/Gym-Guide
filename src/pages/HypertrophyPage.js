@@ -142,6 +142,17 @@ function HypertrophyPage() {
         console.log('📋 [Template Load URL] Setting exerciseData to:', prefilledExercises);
         setExerciseData(prefilledExercises);
 
+        // CRITICAL FIX: Also populate mainExerciseOrder with template exercise keys
+        // Filter out cardio/abs keys (they're handled separately)
+        const templateExerciseKeys = Object.keys(prefilledExercises).filter(key =>
+          !key.startsWith('cardio') &&
+          !key.startsWith('custom_cardio') &&
+          !key.startsWith('abs') &&
+          !key.startsWith('custom_abs')
+        );
+        console.log('📋 [Template Load URL] Setting mainExerciseOrder to:', templateExerciseKeys);
+        setMainExerciseOrder(templateExerciseKeys);
+
         // Update template's last used timestamp
         await updateTemplateLastUsed(user.uid, templateId);
 
@@ -1020,6 +1031,17 @@ function HypertrophyPage() {
       console.log('📋 [Template Load] Setting exerciseData to:', prefilledExercises);
       setExerciseData(prefilledExercises);
 
+      // CRITICAL FIX: Also populate mainExerciseOrder with template exercise keys
+      // Filter out cardio/abs keys (they're handled separately)
+      const templateExerciseKeys = Object.keys(prefilledExercises).filter(key =>
+        !key.startsWith('cardio') &&
+        !key.startsWith('custom_cardio') &&
+        !key.startsWith('abs') &&
+        !key.startsWith('custom_abs')
+      );
+      console.log('📋 [Template Load] Setting mainExerciseOrder to:', templateExerciseKeys);
+      setMainExerciseOrder(templateExerciseKeys);
+
       // Update template's last used timestamp
       await updateTemplateLastUsed(user.uid, templateId);
 
@@ -1119,7 +1141,9 @@ function HypertrophyPage() {
 
       // Use the tracked mainExerciseOrder instead of just filtering keys
       // This preserves the user's drag-and-drop reordering
+      console.log('💾 [handleSaveWorkout] mainExerciseOrder:', mainExerciseOrder);
       const mainKeys = mainExerciseOrder.filter(k => k in exerciseData);
+      console.log('💾 [handleSaveWorkout] mainKeys after filter:', mainKeys);
 
       // Build sections at top respecting order
       const topSections = [];
@@ -1156,6 +1180,8 @@ function HypertrophyPage() {
         ...mainKeys,
         ...bottomSections,
       ];
+
+      console.log('💾 [handleSaveWorkout] Final exerciseOrder:', exerciseOrder);
 
       // Validate exerciseData - filter out exercises without names (corrupted/incomplete data)
       console.log('🔍 [handleSaveWorkout] Starting validation');
