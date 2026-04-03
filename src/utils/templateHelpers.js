@@ -35,11 +35,19 @@ export async function loadTemplate(userId, templateId) {
 export function templateToExerciseData(template, numberOfSets) {
   const exerciseData = {};
 
+  console.log('🔍 [templateToExerciseData] Starting conversion');
+  console.log('🔍 [templateToExerciseData] Template:', template.name);
+  console.log('🔍 [templateToExerciseData] Number of sets:', numberOfSets);
+  console.log('🔍 [templateToExerciseData] Template exercises array:', template.exercises);
+
   if (!template.exercises || template.exercises.length === 0) {
+    console.warn('⚠️ [templateToExerciseData] No exercises in template!');
     return exerciseData;
   }
 
-  template.exercises.forEach((exercise) => {
+  template.exercises.forEach((exercise, index) => {
+    console.log(`🔍 [templateToExerciseData] Processing exercise ${index}:`, exercise);
+
     if (exercise.category && exercise.exerciseId) {
       // Use stored exerciseName, or convert exerciseId to full name, or fallback to exerciseId
       let displayName = exercise.exerciseName;
@@ -47,6 +55,7 @@ export function templateToExerciseData(template, numberOfSets) {
       if (!displayName) {
         // Try to convert the ID to the full name (for old templates without exerciseName)
         displayName = getExerciseName(exercise.exerciseId);
+        console.log(`🔍 [templateToExerciseData] Converted ID "${exercise.exerciseId}" to name "${displayName}"`);
       }
 
       exerciseData[exercise.category] = {
@@ -54,8 +63,15 @@ export function templateToExerciseData(template, numberOfSets) {
         sets: new Array(numberOfSets).fill(''), // Initialize empty sets
         detectedCategory: exercise.detectedCategory, // Preserve detected category
       };
+
+      console.log(`✅ [templateToExerciseData] Added: ${exercise.category} -> ${displayName}`);
+    } else {
+      console.warn(`⚠️ [templateToExerciseData] Skipping exercise ${index} - missing category or exerciseId:`, exercise);
     }
   });
+
+  console.log('🔍 [templateToExerciseData] Final exerciseData:', exerciseData);
+  console.log('🔍 [templateToExerciseData] Total exercises loaded:', Object.keys(exerciseData).length);
 
   return exerciseData;
 }
