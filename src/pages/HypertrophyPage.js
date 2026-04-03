@@ -136,7 +136,10 @@ function HypertrophyPage() {
 
         // Pre-fill exercises once we have the set count
         const setsCount = template.customSetCount || template.numberOfSets || 4;
+        console.log('📋 [Template Load URL] Converting template to exerciseData, sets:', setsCount);
         const prefilledExercises = templateToExerciseData(template, setsCount);
+        console.log('📋 [Template Load URL] prefilledExercises result:', prefilledExercises);
+        console.log('📋 [Template Load URL] Setting exerciseData to:', prefilledExercises);
         setExerciseData(prefilledExercises);
 
         // Update template's last used timestamp
@@ -333,6 +336,15 @@ function HypertrophyPage() {
       }
     }
   }, [templateId, isLoadingTemplate, selectedTemplateFromDropdown]);
+
+  // DEBUG: Monitor exerciseData changes
+  useEffect(() => {
+    console.log('🔄 [exerciseData Changed]', {
+      keys: Object.keys(exerciseData),
+      count: Object.keys(exerciseData).length,
+      data: exerciseData
+    });
+  }, [exerciseData]);
 
   // AUTO-SAVE TO LOCAL STORAGE ---
   useEffect(() => {
@@ -1002,7 +1014,10 @@ function HypertrophyPage() {
 
       // Pre-fill exercises once we have the set count
       const setsCount = template.customSetCount || template.numberOfSets || 4;
+      console.log('📋 [Template Load] Converting template to exerciseData, sets:', setsCount);
       const prefilledExercises = templateToExerciseData(template, setsCount);
+      console.log('📋 [Template Load] prefilledExercises result:', prefilledExercises);
+      console.log('📋 [Template Load] Setting exerciseData to:', prefilledExercises);
       setExerciseData(prefilledExercises);
 
       // Update template's last used timestamp
@@ -1070,6 +1085,11 @@ function HypertrophyPage() {
 
   // Save Workout
   const handleSaveWorkout = async () => {
+    console.log('💾 [handleSaveWorkout] Starting save process');
+    console.log('💾 [handleSaveWorkout] exerciseData at start:', exerciseData);
+    console.log('💾 [handleSaveWorkout] exerciseData keys:', Object.keys(exerciseData));
+    console.log('💾 [handleSaveWorkout] exerciseData count:', Object.keys(exerciseData).length);
+
     setIsSaving(true);
     try {
       // Use the selected workout date - parse as local time, not UTC
@@ -1091,8 +1111,11 @@ function HypertrophyPage() {
 
       // Create exercise order array based on actual display order
       const allKeys = Object.keys(exerciseData);
+      console.log('💾 [handleSaveWorkout] allKeys:', allKeys);
       const cardioKeys = allKeys.filter(k => k.startsWith('cardio') || k.startsWith('custom_cardio'));
       const absKeys = allKeys.filter(k => k.startsWith('abs') || k.startsWith('custom_abs'));
+      console.log('💾 [handleSaveWorkout] cardioKeys:', cardioKeys);
+      console.log('💾 [handleSaveWorkout] absKeys:', absKeys);
 
       // Use the tracked mainExerciseOrder instead of just filtering keys
       // This preserves the user's drag-and-drop reordering
@@ -1135,18 +1158,27 @@ function HypertrophyPage() {
       ];
 
       // Validate exerciseData - filter out exercises without names (corrupted/incomplete data)
+      console.log('🔍 [handleSaveWorkout] Starting validation');
       const validatedExerciseData = {};
       let removedExercises = [];
 
       Object.entries(exerciseData).forEach(([key, exercise]) => {
+        console.log(`🔍 [handleSaveWorkout] Validating "${key}":`, exercise);
         const exerciseName = exercise.exerciseName || exercise.selection;
+        console.log(`🔍 [handleSaveWorkout] "${key}" exerciseName:`, exerciseName);
+
         if (exerciseName && exerciseName.trim()) {
           validatedExerciseData[key] = exercise;
+          console.log(`✅ [handleSaveWorkout] "${key}" PASSED validation`);
         } else {
           removedExercises.push(key);
-          console.warn('[HandleSaveWorkout] Skipping exercise with no name:', key, exercise);
+          console.warn(`❌ [handleSaveWorkout] "${key}" FAILED validation - no name:`, exercise);
         }
       });
+
+      console.log('💾 [handleSaveWorkout] Validation complete');
+      console.log('💾 [handleSaveWorkout] validatedExerciseData:', validatedExerciseData);
+      console.log('💾 [handleSaveWorkout] removedExercises:', removedExercises);
 
       // Alert user if we're removing exercises
       if (removedExercises.length > 0) {
