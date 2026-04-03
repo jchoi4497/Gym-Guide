@@ -282,6 +282,9 @@ function OptionalWorkoutSections({
 
   // Handle opening picker modal for abs
   const handleOpenAbsPicker = (exerciseId, setIndex, field = 'weight') => {
+    console.log('🏋️ [handleOpenAbsPicker]', { exerciseId, setIndex, field });
+    console.log('🏋️ [handleOpenAbsPicker] Current exerciseData[exerciseId]:', exerciseData[exerciseId]);
+    console.log('🏋️ [handleOpenAbsPicker] Current sets:', exerciseData[exerciseId]?.sets);
     setPickerExerciseId(exerciseId);
     setPickerSetIndex(setIndex);
     setPickerInitialField(field);
@@ -290,9 +293,24 @@ function OptionalWorkoutSections({
 
   // Handle saving from picker modal for abs
   const handleAbsPickerSave = (weight, reps) => {
+    console.log('💾 [handleAbsPickerSave] BEFORE save', {
+      pickerExerciseId,
+      pickerSetIndex,
+      weight,
+      reps,
+      currentData: exerciseData[pickerExerciseId],
+      currentSets: exerciseData[pickerExerciseId]?.sets
+    });
+
     if (pickerExerciseId && pickerSetIndex !== null) {
       const combined = combineSet(weight, reps);
       const selectedExercise = exerciseData[pickerExerciseId]?.exerciseName || absExercises.find(ex => ex.id === pickerExerciseId)?.selected;
+      console.log('💾 [handleAbsPickerSave] Calling onExerciseDataChange with:', {
+        exerciseId: pickerExerciseId,
+        exerciseName: selectedExercise,
+        setIndex: pickerSetIndex,
+        combined
+      });
       onExerciseDataChange(pickerExerciseId, selectedExercise, pickerSetIndex, combined, null);
     }
   };
@@ -455,6 +473,12 @@ function OptionalWorkoutSections({
                       {(() => {
                         const baseSetCount = Number(numberOfSets);
                         const currentSetCount = exerciseData[exercise.id]?.sets?.length || baseSetCount;
+                        console.log(`🔢 [Abs Render] ${exercise.id}:`, {
+                          baseSetCount,
+                          setsArrayLength: exerciseData[exercise.id]?.sets?.length,
+                          currentSetCount,
+                          setsArray: exerciseData[exercise.id]?.sets
+                        });
                         const isEditMode = absEditMode[exercise.id];
                         const selectedExercise = exerciseData[exercise.id]?.exerciseName || exercise.selected;
                         const exerciseById = getExerciseById(exercise.selected);
