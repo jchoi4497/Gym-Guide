@@ -709,19 +709,36 @@ function HypertrophyPage() {
 
   // Workout Selection: Weight x Reps input
   const handleExerciseDataChange = (categoryKey, exerciseName, setIndex, setInput, detectedCategory) => {
+    if (categoryKey.startsWith('abs')) {
+      console.log('🔧 [handleExerciseDataChange ABS]', {
+        categoryKey,
+        exerciseName,
+        setIndex,
+        setInput,
+        detectedCategory
+      });
+    }
+
     // Use functional setState to ensure we always get the latest state
     setExerciseData(prevExerciseData => {
+      if (categoryKey.startsWith('abs')) {
+        console.log('🔧 [handleExerciseDataChange ABS] prevExerciseData[categoryKey]:', prevExerciseData[categoryKey]);
+        console.log('🔧 [handleExerciseDataChange ABS] prevExerciseData[categoryKey].sets:', prevExerciseData[categoryKey]?.sets);
+      }
+
       const updatedExerciseData = { ...prevExerciseData };
 
-      // Check if this is a cardio or abs exercise (they don't use actualNumberOfSets)
-      const isCardioOrAbs = categoryKey.startsWith('cardio') || categoryKey.startsWith('custom_cardio') ||
-                            categoryKey.startsWith('abs') || categoryKey.startsWith('custom_abs');
+      // Check if this is cardio or abs
+      const isCardio = categoryKey.startsWith('cardio') || categoryKey.startsWith('custom_cardio');
+      const isAbs = categoryKey.startsWith('abs') || categoryKey.startsWith('custom_abs');
+      const isCardioOrAbs = isCardio || isAbs;
 
     if (!updatedExerciseData[categoryKey]) {
-      // For cardio/abs, start with empty array (will grow dynamically)
-      // For regular exercises, use actualNumberOfSets (default to 4 if not set)
+      // Cardio: dynamic fields (empty array)
+      // Abs: fixed number of sets (like regular exercises)
+      // Regular exercises: use actualNumberOfSets
       const safeSetsCount = actualNumberOfSets && actualNumberOfSets > 0 ? actualNumberOfSets : 4;
-      const setsArray = isCardioOrAbs ? [] : new Array(safeSetsCount).fill('');
+      const setsArray = isCardio ? [] : new Array(safeSetsCount).fill('');
       updatedExerciseData[categoryKey] = {
         sets: setsArray,
         exerciseName: exerciseName,
@@ -748,9 +765,11 @@ function HypertrophyPage() {
       }
       // Ensure sets array exists and has correct length
       if (!updatedExerciseData[categoryKey].sets || updatedExerciseData[categoryKey].sets.length === 0) {
-        // For cardio/abs, start empty. For regular exercises, use actualNumberOfSets (default to 4)
+        // Cardio: dynamic fields (empty array)
+        // Abs: fixed sets (use actualNumberOfSets)
+        // Regular exercises: use actualNumberOfSets (default to 4)
         const safeSetsCount = actualNumberOfSets && actualNumberOfSets > 0 ? actualNumberOfSets : 4;
-        updatedExerciseData[categoryKey].sets = isCardioOrAbs ? [] : new Array(safeSetsCount).fill('');
+        updatedExerciseData[categoryKey].sets = isCardio ? [] : new Array(safeSetsCount).fill('');
       }
     } else {
       // Auto-expand array if user is adding a set beyond current length
@@ -761,6 +780,15 @@ function HypertrophyPage() {
       // Update the specific set
       updatedExerciseData[categoryKey].sets[setIndex] = setInput;
     }
+
+      if (categoryKey.startsWith('abs')) {
+        console.log('🔧 [handleExerciseDataChange ABS] AFTER update:', {
+          categoryKey,
+          exerciseName: updatedExerciseData[categoryKey].exerciseName,
+          sets: updatedExerciseData[categoryKey].sets,
+          setsLength: updatedExerciseData[categoryKey].sets?.length
+        });
+      }
 
       return updatedExerciseData;
     });
