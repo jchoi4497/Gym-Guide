@@ -233,8 +233,34 @@ function SavedWorkout() {
 
         // Load exercise order - use saved order if available, otherwise create default
         if (data.exerciseOrder && data.exerciseOrder.length > 0) {
-          // Use saved order
-          setExerciseOrder(data.exerciseOrder);
+          // CRITICAL FIX: Check if saved order is incomplete (missing exercises)
+          const exerciseKeys = Object.keys(exerciseData);
+          const mainExerciseKeys = exerciseKeys.filter(k =>
+            !k.toLowerCase().includes('cardio') &&
+            !k.toLowerCase().includes('abs')
+          );
+          const savedOrderMainKeys = data.exerciseOrder.filter(k =>
+            !k.toLowerCase().includes('cardio') &&
+            !k.toLowerCase().includes('abs')
+          );
+
+          // If saved order is missing exercises, reconstruct it
+          if (savedOrderMainKeys.length < mainExerciseKeys.length) {
+            console.warn('⚠️ [SavedWorkout] Incomplete exerciseOrder detected!', {
+              saved: savedOrderMainKeys.length,
+              actual: mainExerciseKeys.length,
+              missing: mainExerciseKeys.filter(k => !data.exerciseOrder.includes(k))
+            });
+
+            // Reconstruct: use saved order for exercises that are in it, then append missing ones
+            const missingKeys = mainExerciseKeys.filter(k => !data.exerciseOrder.includes(k));
+            const reconstructedOrder = [...data.exerciseOrder, ...missingKeys];
+            console.log('💾 [SavedWorkout] Reconstructed order:', reconstructedOrder);
+            setExerciseOrder(reconstructedOrder);
+          } else {
+            // Saved order is complete, use it as-is
+            setExerciseOrder(data.exerciseOrder);
+          }
         } else {
           // No saved order - create default from category order (for old workouts)
           const inputKeys = Object.keys(exerciseData);
