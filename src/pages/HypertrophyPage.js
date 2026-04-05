@@ -256,6 +256,11 @@ function HypertrophyPage() {
           if (session.workoutData.workflowMode) {
             setWorkflowMode(session.workoutData.workflowMode);
           }
+          // CRITICAL FIX: Restore mainExerciseOrder for proper saving
+          if (session.workoutData.mainExerciseOrder) {
+            console.log('🔄 [Session Recovery] Restoring mainExerciseOrder:', session.workoutData.mainExerciseOrder);
+            setMainExerciseOrder(session.workoutData.mainExerciseOrder);
+          }
         }
 
         return; // Don't check draft if we have active session
@@ -340,6 +345,12 @@ function HypertrophyPage() {
 
           // Restore workflow mode if present
           if (parsed.workflowMode) setWorkflowMode(parsed.workflowMode);
+
+          // CRITICAL FIX: Restore mainExerciseOrder for proper saving
+          if (parsed.mainExerciseOrder) {
+            console.log('🔄 [Draft Recovery] Restoring mainExerciseOrder:', parsed.mainExerciseOrder);
+            setMainExerciseOrder(parsed.mainExerciseOrder);
+          }
         } else {
           // If they say No, clear the old draft so they start fresh
           localStorage.removeItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT);
@@ -381,10 +392,11 @@ function HypertrophyPage() {
         absAtTop,
         sectionOrder,
         workflowMode, // Save workflow mode to restore correct screen
+        mainExerciseOrder, // CRITICAL FIX: Save exercise order for proper saving
       };
       localStorage.setItem(STORAGE_KEYS.ACTIVE_WORKOUT_DRAFT, JSON.stringify(draft));
     }
-  }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount, selectedTemplateFromDropdown, showCardio, showAbs, cardioAtTop, absAtTop, sectionOrder, workflowMode, justLoadedTemplate]);
+  }, [selectedMuscleGroup, numberOfSets, exerciseData, note, customMuscleGroupName, customSetCount, customRepCount, selectedTemplateFromDropdown, showCardio, showAbs, cardioAtTop, absAtTop, sectionOrder, workflowMode, mainExerciseOrder, justLoadedTemplate]);
 
   // PREVENT ACCIDENTAL TAB CLOSING ---
   useEffect(() => {
@@ -1170,7 +1182,22 @@ function HypertrophyPage() {
       // Use the tracked mainExerciseOrder instead of just filtering keys
       // This preserves the user's drag-and-drop reordering
       console.log('💾 [handleSaveWorkout] mainExerciseOrder:', mainExerciseOrder);
-      const mainKeys = mainExerciseOrder.filter(k => k in exerciseData);
+
+      // CRITICAL SAFETY NET: If mainExerciseOrder is empty, reconstruct from exerciseData
+      // This handles edge cases where mainExerciseOrder got lost (old drafts, bugs, etc.)
+      let mainKeys = mainExerciseOrder.filter(k => k in exerciseData);
+      if (mainKeys.length === 0 && allKeys.length > 0) {
+        console.warn('⚠️ [handleSaveWorkout] mainExerciseOrder was empty! Reconstructing from exerciseData keys');
+        // Get all non-cardio, non-abs keys as the main exercises
+        const reconstructedKeys = allKeys.filter(k =>
+          !k.startsWith('cardio') &&
+          !k.startsWith('custom_cardio') &&
+          !k.startsWith('abs') &&
+          !k.startsWith('custom_abs')
+        );
+        mainKeys = reconstructedKeys;
+        console.log('💾 [handleSaveWorkout] Reconstructed mainKeys:', mainKeys);
+      }
       console.log('💾 [handleSaveWorkout] mainKeys after filter:', mainKeys);
 
       // Build sections at top respecting order
@@ -1305,6 +1332,7 @@ function HypertrophyPage() {
       absAtTop,
       sectionOrder,
       workflowMode,
+      mainExerciseOrder, // CRITICAL: Pass exercise order for proper saving
     };
 
     // Navigate to StartWorkoutPage with workout data
