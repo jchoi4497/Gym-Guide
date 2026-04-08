@@ -1,5 +1,5 @@
 # Gym Guide - Complete Code Walkthrough
-**Last Updated:** April 2, 2026
+**Last Updated:** April 7, 2026
 
 ## Table of Contents
 1. [Project Overview](#project-overview)
@@ -96,6 +96,11 @@ src/
 │   ├── NumPad.js               # On-screen number pad
 │   ├── WorkoutProgress.js      # Progress tracker during workout
 │   ├── WorkoutSummary.js       # Post-workout summary
+│   ├── WorkoutHeader.js        # Workout title and reset button (NEW!)
+│   ├── WorkoutActionButtons.js # Start/Save buttons with sticky behavior (NEW!)
+│   ├── WorkflowChoiceCards.js  # Initial workflow selection cards (NEW!)
+│   ├── CustomWorkflowSection.js # Custom workout configuration form (NEW!)
+│   ├── TemplateWorkflowSection.js # Template-based workflow form (NEW!)
 │   ├── MuscleGroupWorkout.js   # Exercise table container
 │   ├── WorkoutTable.js         # Drag-and-drop exercise table
 │   ├── TableRow.js             # Individual exercise row
@@ -127,14 +132,17 @@ src/
 │   ├── useWorkoutHistory.js    # Fetch workout history
 │   ├── useTemplateLoader.js    # Load templates
 │   ├── useWorkoutDraft.js      # Draft persistence
-│   └── useWorkoutSaver.js      # Save workouts
+│   ├── useWorkoutSaver.js      # Save workouts
+│   ├── useExerciseData.js      # Exercise data state management (NEW!)
+│   └── useStickyButton.js      # Sticky button scroll behavior (NEW!)
 │
 ├── utils/                      # Utility functions
 │   ├── categoryDetection.js    # Auto-detect exercise categories
 │   ├── templateHelpers.js      # Template operations
 │   ├── summaryUtil.js          # AI summary generation
 │   ├── setHelpers.js           # Set data parsing
-│   └── parsing.js              # Data parsing
+│   ├── parsing.js              # Data parsing
+│   └── sessionPersistence.js   # Robust session save/load (NEW!)
 │
 └── types/                      # Type definitions
     └── workout.js              # Workout data structures & validators
@@ -418,8 +426,8 @@ useEffect(() => {
   // Don't save empty workouts
   if (!workout.selectedMuscleGroup && !workout.numberOfSets) return;
 
-  // Don't save while loading template
-  if (isLoadingTemplate || loadedTemplate) return;
+  // Don't save while actively loading template
+  if (isLoadingTemplate) return;
 
   // Save draft to localStorage
   const draft = {
@@ -430,8 +438,10 @@ useEffect(() => {
   };
 
   workoutDraft.save(draft);
-}, [workout, customMuscleGroupName, customSetCount, workflowMode]);
+}, [workout, customMuscleGroupName, customSetCount, workflowMode, isLoadingTemplate]);
 ```
+
+**Bug Fix (April 7, 2026):** Previously had `if (isLoadingTemplate || loadedTemplate)` which prevented saving after a template was loaded. This caused data loss when the page refreshed. Now correctly only blocks during active loading.
 
 ### Using the Context
 ```javascript
@@ -490,10 +500,22 @@ Full-screen gradient (sky-300 to stone-300)
 
 ---
 
-### 2. HypertrophyPage.js (1,400+ lines)
+### 2. HypertrophyPage.js (1,890 lines - recently refactored!)
 **Purpose:** Main workout builder - configure exercises before starting
 
 **State Management:** Uses `useWorkout()` hook for global state
+
+**Recent Refactoring (April 2026):**
+This page was heavily refactored to extract reusable components and hooks:
+- **WorkoutHeader** - Title, loading state, reset button
+- **WorkflowChoiceCards** - Initial workflow selection UI
+- **CustomWorkflowSection** - Custom workout configuration form  
+- **TemplateWorkflowSection** - Template-based workflow form
+- **WorkoutActionButtons** - Start/Save buttons with sticky scroll behavior
+- **useExerciseData** - Exercise state management hook
+- **useStickyButton** - Sticky button scroll detection hook
+
+A 688-line backup (`HypertrophyPage.backup.js`) was created during refactoring.
 
 **Key Sections:**
 
@@ -1579,6 +1601,171 @@ const stats = useMemo(() => {
 
 ---
 
+### WorkoutHeader.js (NEW - April 2026)
+**Purpose:** Displays workout title and state-aware header
+
+**Props:**
+```javascript
+{
+  workflowMode: 'choose' | 'custom' | 'template',
+  selectedMuscleGroup: String,
+  actualMuscleGroup: String,
+  loadedTemplate: Object,
+  isLoadingTemplate: Boolean,
+  onReset: Function,
+  exerciseData: Object
+}
+```
+
+**Features:**
+- Dynamic title based on workflow mode
+- "Choose" mode: "Create Workout" with subtitle
+- "Custom" mode: "{Muscle Group} Day" (e.g., "Chest Day")  
+- "Template" mode: Shows template name
+- Loading indicator for template loads
+- Reset button (only shows when workout configured)
+
+**UI States:**
+```javascript
+// Choose mode
+<h1>Create Workout</h1>
+<p>Choose your training style and start logging your workout.</p>
+
+// Custom mode
+<h1>Chest Day</h1>
+<p>Following Jonathan's Hypertrophy Program</p>
+
+// Template mode
+<h1>Push Day A</h1>
+<p>PPL Training</p>
+```
+
+---
+
+### WorkflowChoiceCards.js (NEW - April 2026)
+**Purpose:** Initial workflow selection screen
+
+**Props:**
+```javascript
+{
+  onSelectWorkflow: Function(mode) // 'custom' or 'template'
+}
+```
+
+**Features:**
+- Two large card options:
+  1. **Follow My Program** (custom) - Blue gradient, "RECOMMENDED" badge
+  2. **Use Custom Templates** (template) - Purple gradient
+- Each card shows benefits with checkmarks
+- Link to "Manage My Custom Templates" page
+- Responsive grid layout (1 column mobile, 2 columns desktop)
+
+**Design:**
+```
+┌─────────────────────────────────────────────┐
+│ How would you like to train today?          │
+├──────────────────────┬──────────────────────┤
+│  💪 Follow My Program│  📋 Use Custom       │
+│  [RECOMMENDED]       │  Templates           │
+│                      │                      │
+│  ✓ Quick & simple    │  ✓ Your saved       │
+│  ✓ My tested exer... │     routines        │
+│  ✓ Perfect for beg...│  ✓ Full customiz... │
+└──────────────────────┴──────────────────────┘
+        Manage My Custom Templates →
+```
+
+---
+
+### CustomWorkflowSection.js (NEW - April 2026)
+**Purpose:** Configuration form for custom (Jonathan's Program) workflow
+
+**Props:**
+```javascript
+{
+  selectedMuscleGroup: String,
+  numberOfSets: Number | 'custom',
+  customMuscleGroupName: String,
+  customSetCount: String,
+  customRepCount: String,
+  previousCustomMuscleGroups: Array,
+  workoutDate: String,
+  onMuscleGroupSelect: Function,
+  onSetCountSelect: Function,
+  onCustomMuscleGroupChange: Function,
+  onCustomSetCountChange: Function,
+  onCustomRepCountChange: Function,
+  onWorkoutDateChange: Function,
+  onBackToChoice: Function
+}
+```
+
+**Features:**
+- Blue info banner: "Following Jonathan's Program"
+- "Back to choices" button (when no muscle group selected)
+- 3-step grid layout:
+  1. **Select Muscle Group** - Dropdown + custom name input
+  2. **Choose Set × Rep Range** - Dropdown + custom inputs
+  3. **Workout Date** - Date picker (defaults to today, can backdate)
+- Responsive grid (1 column mobile → 3 columns desktop)
+
+**Validation:**
+- Date picker max = today (can't schedule future workouts)
+- Custom set count: 1-10 range
+- Custom rep count: 1-50 range (optional)
+
+---
+
+### TemplateWorkflowSection.js
+**Purpose:** Template selection and loading UI
+
+**Features:**
+- Template dropdown selector
+- Loads user's saved templates from Firebase
+- Shows template preview when selected
+- "Back to choices" navigation
+
+---
+
+### WorkoutActionButtons.js (NEW - April 2026)
+**Purpose:** Action buttons with mobile sticky scroll behavior
+
+**Props:**
+```javascript
+{
+  isWorkoutConfigured: Boolean,
+  isButtonSticky: Boolean,
+  isSaving: Boolean,
+  isGeneratingSummary: Boolean,
+  onStartWorkout: Function,
+  onSaveWorkout: Function
+}
+```
+
+**Features:**
+- **Three buttons:**
+  1. "View Workouts" - Link to workout history (not sticky)
+  2. "▶️ Start Workout" - Green, primary action
+  3. "Save Workout" - Blue, secondary action
+- **Sticky behavior on mobile:**
+  - Sticks to bottom of screen while scrolling
+  - Unsticks when near page bottom (within 150px)
+  - Gradient backdrop: `from-sky-300 via-sky-300 to-transparent`
+- **Always static on desktop** (sm+ breakpoint)
+- **Disabled states** when saving/generating
+- Loading text: "Generating Summary..." or "Saving..."
+
+**CSS Classes:**
+```javascript
+// Mobile sticky state
+className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-sky-300 via-sky-300 to-transparent pt-6 pb-4 px-4 m-0 z-50"
+
+// Desktop/unsticky state  
+className="m-6 px-4 sm:px-20"
+```
+
+---
+
 ## Services & Utilities
 
 ### storageService.js
@@ -1778,6 +1965,180 @@ export const firebaseToWorkoutFormat = (firebaseData) => {
     workoutDate: firebaseData.date,
   });
 };
+```
+
+---
+
+### useExerciseData.js (NEW - April 2026)
+**Purpose:** Custom hook for managing exercise data state
+
+**Why It Exists:**
+Extracted from HypertrophyPage to centralize exercise state logic and make it reusable.
+
+**Returns:**
+```javascript
+{
+  exerciseData: Object,
+  setExerciseData: Function,
+  batchInitializeExercises: Function(exercisesToInit),
+  handleExerciseDataChange: Function(categoryKey, exerciseName, setIndex, setInput, detectedCategory),
+  handleRemoveSet: Function(categoryKey, setIndex)
+}
+```
+
+**Key Functions:**
+
+#### batchInitializeExercises
+Efficiently initializes multiple exercises at once (used for template loading):
+```javascript
+batchInitializeExercises([
+  { categoryKey: 'exercise_1', exerciseName: 'Bench Press' },
+  { categoryKey: 'exercise_2', exerciseName: 'Incline Press' }
+]);
+```
+
+#### handleExerciseDataChange
+Updates exercise data - either changes exercise name or updates a set:
+```javascript
+// Change exercise name (setIndex = -1)
+handleExerciseDataChange('exercise_1', 'Bench Press', -1, '', null);
+
+// Update set data (setIndex = 0, 1, 2, etc.)
+handleExerciseDataChange('exercise_1', 'Bench Press', 0, '135x12', null);
+```
+
+**Smart Features:**
+- Auto-detects cardio/abs exercises (don't use `actualNumberOfSets`)
+- Auto-expands set array when user adds beyond current length
+- Stores `detectedCategory` for exercise type detection
+- Uses functional setState for reliable updates
+
+**Exercise Data Structure:**
+```javascript
+{
+  'exercise_1': {
+    exerciseName: 'Bench Press',
+    sets: ['135x12', '185x10', '225x8', '225x8'],
+    detectedCategory: 'compound' // optional
+  },
+  'cardio_section': {
+    exerciseName: 'Treadmill',
+    sets: ['3.5mi 25min'] // dynamic length for cardio/abs
+  }
+}
+```
+
+---
+
+### useStickyButton.js (NEW - April 2026)
+**Purpose:** Manages sticky button scroll behavior on mobile
+
+**Parameters:**
+```javascript
+function useStickyButton(isWorkoutConfigured: Boolean): Boolean
+```
+
+**Returns:** `isButtonSticky` - whether button should stick to bottom
+
+**Logic:**
+1. **Desktop:** Always returns `false` (never sticky)
+2. **Mobile (< 640px):**
+   - Sticky by default while scrolling
+   - Unsticks when within 150px of page bottom
+   - Re-sticks when scrolling back up beyond 400px from bottom
+   - Hysteresis prevents flickering
+3. **Short pages (< 1000px):** Always sticky
+
+**Performance:**
+- Uses `requestAnimationFrame` for smooth 60fps updates
+- Only updates state when scroll position or document height changes
+- Cleanup on unmount
+
+**Implementation:**
+```javascript
+const isButtonSticky = useStickyButton(isWorkoutConfigured);
+
+<div className={isButtonSticky ? 'fixed bottom-0 ...' : 'relative ...'}>
+  <button>Start Workout</button>
+</div>
+```
+
+---
+
+### sessionPersistence.js (NEW - April 2026)
+**Purpose:** Robust workout session persistence with redundancy
+
+**Why It Exists:**
+Mobile browsers can be unreliable with localStorage. This provides:
+- Dual storage (localStorage + sessionStorage)
+- Better error handling
+- Debugging utilities
+- Age tracking
+
+**Functions:**
+
+#### saveWorkoutSession(sessionData)
+Saves to BOTH localStorage and sessionStorage:
+```javascript
+saveWorkoutSession({
+  workoutName: 'Chest Day',
+  startTime: Date.now(),
+  exercises: [...],
+  currentSetIndex: 5,
+  workoutData: {...}
+});
+```
+
+**Features:**
+- Adds `lastSaved` timestamp automatically
+- Console logs save confirmation
+- Catches `QuotaExceededError` and alerts user
+- Redundant storage for reliability
+
+#### loadWorkoutSession()
+Loads session with fallback:
+```javascript
+const session = loadWorkoutSession();
+// Returns: { ...sessionData, lastSaved: timestamp } or null
+```
+
+**Fallback Logic:**
+1. Try localStorage first
+2. If empty, try sessionStorage backup
+3. Logs which storage source was used
+4. Warns if session > 3 hours old (might be stale)
+
+#### clearWorkoutSession()
+Clears both storage locations:
+```javascript
+clearWorkoutSession();
+// Removes from localStorage AND sessionStorage
+```
+
+#### debugSessionState()
+Debug utility for troubleshooting:
+```javascript
+debugSessionState();
+// Logs:
+// - Which storage has data
+// - Data sizes
+// - Actual session contents
+```
+
+**Storage Keys:**
+- Primary: `'activeWorkoutSession'` (localStorage)
+- Backup: `'activeWorkoutSession_backup'` (sessionStorage)
+
+**Error Handling:**
+```javascript
+try {
+  localStorage.setItem(SESSION_KEY, serialized);
+  sessionStorage.setItem(SESSION_BACKUP_KEY, serialized);
+} catch (err) {
+  if (err.name === 'QuotaExceededError') {
+    alert('Storage full! Your workout may not be saved. Please save immediately.');
+  }
+}
 ```
 
 ---
@@ -2598,19 +2959,24 @@ A: Firebase handles backups. localStorage is ephemeral (can be cleared). Importa
 
 ## Project Statistics
 
-- **Total Files:** ~70 source files
-- **Total Lines:** ~11,500 lines of React/JavaScript
-- **Largest File:** HypertrophyPage.js (1,400+ lines) - candidate for refactoring
+- **Total Files:** ~80 source files (increased from refactoring)
+- **Total Lines:** ~12,000 lines of React/JavaScript
+- **Largest File:** HypertrophyPage.js (1,890 lines)
 - **Most Complex Component:** StartWorkoutPage.js (700+ lines) - manages workout session
 - **Exercise Database:** 100+ exercises across 20+ categories
+- **Recent Refactoring (April 2026):** Extracted 5 new components and 2 new hooks from HypertrophyPage to improve maintainability
 
 ---
 
 ## Future Enhancements
 
 ### Short Term
-1. **Split large components:** Break HypertrophyPage into smaller sub-components
-2. **Custom hooks:** Extract shared logic (useWorkoutSession, usePreviousWorkout, etc.)
+1. ~~**Split large components:** Break HypertrophyPage into smaller sub-components~~ ✅ **COMPLETED (April 2026)**
+   - Extracted WorkoutHeader, WorkflowChoiceCards, CustomWorkflowSection, TemplateWorkflowSection, WorkoutActionButtons
+2. ~~**Custom hooks:** Extract shared logic~~ ✅ **PARTIALLY COMPLETED (April 2026)**
+   - ✅ useExerciseData.js - Exercise state management
+   - ✅ useStickyButton.js - Scroll behavior
+   - ⏳ TODO: useWorkoutSession, usePreviousWorkout
 3. **Error boundaries:** Graceful error handling
 4. **Loading states:** Better UX during Firebase operations
 5. **Offline indicator:** Show when app is offline
@@ -2663,6 +3029,46 @@ Create `.env` file:
 VITE_FIREBASE_API_KEY=your_api_key
 VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
 ```
+
+---
+
+## Recent Refactoring Summary (April 2026)
+
+### What Changed
+HypertrophyPage underwent significant refactoring to improve code organization and maintainability. The page remains ~1,890 lines but is now more modular and easier to understand.
+
+### Extracted Components
+| Component | Purpose | Lines | Benefit |
+|-----------|---------|-------|---------|
+| WorkoutHeader.js | Title & reset button | 89 | Isolated header logic from main page |
+| WorkflowChoiceCards.js | Initial workflow selection | 85 | Separated choice UI from configuration |
+| CustomWorkflowSection.js | Custom workout form | 137 | Isolated Jonathan's Program workflow |
+| TemplateWorkflowSection.js | Template workflow form | ~100 | Separated template loading logic |
+| WorkoutActionButtons.js | Action buttons | 82 | Extracted sticky scroll behavior |
+
+### Extracted Hooks
+| Hook | Purpose | Lines | Benefit |
+|------|---------|-------|---------|
+| useExerciseData.js | Exercise state management | 103 | Reusable exercise CRUD operations |
+| useStickyButton.js | Sticky button behavior | 78 | Isolated scroll detection logic |
+
+### Extracted Utilities
+| Utility | Purpose | Lines | Benefit |
+|---------|---------|-------|---------|
+| sessionPersistence.js | Robust session save/load | 97 | Better error handling & redundancy |
+
+### Benefits
+1. **Better separation of concerns** - Each component has one job
+2. **Easier testing** - Smaller units are easier to test
+3. **Reusability** - Components and hooks can be reused
+4. **Maintainability** - Changes are isolated to specific files
+5. **Readability** - Easier to understand each piece
+
+### Migration Notes
+- A backup was created: `HypertrophyPage.backup.js` (688 lines - minimal version)
+- All functionality preserved - no breaking changes
+- Session persistence improved with dual storage (localStorage + sessionStorage)
+- Mobile sticky button behavior now more reliable
 
 ---
 
