@@ -7,6 +7,7 @@ import TemplateSelectionPage from './pages/TemplateSelectionPage';
 import MyTemplatesPage from './pages/MyTemplatesPage';
 import StrengthPage from './pages/StrengthPage';
 import HypertrophyPage from './pages/HypertrophyPage';
+import CreateWorkoutPage from './pages/CreateWorkoutPage';
 import StartWorkoutPage from './pages/StartWorkoutPage';
 import ColorDesignPage from './pages/ColorDesignPage';
 import SavedWorkout from './SavedWorkout/SavedWorkout';
@@ -26,6 +27,7 @@ function Main() {
                     <Route exact path="/TrainingStyle" element={<TrainingStylePage />} />
                     <Route exact path="/Strength" element={<StrengthPage />} />
                     <Route exact path="/Hypertrophy" element={<HypertrophyPage />} />
+                    <Route exact path="/create" element={<CreateWorkoutPage />} />
                     <Route exact path="/start-workout" element={<StartWorkoutPage />} />
                     <Route exact path="ColorDesign" element={<ColorDesignPage />} />
                     <Route exact path="/SavedWorkout/:workoutId" element={<SavedWorkout />} />

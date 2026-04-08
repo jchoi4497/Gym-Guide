@@ -1450,7 +1450,7 @@ function HypertrophyPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
               {/* Follow My Program Option */}
               <button
-                onClick={() => setWorkflowMode('custom')}
+                onClick={() => navigate('/create')}
                 className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-white group relative"
               >
                 <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full">
