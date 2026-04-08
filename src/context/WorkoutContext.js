@@ -146,8 +146,8 @@ export const WorkoutProvider = ({ children }) => {
       return;
     }
 
-    // Don't save if loading from template
-    if (isLoadingTemplate || loadedTemplate) {
+    // Don't save while actively loading from template
+    if (isLoadingTemplate) {
       return;
     }
 
@@ -170,7 +170,6 @@ export const WorkoutProvider = ({ children }) => {
     workflowMode,
     selectedTemplateFromDropdown,
     isLoadingTemplate,
-    loadedTemplate,
   ]);
 
   /**
