@@ -128,8 +128,13 @@ function TemplateExercisePicker({ muscleGroup, exercises, onChange }) {
   );
 
   // Sync with parent when exercises prop changes
+  // Add tempIds to exercises if they don't have them (for unique React keys)
   useEffect(() => {
-    setLocalExercises(exercises);
+    const exercisesWithIds = exercises.map((ex, idx) => ({
+      ...ex,
+      tempId: ex.tempId || `loaded_${idx}_${ex.category || ''}_${Date.now()}`
+    }));
+    setLocalExercises(exercisesWithIds);
   }, [exercises]);
 
   // Clear last added index after a short delay

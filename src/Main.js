@@ -4,7 +4,6 @@ import { WorkoutProvider } from './context/WorkoutContext';
 import LandingPage from './pages/LandingPage';
 import TrainingStylePage from './pages/TrainingStyle';
 import TemplateSelectionPage from './pages/TemplateSelectionPage';
-import MyTemplatesPage from './pages/MyTemplatesPage';
 import StrengthPage from './pages/StrengthPage';
 import HypertrophyPage from './pages/HypertrophyPage';
 import CreateWorkoutPage from './pages/CreateWorkoutPage';
@@ -24,7 +23,7 @@ function Main() {
                 <Routes>
                     <Route exact path="/" element={<LandingPage />} />
                     <Route exact path="/Templates" element={<TemplateSelectionPage />} />
-                    <Route exact path="/MyTemplates" element={<MyTemplatesPage />} />
+                    <Route exact path="/MyTemplates" element={<Navigate to="/Templates" replace />} />
                     <Route exact path="/TrainingStyle" element={<TrainingStylePage />} />
                     <Route exact path="/Strength" element={<StrengthPage />} />
                     <Route exact path="/Hypertrophy" element={<HypertrophyPage />} />

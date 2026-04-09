@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth } from '../config/firebase';
 import db from '../config/firebase';
 
-function TemplateCard({ template, onUpdate, isBuiltIn = false }) {
+function TemplateCard({ template, onUpdate, onEdit, onDelete, onDuplicate, isBuiltIn = false }) {
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -31,33 +31,10 @@ function TemplateCard({ template, onUpdate, isBuiltIn = false }) {
   };
 
   // Delete template
-  const handleDelete = async (e) => {
+  const handleDeleteClick = async (e) => {
     e.stopPropagation();
-
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete "${template.name}"? This cannot be undone.`
-    );
-
-    if (!confirmDelete) return;
-
-    const user = auth.currentUser;
-    if (!user) return;
-
-    setIsDeleting(true);
-
-    try {
-      const templateDoc = await getDoc(doc(db, 'userTemplates', user.uid));
-      if (templateDoc.exists()) {
-        const templates = templateDoc.data().templates || [];
-        const updatedTemplates = templates.filter(t => t.id !== template.id);
-        await setDoc(doc(db, 'userTemplates', user.uid), { templates: updatedTemplates });
-        if (onUpdate) onUpdate();
-      }
-    } catch (error) {
-      console.error('Error deleting template:', error);
-      alert('Failed to delete template. Please try again.');
-    } finally {
-      setIsDeleting(false);
+    if (onDelete) {
+      onDelete();
     }
   };
 
@@ -95,21 +72,33 @@ function TemplateCard({ template, onUpdate, isBuiltIn = false }) {
   };
 
   const handleCardClick = () => {
-    const targetUrl = isBuiltIn ? '/Hypertrophy' : `/Hypertrophy?template=${template.id}`;
-    navigate(targetUrl);
+    // For built-in templates, navigate to Create page with template data
+    // For user templates, also navigate to Create page with template ID
+    if (isBuiltIn) {
+      // Pass the template via navigate state
+      navigate('/Create', { state: { template } });
+    } else {
+      navigate('/Create', { state: { templateId: template.id } });
+    }
   };
 
   const handleEditClick = (e) => {
     e.stopPropagation();
-    navigate(`/MyTemplates?edit=${template.id}`);
+    if (onEdit) {
+      onEdit();
+    }
+  };
+
+  const handleDuplicateClick = (e) => {
+    e.stopPropagation();
+    if (onDuplicate) {
+      onDuplicate();
+    }
   };
 
   return (
-    <div
-      onClick={handleCardClick}
-      className="block cursor-pointer"
-    >
-      <div className={`bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}>
+    <div className="block">
+      <div className={`bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}>
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
           <div className="flex justify-between items-start mb-2">
@@ -171,25 +160,39 @@ function TemplateCard({ template, onUpdate, isBuiltIn = false }) {
           )}
 
           {/* Actions */}
-          <div className="flex gap-2 mt-4">
-            <button className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+          <div className="mt-4">
+            <button
+              onClick={handleCardClick}
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors mb-2"
+            >
               Start Workout
             </button>
-            {!isBuiltIn && (
-              <div onClick={(e) => e.stopPropagation()} className="flex gap-2">
-                <button
-                  onClick={handleEditClick}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center justify-center"
-                >
-                  ✏️
-                </button>
-                <button
-                  onClick={handleDelete}
-                  className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
-                  disabled={isDeleting}
-                >
-                  🗑️
-                </button>
+            {!isBuiltIn && (onEdit || onDelete || onDuplicate) && (
+              <div onClick={(e) => e.stopPropagation()} className="grid grid-cols-3 gap-2">
+                {onEdit && (
+                  <button
+                    onClick={handleEditClick}
+                    className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold"
+                  >
+                    Edit
+                  </button>
+                )}
+                {onDuplicate && (
+                  <button
+                    onClick={handleDuplicateClick}
+                    className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-semibold"
+                  >
+                    Copy
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    onClick={handleDeleteClick}
+                    className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-sm font-semibold"
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
             )}
           </div>
