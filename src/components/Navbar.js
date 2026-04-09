@@ -99,7 +99,7 @@ function Navbar() {
         <NavButton to="/Templates" label="Templates" />
         <NavButton to="/SavedWorkouts" label="History" />
         <NavButton to="/MyExercises" label="My Exercises" />
-        <NavButton to="/TrainingStyle" label="More Info" />
+        <NavButton to="/Info" label="More Info" />
 
         {/* Profile UI */}
         {user ? (
@@ -159,7 +159,7 @@ function Navbar() {
           <MobileLink to="/Templates" label="Templates" toggleMenu={toggleMenu} />
           <MobileLink to="/SavedWorkouts" label="History" toggleMenu={toggleMenu} />
           <MobileLink to="/MyExercises" label="My Exercises" toggleMenu={toggleMenu} />
-          <MobileLink to="/TrainingStyle" label="More Info" toggleMenu={toggleMenu} />
+          <MobileLink to="/Info" label="More Info" toggleMenu={toggleMenu} />
 
           {/* 3. Conditional Auth Button (Sign In OR Sign Out) */}
           {user ? (
