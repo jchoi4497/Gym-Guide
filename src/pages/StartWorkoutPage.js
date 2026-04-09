@@ -94,7 +94,7 @@ function StartWorkoutPage() {
     } else {
       console.log('[StartWorkoutPage] No workoutData available');
     }
-  }, [workoutData, latestWorkoutData, db]);
+  }, [workoutData, db]);
 
   // Initialize exercises from workout data
   useEffect(() => {
