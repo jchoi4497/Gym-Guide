@@ -59,7 +59,15 @@ function WorkoutPage() {
   // Load workout from Firebase
   useEffect(() => {
     const loadWorkout = async () => {
-      if (!workoutId || !auth.currentUser) return;
+      if (!workoutId) {
+        setLoading(false);
+        return;
+      }
+
+      if (!auth.currentUser) {
+        // Wait for auth to initialize
+        return;
+      }
 
       try {
         const workoutRef = doc(db, 'workoutLogs', workoutId);
@@ -88,7 +96,16 @@ function WorkoutPage() {
       }
     };
 
-    loadWorkout();
+    // Listen for auth state changes
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        loadWorkout();
+      } else {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
   }, [workoutId, navigate]);
 
   // Check for active workout session
