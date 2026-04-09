@@ -130,7 +130,7 @@ function TemplateSelectionPage() {
   const handleCreateNew = () => {
     setEditingTemplate(null);
     setShowEditor(true);
-  };
+  };4
 
   const handleSaveTemplate = async (templateData) => {
     if (!user) return;

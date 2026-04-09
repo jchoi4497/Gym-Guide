@@ -19,6 +19,12 @@ function ResumeWorkoutModal() {
       return;
     }
 
+    // Don't show modal if on the workout overview page (user is editing their workout)
+    if (location.pathname.startsWith('/workout/')) {
+      console.log('[ResumeWorkoutModal] Skipping - on workout overview page');
+      return;
+    }
+
     // Check for active workout session (using storageService)
     const session = workoutSession.get();
     console.log('[ResumeWorkoutModal] Saved session:', session ? 'FOUND' : 'NOT FOUND');

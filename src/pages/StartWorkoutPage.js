@@ -5,7 +5,7 @@ import WorkoutProgress from '../components/WorkoutProgress';
 import WorkoutSummary from '../components/WorkoutSummary';
 import { WORKOUT_SETTINGS, formatDuration, formatTime } from '../config/workoutSettings';
 import { getExerciseName, getPlaceholderForExercise, getDefaultExercises } from '../config/exerciseConfig';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { workoutSession } from '../services/storageService';
 
@@ -50,31 +50,105 @@ function StartWorkoutPage() {
   // Mobile detection (using shared hook)
   const isMobile = useIsMobile();
 
+  // Track if we've initialized (to prevent infinite loops)
+  const initializedRef = useRef(false);
+  const [latestWorkoutData, setLatestWorkoutData] = useState(null);
+
+  // Fetch latest workout data from Firebase first
+  useEffect(() => {
+    const fetchLatestWorkout = async () => {
+      const workoutId = workoutData?.workoutId;
+      console.log('[StartWorkoutPage] Fetching latest workout data, workoutId:', workoutId);
+
+      if (!workoutId || latestWorkoutData) {
+        console.log('[StartWorkoutPage] Skipping fetch:', { hasWorkoutId: !!workoutId, hasLatestData: !!latestWorkoutData });
+        return;
+      }
+
+      try {
+        const workoutRef = doc(db, 'workoutLogs', workoutId);
+        const workoutSnap = await getDoc(workoutRef);
+
+        if (workoutSnap.exists()) {
+          const firestoreData = workoutSnap.data();
+          console.log('[StartWorkoutPage] Fetched Firebase data, exerciseData keys:', Object.keys(firestoreData.exerciseData || {}));
+          // Merge navigation state with latest Firebase data
+          setLatestWorkoutData({
+            ...workoutData,
+            exerciseData: firestoreData.exerciseData || workoutData.exerciseData,
+            showCardio: firestoreData.showCardio ?? workoutData.showCardio,
+            showAbs: firestoreData.showAbs ?? workoutData.showAbs,
+          });
+        } else {
+          console.log('[StartWorkoutPage] Workout not found in Firebase, using navigation state');
+          setLatestWorkoutData(workoutData);
+        }
+      } catch (error) {
+        console.error('[StartWorkoutPage] Error fetching latest workout:', error);
+        setLatestWorkoutData(workoutData);
+      }
+    };
+
+    if (workoutData) {
+      fetchLatestWorkout();
+    } else {
+      console.log('[StartWorkoutPage] No workoutData available');
+    }
+  }, [workoutData, latestWorkoutData, db]);
+
   // Initialize exercises from workout data
   useEffect(() => {
+    console.log('[StartWorkoutPage] Initialization check:', {
+      hasWorkoutData: !!workoutData,
+      hasLatestWorkoutData: !!latestWorkoutData,
+      isInitialized: initializedRef.current
+    });
+
+    // If no workoutData at all, redirect home
     if (!workoutData) {
+      console.log('[StartWorkoutPage] No workoutData, redirecting to home');
       navigate('/');
       return;
     }
 
+    // Wait for latestWorkoutData to be fetched
+    if (!latestWorkoutData) {
+      console.log('[StartWorkoutPage] Waiting for latestWorkoutData to be fetched');
+      return;
+    }
+
+    // Only initialize once
+    if (initializedRef.current) {
+      console.log('[StartWorkoutPage] Already initialized, skipping');
+      return;
+    }
+
+    console.log('[StartWorkoutPage] Initializing exercises from latestWorkoutData');
+
     // Check if we have a saved session to restore from
     const savedSession = workoutSession.get();
-    if (savedSession) {
+    let restoredCompletedSets = null;
+
+    if (savedSession && savedSession.workoutId === latestWorkoutData.workoutId) {
       // Verify the session matches the current workout
       if (savedSession.workoutName === workoutName) {
-        // Restore full session state
-        setExercises(savedSession.exercises);
-        setCurrentSetIndex(savedSession.currentSetIndex || 0);
+        // Extract completed sets from saved session to merge with latest exercise list
+        restoredCompletedSets = new Map();
+        savedSession.exercises?.forEach(exercise => {
+          if (exercise.completedSets && exercise.completedSets.length > 0) {
+            restoredCompletedSets.set(exercise.key, exercise.completedSets);
+          }
+        });
         workoutStartRef.current = savedSession.startTime;
-        console.log('[StartWorkoutPage] Restored workout session');
-        return; // Skip initializing from scratch
+        console.log('[StartWorkoutPage] Found saved session with completed sets');
       }
     }
 
-    // No saved session or session doesn't match - initialize from workout data
+    // No saved session or session doesn't match - initialize from latest workout data
+    const workoutDataToUse = latestWorkoutData;
     // Convert workout data to exercise array
     const exerciseArray = [];
-    const exerciseDataKeys = Object.keys(workoutData.exerciseData || {});
+    const exerciseDataKeys = Object.keys(workoutDataToUse.exerciseData || {});
 
     // Separate keys into cardio, abs, and main exercises
     const cardioKeys = exerciseDataKeys.filter(k => k.startsWith('cardio') || k.startsWith('custom_cardio'));
@@ -82,22 +156,22 @@ function StartWorkoutPage() {
     const mainKeys = exerciseDataKeys.filter(k => !cardioKeys.includes(k) && !absKeys.includes(k));
 
     // If exerciseData is empty, generate from muscle group defaults
-    if (mainKeys.length === 0 && workoutData.selectedMuscleGroup) {
-      const defaultExercises = getDefaultExercises(workoutData.selectedMuscleGroup);
+    if (mainKeys.length === 0 && workoutDataToUse.selectedMuscleGroup) {
+      const defaultExercises = getDefaultExercises(workoutDataToUse.selectedMuscleGroup);
       defaultExercises.forEach(defEx => {
         exerciseArray.push({
           key: defEx.id,
           exerciseName: getExerciseName(defEx.selected),
-          totalSets: workoutData.numberOfSets || 4,
+          totalSets: workoutDataToUse.numberOfSets || 4,
           completedSets: [],
         });
       });
     } else {
       // Use existing main exerciseData
       mainKeys.forEach(key => {
-        const exercise = workoutData.exerciseData[key];
+        const exercise = workoutDataToUse.exerciseData[key];
         const exerciseName = exercise.exerciseName || getExerciseName(key);
-        const totalSets = workoutData.numberOfSets || exercise.sets?.length || 4;
+        const totalSets = workoutDataToUse.numberOfSets || exercise.sets?.length || 4;
 
         // Include exercise if it has a name, even if no sets are entered yet
         if (exerciseName) {
@@ -112,11 +186,11 @@ function StartWorkoutPage() {
     }
 
     // Process cardio exercises if showCardio is true
-    if (workoutData.showCardio) {
+    if (workoutDataToUse.showCardio) {
       if (cardioKeys.length > 0) {
         // Use existing cardio data
         cardioKeys.forEach(key => {
-          const exercise = workoutData.exerciseData[key];
+          const exercise = workoutDataToUse.exerciseData[key];
           const exerciseName = exercise.exerciseName || getExerciseName(key) || 'Cardio';
 
           exerciseArray.push({
@@ -138,13 +212,13 @@ function StartWorkoutPage() {
     }
 
     // Process abs exercises if showAbs is true
-    if (workoutData.showAbs) {
+    if (workoutDataToUse.showAbs) {
       if (absKeys.length > 0) {
         // Use existing abs data
         absKeys.forEach(key => {
-          const exercise = workoutData.exerciseData[key];
+          const exercise = workoutDataToUse.exerciseData[key];
           const exerciseName = exercise.exerciseName || getExerciseName(key) || 'Abs';
-          const totalSets = exercise.sets?.length || workoutData.numberOfSets || 4;
+          const totalSets = exercise.sets?.length || workoutDataToUse.numberOfSets || 4;
 
           exerciseArray.push({
             key,
@@ -158,7 +232,7 @@ function StartWorkoutPage() {
         exerciseArray.push({
           key: 'abs_section',
           exerciseName: 'Ab Crunch Machine',
-          totalSets: workoutData.numberOfSets || 4,
+          totalSets: workoutDataToUse.numberOfSets || 4,
           completedSets: [],
         });
       }
@@ -170,14 +244,32 @@ function StartWorkoutPage() {
     const cardioExercises = exerciseArray.filter(e => e.key.startsWith('cardio') || e.key.startsWith('custom_cardio'));
     const absExercises = exerciseArray.filter(e => e.key.startsWith('abs') || e.key.startsWith('custom_abs'));
 
-    if (workoutData.cardioAtTop) finalExercises.push(...cardioExercises);
-    if (workoutData.absAtTop) finalExercises.push(...absExercises);
+    if (workoutDataToUse.cardioAtTop) finalExercises.push(...cardioExercises);
+    if (workoutDataToUse.absAtTop) finalExercises.push(...absExercises);
     finalExercises.push(...mainExercises);
-    if (!workoutData.cardioAtTop) finalExercises.push(...cardioExercises);
-    if (!workoutData.absAtTop) finalExercises.push(...absExercises);
+    if (!workoutDataToUse.cardioAtTop) finalExercises.push(...cardioExercises);
+    if (!workoutDataToUse.absAtTop) finalExercises.push(...absExercises);
+
+    // Merge completed sets from saved session if available
+    if (restoredCompletedSets) {
+      finalExercises.forEach(exercise => {
+        const savedCompletedSets = restoredCompletedSets.get(exercise.key);
+        if (savedCompletedSets) {
+          exercise.completedSets = savedCompletedSets;
+        }
+      });
+
+      // Calculate where to resume based on completed sets
+      let totalCompleted = 0;
+      for (const exercise of finalExercises) {
+        totalCompleted += exercise.completedSets.length;
+      }
+      setCurrentSetIndex(totalCompleted);
+    }
 
     setExercises(finalExercises);
-  }, [workoutData, navigate, workoutName]);
+    initializedRef.current = true;
+  }, [workoutData, latestWorkoutData, navigate, workoutName]);
 
   // Save session to localStorage whenever state changes
   useEffect(() => {
@@ -187,6 +279,7 @@ function StartWorkoutPage() {
         startTime: workoutStartRef.current,
         currentSetIndex,
         exercises,
+        workoutId: workoutData?.workoutId, // Save workout ID to link session to workout
         // Include original workoutData for restoration in HypertrophyPage
         workoutData: {
           selectedMuscleGroup: workoutData?.selectedMuscleGroup,
@@ -198,6 +291,8 @@ function StartWorkoutPage() {
           note: workoutData?.note,
           templateId: workoutData?.templateId,
           templateName: workoutData?.templateName,
+          workoutId: workoutData?.workoutId,
+          mainExerciseOrder: workoutData?.mainExerciseOrder,
         },
       };
       workoutSession.save(session);
@@ -265,8 +360,40 @@ function StartWorkoutPage() {
     }
   };
 
+  // Auto-save workout progress to Firebase
+  const saveProgressToFirebase = async (updatedExercises) => {
+    const workoutId = workoutData?.workoutId;
+    if (!workoutId) return;
+
+    try {
+      const completedExerciseData = {};
+
+      // Convert exercises to exerciseData format
+      updatedExercises.forEach(exercise => {
+        completedExerciseData[exercise.key] = {
+          exerciseName: exercise.exerciseName,
+          sets: exercise.completedSets.map(set => {
+            if (set.weight) {
+              return `${set.weight}x${set.reps}`;
+            }
+            return set.reps;
+          }),
+        };
+      });
+
+      const workoutRef = doc(db, 'workoutLogs', workoutId);
+      await updateDoc(workoutRef, {
+        exerciseData: completedExerciseData,
+        lastModified: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('Error auto-saving progress:', error);
+      // Don't block the user experience if auto-save fails
+    }
+  };
+
   // Complete the current set
-  const handleCompleteSet = () => {
+  const handleCompleteSet = async () => {
     if (!currentExercise || (!currentSetData.weight && !currentSetData.reps)) return;
 
     const completedSet = {
@@ -292,6 +419,9 @@ function StartWorkoutPage() {
     }
 
     setExercises(updatedExercises);
+
+    // Auto-save to Firebase
+    await saveProgressToFirebase(updatedExercises);
 
     // Clear current set data
     setCurrentSetData({ weight: '', reps: '' });
@@ -346,36 +476,36 @@ function StartWorkoutPage() {
     }
   };
 
-  // Pause workout and go home
+  // State for pause indicator
+  const [isPaused, setIsPaused] = useState(false);
+
+  // Pause workout
   const handlePauseWorkout = () => {
-    // Session is already saved to localStorage
-    navigate('/');
+    // Session is already auto-saved to localStorage
+    setIsPaused(!isPaused);
   };
 
   // End workout early
   const handleEndWorkout = () => {
-    setShowSummary(true);
+    const confirmEnd = window.confirm(
+      `Are you sure you want to end this workout?\n\n` +
+      `You've completed ${completedSetsCount}/${totalSets} sets.\n\n` +
+      `This will finish your workout and show the summary.`
+    );
+
+    if (confirmEnd) {
+      setShowSummary(true);
+    }
   };
 
   // Save workout to Firebase
   const handleSaveWorkout = async ({ duration, averageRest }) => {
     try {
-      const workoutToSave = {
-        workoutName,
-        muscleGroup: workoutData.selectedMuscleGroup,
-        numberOfSets: workoutData.numberOfSets,
-        exerciseData: {},
-        note: workoutData.note || '',
-        timestamp: workoutStartRef.current,
-        duration,
-        averageRest,
-        completedSets: completedSetsCount,
-        totalSets,
-      };
+      const completedExerciseData = {};
 
       // Add completed sets to exerciseData
       exercises.forEach(exercise => {
-        workoutToSave.exerciseData[exercise.key] = {
+        completedExerciseData[exercise.key] = {
           exerciseName: exercise.exerciseName,
           sets: exercise.completedSets.map(set => {
             if (set.weight) {
@@ -386,13 +516,29 @@ function StartWorkoutPage() {
         };
       });
 
-      await addDoc(collection(db, 'workouts'), workoutToSave);
+      // Update the existing workout in workoutLogs
+      const workoutId = workoutData?.workoutId;
+      if (!workoutId) {
+        throw new Error('No workout ID found');
+      }
+
+      const workoutRef = doc(db, 'workoutLogs', workoutId);
+      await updateDoc(workoutRef, {
+        status: 'completed',
+        exerciseData: completedExerciseData,
+        duration,
+        averageRest,
+        completedSets: completedSetsCount,
+        totalSets,
+        completedAt: serverTimestamp(),
+        lastModified: serverTimestamp(),
+      });
 
       // Clear session storage
       workoutSession.clear();
 
-      // Navigate to saved workouts
-      navigate('/saved-workouts');
+      // Navigate to the completed workout page
+      navigate(`/SavedWorkout/${workoutId}`);
     } catch (error) {
       console.error('Error saving workout:', error);
       alert('Failed to save workout. Please try again.');
@@ -474,6 +620,16 @@ function StartWorkoutPage() {
   else if (isTimed) exerciseType = 'timed';
   else if (placeholder === 'Reps') exerciseType = 'bodyweight';
 
+  // Show loading state while fetching workout data
+  if (!latestWorkoutData || exercises.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
+        <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Show error state if no current exercise after loading
   if (!currentExercise) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
@@ -506,22 +662,28 @@ function StartWorkoutPage() {
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-gray-800">{workoutName}</h1>
+              <h1 className="text-xl font-bold text-gray-800">
+                {workoutName}
+                {isPaused && <span className="ml-2 text-yellow-600">⏸️ PAUSED</span>}
+              </h1>
               <p className="text-sm text-gray-600">⏱️ {formatDuration(elapsedSeconds)}</p>
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => navigate('/Hypertrophy')}
-                className="px-3 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors text-sm"
-                title="Edit workout"
+                onClick={() => navigate(`/workout/${workoutData?.workoutId}`)}
+                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors text-sm"
               >
-                ⚙️
+                ← Overview
               </button>
               <button
                 onClick={handlePauseWorkout}
-                className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-colors text-sm"
+                className={`px-4 py-2 text-white rounded-lg font-medium transition-colors text-sm ${
+                  isPaused
+                    ? 'bg-green-500 hover:bg-green-600'
+                    : 'bg-yellow-500 hover:bg-yellow-600'
+                }`}
               >
-                ⏸️ Pause
+                {isPaused ? '▶️ Resume' : '⏸️ Pause'}
               </button>
               <button
                 onClick={handleEndWorkout}
@@ -536,14 +698,18 @@ function StartWorkoutPage() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Progress */}
-        <WorkoutProgress
-          exercises={exercises}
-          currentSetIndex={currentSetIndex}
-          onUpdateSet={handleUpdateSetFromTable}
-          onOpenPicker={handleOpenPickerFromTable}
-          onReorderExercise={handleReorderExercise}
-        />
+        {/* Progress Bar at Top */}
+        <div className="mb-6 bg-white rounded-xl shadow-md p-4">
+          <p className="text-lg font-semibold text-gray-700 mb-2 text-center">
+            Progress: {completedSetsCount}/{totalSets} sets completed
+          </p>
+          <div className="w-full bg-gray-300 rounded-full h-3">
+            <div
+              className="bg-green-500 h-3 rounded-full transition-all duration-500"
+              style={{ width: `${(completedSetsCount / totalSets) * 100}%` }}
+            />
+          </div>
+        </div>
 
         {/* Flash Card */}
         <div className="bg-white rounded-2xl shadow-2xl p-8 mb-6 relative">
@@ -665,19 +831,6 @@ function StartWorkoutPage() {
             >
               ← Previous Set
             </button>
-          </div>
-        </div>
-
-        {/* Set Counter */}
-        <div className="text-center">
-          <p className="text-lg font-semibold text-gray-700">
-            Progress: {completedSetsCount}/{totalSets} sets completed
-          </p>
-          <div className="w-full bg-gray-300 rounded-full h-2 mt-2">
-            <div
-              className="bg-green-500 h-2 rounded-full transition-all duration-500"
-              style={{ width: `${(completedSetsCount / totalSets) * 100}%` }}
-            />
           </div>
         </div>
       </div>

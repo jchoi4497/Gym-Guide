@@ -10,6 +10,7 @@ import WorkoutNotesInput from '../components/WorkoutNotesInput';
 import { generateSummary } from '../utils/summaryUtil';
 import { FIREBASE_FIELDS } from '../config/constants';
 import { getMuscleGroupFromCategory } from '../utils/categoryDetection';
+import { workoutSession } from '../services/storageService';
 
 function WorkoutPage() {
   const { workoutId } = useParams();
@@ -18,6 +19,7 @@ function WorkoutPage() {
   // Workout data from Firebase
   const [workout, setWorkout] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hasActiveSession, setHasActiveSession] = useState(false);
 
   // Workout state
   const [exerciseData, setExerciseData] = useState({});
@@ -42,6 +44,8 @@ function WorkoutPage() {
   const [absExpanded, setAbsExpanded] = useState(true);
   const [cardioExpanded, setCardioExpanded] = useState(true);
   const [mainExerciseOrder, setMainExerciseOrder] = useState([]);
+  const [startButtonState, setStartButtonState] = useState('header'); // 'header', 'fixed' (mobile only)
+  const [isMobile, setIsMobile] = useState(false);
 
   // Derived values from workout
   const actualMuscleGroup = workout?.muscleGroup || '';
@@ -86,6 +90,16 @@ function WorkoutPage() {
 
     loadWorkout();
   }, [workoutId, navigate]);
+
+  // Check for active workout session
+  useEffect(() => {
+    const session = workoutSession.get();
+    if (session && session.workoutId === workoutId) {
+      setHasActiveSession(true);
+    } else {
+      setHasActiveSession(false);
+    }
+  }, [workoutId]);
 
   // Fetch user data (favorites, previous workouts, custom exercises)
   useEffect(() => {
@@ -506,6 +520,26 @@ function WorkoutPage() {
     }
   };
 
+  // Start Workout - navigate to active workout tracking page
+  const handleStartWorkout = () => {
+    const workoutDataForSession = {
+      workoutName: actualMuscleGroup ? `${actualMuscleGroup} Day` : 'Workout',
+      selectedMuscleGroup: actualMuscleGroup,
+      muscleGroup: actualMuscleGroup,
+      numberOfSets: actualNumberOfSets,
+      exerciseData: exerciseData,
+      showCardio: showCardio,
+      showAbs: showAbs,
+      cardioAtTop: cardioAtTop,
+      absAtTop: absAtTop,
+      sectionOrder: sectionOrder,
+      mainExerciseOrder: mainExerciseOrder,
+      workoutId: workoutId, // Pass the workout ID so we can save back to it
+    };
+
+    navigate('/start-workout', { state: { workoutData: workoutDataForSession } });
+  };
+
   // Complete Workout - save to workoutLogs and update status
   const handleCompleteWorkout = async () => {
     console.log('💾 [handleCompleteWorkout] Starting save process');
@@ -619,7 +653,58 @@ function WorkoutPage() {
     }
   };
 
-  // Handle sticky button on mobile
+  // Detect mobile vs desktop
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Handle start button position based on scroll (mobile only)
+  useEffect(() => {
+    if (!isWorkoutConfigured) return;
+
+    let animationFrameId;
+    let lastScrollY = -1;
+
+    const checkStartButtonScroll = () => {
+      // Desktop - always show with header
+      if (window.innerWidth >= 768) {
+        setStartButtonState('header');
+        animationFrameId = requestAnimationFrame(checkStartButtonScroll);
+        return;
+      }
+
+      const currentScrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+
+      if (currentScrollY !== lastScrollY) {
+        lastScrollY = currentScrollY;
+
+        // If scrolled down more than 150px, make it sticky
+        if (currentScrollY > 150) {
+          setStartButtonState('fixed');
+        } else {
+          setStartButtonState('header');
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(checkStartButtonScroll);
+    };
+
+    animationFrameId = requestAnimationFrame(checkStartButtonScroll);
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [isWorkoutConfigured]);
+
+  // Handle sticky button on mobile (legacy logic for complete workout button)
   useEffect(() => {
     if (!isWorkoutConfigured) return;
 
@@ -701,13 +786,42 @@ function WorkoutPage() {
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 min-h-screen">
-        {/* Page Title */}
-        <h1 className="text-4xl font-extrabold mb-2 text-gray-800">
-          {actualMuscleGroup ? `${actualMuscleGroup.charAt(0).toUpperCase() + actualMuscleGroup.slice(1)} Day Overview` : 'Workout Overview'}
-        </h1>
-        <p className="text-sm text-gray-600 italic mb-8">
-          {workout.type === 'program' ? "Following Jonathan's Hypertrophy Program" : 'Custom Workout'}
-        </p>
+        {/* Header with Title */}
+        <div className="mb-8 flex items-start justify-between" data-header-section>
+          <div>
+            <h1 className="text-4xl font-extrabold mb-2 text-gray-800">
+              {actualMuscleGroup ? `${actualMuscleGroup.charAt(0).toUpperCase() + actualMuscleGroup.slice(1)} Day Overview` : 'Workout Overview'}
+            </h1>
+            <p className="text-sm text-gray-600 italic">
+              {workout.type === 'program' ? "Following Jonathan's Hypertrophy Program" : 'Custom Workout'}
+            </p>
+          </div>
+
+          {/* Start Workout Button - MOBILE ONLY - responsive to scroll position */}
+          {isMobile && workout?.status === 'draft' && (
+            <button
+              onClick={handleStartWorkout}
+              className={`bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap ${
+                startButtonState === 'fixed'
+                  ? 'fixed top-4 right-4 z-50 px-5 py-2.5 text-base'
+                  : 'px-5 py-2.5 text-base'
+              }`}
+            >
+              {hasActiveSession ? '▶️ Resume' : '▶️ Start'}
+            </button>
+          )}
+
+          {/* Completed workout indicator - MOBILE ONLY */}
+          {isMobile && workout?.status === 'completed' && (
+            <div className={`bg-green-100 text-green-800 font-bold rounded-full border-2 border-green-300 whitespace-nowrap transition-all duration-300 ${
+              startButtonState === 'fixed'
+                ? 'fixed top-4 right-4 z-50 px-5 py-2.5 text-base'
+                : 'px-5 py-2.5 text-base'
+            }`}>
+              ✓ Completed
+            </div>
+          )}
+        </div>
 
         {/* Optional sections at top */}
         {isWorkoutConfigured && (cardioAtTop || absAtTop) && (
@@ -804,13 +918,34 @@ function WorkoutPage() {
           </div>
         )}
 
+        {/* Desktop Start Workout Button - centered, stacked above View Workouts */}
+        {!isMobile && isWorkoutConfigured && workout?.status === 'draft' && (
+          <div className="m-6 px-4 sm:px-20 flex justify-center">
+            <button
+              onClick={handleStartWorkout}
+              className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-3xl shadow-lg transition-all duration-300 active:scale-95"
+            >
+              {hasActiveSession ? '▶️ Resume Workout' : '▶️ Start Workout'}
+            </button>
+          </div>
+        )}
+
+        {/* Desktop Completed Indicator - centered */}
+        {!isMobile && isWorkoutConfigured && workout?.status === 'completed' && (
+          <div className="m-6 px-4 sm:px-20 flex justify-center">
+            <div className="w-full sm:w-auto px-8 py-4 bg-green-100 text-green-800 font-semibold rounded-3xl border-2 border-green-300 text-center">
+              ✓ Workout Completed
+            </div>
+          </div>
+        )}
+
         {/* View Workouts button */}
         {isWorkoutConfigured && (
-          <div className="m-6 px-4 sm:px-20">
+          <div className="m-6 px-4 sm:px-20 flex justify-center">
             <Link to="/SavedWorkouts">
               <button
                 disabled={isSaving}
-                className={`px-6 py-3 w-full sm:w-auto rounded-3xl shadow-lg text-sky-50 transition-all duration-300 ${
+                className={`w-full sm:w-auto px-8 py-4 rounded-3xl shadow-lg text-sky-50 font-semibold transition-all duration-300 ${
                   isSaving
                     ? 'bg-gray-400 cursor-not-allowed'
                     : 'bg-gray-800 hover:bg-blue-600 active:bg-gray-600 active:scale-95'
@@ -822,31 +957,29 @@ function WorkoutPage() {
           </div>
         )}
 
-        {/* Action buttons - sticky on mobile */}
+        {/* Action buttons - sticky on mobile, centered on desktop */}
         {isWorkoutConfigured && (
-          <div className={`flex flex-col justify-end space-y-4 ${
+          <div className={`flex flex-col space-y-4 ${
             isButtonSticky
               ? 'fixed bottom-0 left-0 right-0 bg-gradient-to-t from-sky-300 via-sky-300 to-transparent pt-6 pb-4 px-4 m-0 z-50'
               : 'm-6 px-4 sm:px-20'
-          } sm:m-6 sm:px-20 sm:relative sm:bg-none sm:pt-0 sm:pb-0`}>
+          } sm:m-6 sm:px-20 sm:relative sm:bg-none sm:pt-0 sm:pb-0 sm:items-center`}>
             {isGeneratingSummary && (
-              <div className="text-blue-600 font-semibold animate-pulse">
+              <div className="text-blue-600 font-semibold animate-pulse text-center">
                 🤖 Generating AI summary...
               </div>
             )}
-            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <button
-                onClick={handleCompleteWorkout}
-                disabled={isSaving}
-                className={`px-6 py-3 rounded-3xl shadow-lg text-white font-semibold transition-all duration-300 ${
-                  isSaving
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-700 hover:bg-blue-800 active:bg-blue-600 active:scale-95'
-                }`}
-              >
-                {isSaving ? (isGeneratingSummary ? 'Generating Summary...' : 'Saving...') : 'Complete Workout'}
-              </button>
-            </div>
+            <button
+              onClick={handleCompleteWorkout}
+              disabled={isSaving}
+              className={`w-full sm:w-auto px-8 py-4 rounded-3xl shadow-lg text-white font-semibold transition-all duration-300 ${
+                isSaving
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-700 hover:bg-blue-800 active:bg-blue-600 active:scale-95'
+              }`}
+            >
+              {isSaving ? (isGeneratingSummary ? 'Generating Summary...' : 'Saving...') : 'Complete Workout'}
+            </button>
           </div>
         )}
       </div>

@@ -215,8 +215,8 @@ function MuscleGroupWorkout({
 
   return (
     <div>
-      {/* Edit Sets Toggle Button */}
-      <div className="mb-4 flex justify-end">
+      {/* Edit Sets Toggle Button - above the workout table, left-aligned */}
+      <div className="mb-4 flex justify-start">
         <button
           onClick={() => onEditingSetsChange(!isEditingSets)}
           className={`px-4 py-2 rounded-lg text-white font-semibold transition-all active:scale-95 shadow-md ${
