@@ -2,10 +2,8 @@ import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import './index.css';
 import { WorkoutProvider } from './context/WorkoutContext';
 import LandingPage from './pages/LandingPage';
-import TrainingStylePage from './pages/TrainingStyle';
+import InfoPage from './pages/InfoPage';
 import TemplateSelectionPage from './pages/TemplateSelectionPage';
-import StrengthPage from './pages/StrengthPage';
-import HypertrophyPage from './pages/HypertrophyPage';
 import CreateWorkoutPage from './pages/CreateWorkoutPage';
 import WorkoutPage from './pages/WorkoutPage';
 import StartWorkoutPage from './pages/StartWorkoutPage';
@@ -20,11 +18,9 @@ function Main() {
             <BrowserRouter>
                 <Routes>
                     <Route exact path="/" element={<LandingPage />} />
+                    <Route exact path="/Info" element={<InfoPage />} />
                     <Route exact path="/Templates" element={<TemplateSelectionPage />} />
                     <Route exact path="/MyTemplates" element={<Navigate to="/Templates" replace />} />
-                    <Route exact path="/TrainingStyle" element={<TrainingStylePage />} />
-                    <Route exact path="/Strength" element={<StrengthPage />} />
-                    <Route exact path="/Hypertrophy" element={<HypertrophyPage />} />
                     <Route exact path="/Create" element={<CreateWorkoutPage />} />
                     <Route exact path="/create" element={<Navigate to="/Create" replace />} />
                     <Route exact path="/workout/:workoutId" element={<WorkoutPage />} />
