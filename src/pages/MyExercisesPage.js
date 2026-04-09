@@ -1,11 +1,9 @@
-import { useState, useEffect } from 'react';
-import { collection, doc, getDoc, setDoc, query, where, getDocs } from 'firebase/firestore';
+import { useState, useEffect, useRef } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth } from '../config/firebase';
 import db from '../config/firebase';
 import Navbar from '../components/Navbar';
 import { EXERCISE_CATEGORIES } from '../config/exerciseConfig';
-import { FIREBASE_FIELDS } from '../config/constants';
-import { getMuscleGroupFromCategory, detectCategoryFromName } from '../utils/categoryDetection';
 
 function MyExercisesPage() {
   const [customExercises, setCustomExercises] = useState([]);
@@ -13,6 +11,7 @@ function MyExercisesPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [sortBy, setSortBy] = useState('date'); // 'date' or 'name'
+  const formRef = useRef(null);
 
   // Form state
   const [exerciseName, setExerciseName] = useState('');
@@ -21,6 +20,7 @@ function MyExercisesPage() {
   const [customCategory, setCustomCategory] = useState('');
   const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [isBodyweight, setIsBodyweight] = useState(false);
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState('');
 
   // Category options for dropdown
   const categoryOptions = [
@@ -56,7 +56,20 @@ function MyExercisesPage() {
     { label: 'Abs / Core', value: EXERCISE_CATEGORIES.ABS },
   ];
 
-  // Fetch custom exercises from Firebase
+  // Muscle group options for manual selection
+  const muscleGroupOptions = [
+    { label: 'Back', value: 'back' },
+    { label: 'Chest', value: 'chest' },
+    { label: 'Legs', value: 'legs' },
+    { label: 'Shoulders', value: 'shoulders' },
+    { label: 'Arms', value: 'arms' },
+    { label: 'Cardio', value: 'cardio' },
+    { label: 'Core', value: 'core' },
+    { label: 'Full Body', value: 'fullbody' },
+    { label: 'Other', value: 'custom' },
+  ];
+
+  // Fetch custom exercises (no auto-import)
   useEffect(() => {
     fetchCustomExercises();
   }, []);
@@ -71,11 +84,8 @@ function MyExercisesPage() {
     try {
       const docRef = doc(db, 'userCustomExercises', user.uid);
       const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setCustomExercises(data.exercises || []);
-      }
+      const savedExercises = docSnap.exists() ? docSnap.data().exercises || [] : [];
+      setCustomExercises(savedExercises);
     } catch (error) {
       console.error('Error fetching custom exercises:', error);
     } finally {
@@ -105,11 +115,16 @@ function MyExercisesPage() {
       return;
     }
 
+    if (!selectedMuscleGroup) {
+      alert('Please select a muscle group');
+      return;
+    }
+
     const newExercise = {
       id: `custom_${Date.now()}`,
       name: exerciseName.trim(),
       category: categoryToUse,
-      muscleGroup: getMuscleGroupFromCategory(categoryToUse) || 'custom',
+      muscleGroup: selectedMuscleGroup,
       notes: notes.trim(),
       createdAt: new Date().toISOString(),
       isCustomCategory: isCreatingCategory,
@@ -125,6 +140,7 @@ function MyExercisesPage() {
     setCustomCategory('');
     setNotes('');
     setIsBodyweight(false);
+    setSelectedMuscleGroup('');
     setIsAdding(false);
     setIsCreatingCategory(false);
   };
@@ -137,13 +153,18 @@ function MyExercisesPage() {
       return;
     }
 
+    if (!selectedMuscleGroup) {
+      alert('Please select a muscle group');
+      return;
+    }
+
     const updated = customExercises.map(ex =>
       ex.id === editingId
         ? {
             ...ex,
             name: exerciseName.trim(),
             category: categoryToUse,
-            muscleGroup: getMuscleGroupFromCategory(categoryToUse) || ex.muscleGroup || 'custom',
+            muscleGroup: selectedMuscleGroup,
             notes: notes.trim(),
             isCustomCategory: isCreatingCategory,
             isBodyweight: isBodyweight,
@@ -159,6 +180,7 @@ function MyExercisesPage() {
     setSelectedCategory('');
     setCustomCategory('');
     setNotes('');
+    setSelectedMuscleGroup('');
     setEditingId(null);
     setIsCreatingCategory(false);
   };
@@ -173,89 +195,25 @@ function MyExercisesPage() {
   const startEdit = (exercise) => {
     setEditingId(exercise.id);
     setExerciseName(exercise.name);
-    if (exercise.isCustomCategory) {
+
+    // Check if the category exists in preset options
+    const categoryExists = categoryOptions.some(opt => opt.value === exercise.category && !opt.disabled);
+
+    if (exercise.isCustomCategory || !categoryExists) {
       setIsCreatingCategory(true);
-      setCustomCategory(exercise.category);
+      setCustomCategory(exercise.category || '');
+      setSelectedCategory('');
     } else {
       setIsCreatingCategory(false);
-      setSelectedCategory(exercise.category);
+      setSelectedCategory(exercise.category || '');
+      setCustomCategory('');
     }
     setNotes(exercise.notes || '');
     setIsBodyweight(exercise.isBodyweight || false);
+    setSelectedMuscleGroup(exercise.muscleGroup || '');
     setIsAdding(false);
   };
 
-  // Import exercises from workout history
-  const handleImportFromHistory = async () => {
-    const user = auth.currentUser;
-    if (!user) {
-      alert('Please sign in to import exercises.');
-      return;
-    }
-
-    try {
-      const q = query(
-        collection(db, 'workoutLogs'),
-        where(FIREBASE_FIELDS.USER_ID, '==', user.uid)
-      );
-
-      const querySnapshot = await getDocs(q);
-      const foundExercises = new Map();
-
-      querySnapshot.docs.forEach((docSnapshot) => {
-        const data = docSnapshot.data();
-        const exerciseData = data.exerciseData || data.inputs || {};
-
-        Object.entries(exerciseData).forEach(([key, exercise]) => {
-          const exerciseName = exercise.exerciseName || exercise.selection;
-
-          // Only include custom exercises (not preset IDs)
-          if (exerciseName && (key.startsWith('custom_') || !exerciseName.match(/^[a-z]+$/))) {
-            const normalizedName = exerciseName.toLowerCase().trim();
-
-            // Skip if already in My Exercises
-            const alreadyExists = customExercises.some(
-              ex => ex.name.toLowerCase().trim() === normalizedName
-            );
-
-            if (!alreadyExists && !foundExercises.has(normalizedName)) {
-              const detectedCategory = exercise.detectedCategory || detectCategoryFromName(exerciseName);
-
-              foundExercises.set(normalizedName, {
-                id: `imported_${Date.now()}_${Math.random()}`,
-                name: exerciseName,
-                category: detectedCategory || 'uncategorized',
-                muscleGroup: detectedCategory ? getMuscleGroupFromCategory(detectedCategory) || 'custom' : 'custom',
-                notes: 'Imported from workout history',
-                createdAt: new Date().toISOString(),
-                isCustomCategory: !detectedCategory,
-              });
-            }
-          }
-        });
-      });
-
-      const importedCount = foundExercises.size;
-
-      if (importedCount === 0) {
-        alert('No new exercises found in workout history.');
-        return;
-      }
-
-      const confirmed = window.confirm(
-        `Found ${importedCount} custom exercise(s) from your workout history. Import them?`
-      );
-
-      if (confirmed) {
-        const allExercises = [...customExercises, ...Array.from(foundExercises.values())];
-        await saveCustomExercises(allExercises);
-        alert(`Successfully imported ${importedCount} exercise(s)!`);
-      }
-    } catch (error) {
-      console.error('Error importing from history:', error);
-      alert('Error importing exercises. Please try again.');
-    }
-  };
 
   const cancelForm = () => {
     setExerciseName('');
@@ -263,6 +221,7 @@ function MyExercisesPage() {
     setCustomCategory('');
     setNotes('');
     setIsBodyweight(false);
+    setSelectedMuscleGroup('');
     setIsAdding(false);
     setEditingId(null);
     setIsCreatingCategory(false);
@@ -288,32 +247,27 @@ function MyExercisesPage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-5xl font-extrabold text-gray-800">My Custom Exercises</h1>
           {!isAdding && !editingId && (
-            <div className="flex gap-3">
-              <button
-                onClick={handleImportFromHistory}
-                className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold shadow-lg transition-all active:scale-95"
-              >
-                📥 Import from History
-              </button>
-              <button
-                onClick={() => setIsAdding(true)}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-lg transition-all active:scale-95"
-              >
-                + Add Exercise
-              </button>
-            </div>
+            <button
+              onClick={() => {
+                setIsAdding(true);
+                setTimeout(() => {
+                  formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+              }}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-lg transition-all active:scale-95"
+            >
+              + Add Exercise
+            </button>
           )}
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <p className="text-gray-700">
-            <strong>What is this page for?</strong> Organize your custom exercises with proper categories.
-            This enables the graph toggle feature and better exercise comparison.
+            <strong>What is this page for?</strong> Organize your custom exercises with proper categories. This enables the graph toggle feature and better exercise comparison.
           </p>
           <ul className="text-gray-600 text-sm mt-2 space-y-1">
-            <li>✅ <strong>Auto-saved:</strong> Custom exercises are automatically added here when you save workouts</li>
+            <li>✅ <strong>Auto-saved:</strong> Custom exercises are automatically added here when you complete workouts</li>
             <li>✏️ <strong>Manual:</strong> You can also add exercises here before creating workouts</li>
-            <li>📥 <strong>Import:</strong> Click "Import from History" to find exercises from old workouts (before auto-save)</li>
           </ul>
 
           {/* Sort Toggle */}
@@ -344,11 +298,11 @@ function MyExercisesPage() {
           )}
         </div>
 
-        {/* Add/Edit Form */}
-        {(isAdding || editingId) && (
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+        {/* Add Form Only */}
+        {isAdding && (
+          <div ref={formRef} className="bg-white rounded-2xl shadow-lg p-6 mb-8 border-4 border-blue-400">
             <h2 className="text-2xl font-bold mb-4">
-              {editingId ? 'Edit Exercise' : 'Add New Exercise'}
+              Add New Exercise
             </h2>
 
             <div className="space-y-4">
@@ -421,6 +375,24 @@ function MyExercisesPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Muscle Group *
+                </label>
+                <select
+                  value={selectedMuscleGroup}
+                  onChange={(e) => setSelectedMuscleGroup(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select muscle group...</option>
+                  {muscleGroupOptions.map((opt, idx) => (
+                    <option key={idx} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Notes (optional)
                 </label>
                 <textarea
@@ -448,10 +420,10 @@ function MyExercisesPage() {
 
               <div className="flex gap-3">
                 <button
-                  onClick={editingId ? handleEditExercise : handleAddExercise}
+                  onClick={handleAddExercise}
                   className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-all active:scale-95"
                 >
-                  {editingId ? 'Save Changes' : 'Add Exercise'}
+                  Add Exercise
                 </button>
                 <button
                   onClick={cancelForm}
@@ -475,42 +447,183 @@ function MyExercisesPage() {
             sortedExercises.map((exercise) => (
               <div
                 key={exercise.id}
-                className="bg-white rounded-2xl shadow-lg p-6 flex justify-between items-start"
+                className={`rounded-2xl shadow-lg p-6 transition-colors ${
+                  editingId === exercise.id
+                    ? 'bg-blue-50 border-4 border-blue-400'
+                    : 'bg-white'
+                }`}
               >
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-800 mb-2">{exercise.name}</h3>
-                  <div className="flex gap-2 text-sm text-gray-600 flex-wrap">
-                    <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
-                      {exercise.category}
-                    </span>
-                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full">
-                      {exercise.muscleGroup}
-                    </span>
-                    {exercise.isBodyweight && (
-                      <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full">
-                        💪 Bodyweight
-                      </span>
-                    )}
-                  </div>
-                  {exercise.notes && (
-                    <p className="mt-2 text-gray-600 italic">{exercise.notes}</p>
-                  )}
-                </div>
+                {editingId === exercise.id ? (
+                  /* Inline Edit Form */
+                  <div className="space-y-4">
+                    <h2 className="text-2xl font-bold mb-4">Edit Exercise</h2>
 
-                <div className="flex gap-2 ml-4">
-                  <button
-                    onClick={() => startEdit(exercise)}
-                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-all active:scale-95"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDeleteExercise(exercise.id)}
-                    className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-all active:scale-95"
-                  >
-                    Delete
-                  </button>
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Exercise Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={exerciseName}
+                        onChange={(e) => setExerciseName(e.target.value)}
+                        placeholder="e.g., Cable Shoulder Press"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Category *
+                      </label>
+
+                      <div className="flex gap-2 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsCreatingCategory(false)}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            !isCreatingCategory
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          Select Preset
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsCreatingCategory(true)}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            isCreatingCategory
+                              ? 'bg-blue-600 text-white'
+                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                          }`}
+                        >
+                          Create Custom
+                        </button>
+                      </div>
+
+                      {isCreatingCategory ? (
+                        <input
+                          type="text"
+                          value={customCategory}
+                          onChange={(e) => setCustomCategory(e.target.value)}
+                          placeholder="Enter custom category name..."
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <select
+                          value={selectedCategory}
+                          onChange={(e) => setSelectedCategory(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select a category...</option>
+                          {categoryOptions.map((opt, idx) => (
+                            <option key={idx} value={opt.value} disabled={opt.disabled}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Muscle Group *
+                      </label>
+                      <select
+                        value={selectedMuscleGroup}
+                        onChange={(e) => setSelectedMuscleGroup(e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select muscle group...</option>
+                        {muscleGroupOptions.map((opt, idx) => (
+                          <option key={idx} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Notes (optional)
+                      </label>
+                      <textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Any notes about this exercise..."
+                        rows={3}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isBodyweight}
+                          onChange={(e) => setIsBodyweight(e.target.checked)}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                        />
+                        <span className="text-sm font-medium text-gray-700">
+                          Bodyweight Exercise (e.g., Pull-ups, Push-ups)
+                        </span>
+                      </label>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleEditExercise}
+                        className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-all active:scale-95"
+                      >
+                        Save Changes
+                      </button>
+                      <button
+                        onClick={cancelForm}
+                        className="px-6 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded-lg font-semibold transition-all active:scale-95"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Normal Card View */
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-2xl font-bold text-gray-800 mb-2 break-words">{exercise.name}</h3>
+                      <div className="flex gap-2 text-sm text-gray-600 flex-wrap">
+                        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full break-words">
+                          {exercise.category}
+                        </span>
+                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                          {exercise.muscleGroup}
+                        </span>
+                        {exercise.isBodyweight && (
+                          <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full">
+                            💪 Bodyweight
+                          </span>
+                        )}
+                      </div>
+                      {exercise.notes && (
+                        <p className="mt-2 text-gray-600 italic break-words">{exercise.notes}</p>
+                      )}
+                    </div>
+
+                    <div className="flex gap-2 sm:flex-shrink-0">
+                      <button
+                        onClick={() => startEdit(exercise)}
+                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-all active:scale-95 whitespace-nowrap"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteExercise(exercise.id)}
+                        className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg text-sm font-medium transition-all active:scale-95 whitespace-nowrap"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ))
           )}

@@ -37,6 +37,7 @@ function ExerciseAutocomplete({
     ...previousCustomExercises.map(custom => ({
       name: custom.name,
       id: custom.id || custom.name, // Use name as fallback ID
+      category: custom.category, // Include category from MyExercises
       isPreset: false,
     })),
   ];
