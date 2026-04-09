@@ -11,6 +11,7 @@ import { generateSummary } from '../utils/summaryUtil';
 import { FIREBASE_FIELDS } from '../config/constants';
 import { getMuscleGroupFromCategory } from '../utils/categoryDetection';
 import { workoutSession } from '../services/storageService';
+import { EXERCISES } from '../config/exerciseConfig';
 
 function WorkoutPage() {
   const { workoutId } = useParams();
@@ -186,7 +187,16 @@ function WorkoutPage() {
 
         Object.entries(exerciseDataFromWorkout).forEach(([key, exercise]) => {
           const exerciseName = exercise.exerciseName || exercise.selection;
-          if (exerciseName && (key.startsWith('custom_') || !exerciseName.match(/^[a-z]+$/))) {
+
+          // Check if this is a custom exercise (not a preset)
+          // Preset exercise keys are short lowercase IDs like 'dip', 'bp', 'mr'
+          const isPresetKey = key.match(/^[a-z]+$/) && key.length <= 10;
+          const isCustomExercise = !isPresetKey;
+
+          // Also filter out exercise names that look like IDs
+          const looksLikeId = exerciseName && exerciseName.match(/^[a-z]+$/) && exerciseName.length <= 10;
+
+          if (exerciseName && isCustomExercise && !looksLikeId) {
             const normalizedName = exerciseName.toLowerCase().trim();
             if (!customExercises.has(normalizedName)) {
               customExercises.set(normalizedName, {
@@ -502,25 +512,43 @@ function WorkoutPage() {
       const customExDoc = await getDoc(doc(db, 'userCustomExercises', userId));
       const existingExercises = customExDoc.exists() ? customExDoc.data().exercises || [] : [];
 
+      // Get all preset exercise names to filter out
+      const presetNames = new Set(
+        Object.values(EXERCISES).map(ex => ex.name.toLowerCase().trim())
+      );
+
       const newExercises = [];
       Object.entries(exerciseDataToSave).forEach(([key, exercise]) => {
         const exerciseName = exercise.exerciseName || exercise.selection;
         const detectedCategory = exercise.detectedCategory;
 
-        if (exerciseName && (key.startsWith('custom_') || !exerciseName.match(/^[a-z]+$/))) {
+        // Check if this is a custom exercise (not a preset)
+        // Preset exercise keys are short lowercase IDs like 'dip', 'bp', 'mr'
+        // Custom exercise keys start with 'custom_' or have underscores/numbers
+        const isPresetKey = key.match(/^[a-z]+$/) && key.length <= 10;
+        const isCustomExercise = !isPresetKey;
+
+        if (exerciseName && isCustomExercise) {
           const normalizedName = exerciseName.toLowerCase().trim();
+
+          // Skip if:
+          // - Already exists in saved exercises
+          // - Is a preset exercise name (e.g., "Bench Press", "Dip")
+          // - Exercise name looks like an ID (short lowercase letters)
+          const looksLikeId = exerciseName.match(/^[a-z]+$/) && exerciseName.length <= 10;
+          const isPresetName = presetNames.has(normalizedName);
 
           const alreadyExists = existingExercises.some(
             ex => ex.name.toLowerCase().trim() === normalizedName
           );
 
-          if (!alreadyExists) {
+          if (!alreadyExists && !isPresetName && !looksLikeId) {
             newExercises.push({
               id: `auto_${Date.now()}_${Math.random()}`,
               name: exerciseName,
               category: detectedCategory || 'uncategorized',
-              muscleGroup: getMuscleGroupFromCategory(detectedCategory) || 'custom',
-              notes: 'Auto-saved from workout',
+              muscleGroup: getMuscleGroupFromCategory(detectedCategory) || 'uncategorized',
+              notes: 'Auto-saved from workout - Please edit to set muscle group',
               createdAt: new Date().toISOString(),
               isCustomCategory: !detectedCategory,
             });
