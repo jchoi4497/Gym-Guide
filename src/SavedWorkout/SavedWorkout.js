@@ -995,25 +995,6 @@ function SavedWorkout() {
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
             <button
               onClick={() => {
-                // Navigate to StartWorkoutPage with workout data
-                navigate('/start-workout', {
-                  state: {
-                    workoutData: {
-                      workoutName: workoutData[FIREBASE_FIELDS.MUSCLE_GROUP] || 'Workout',
-                      selectedMuscleGroup: workoutData[FIREBASE_FIELDS.MUSCLE_GROUP],
-                      numberOfSets: workoutData[FIREBASE_FIELDS.NUMBER_OF_SETS],
-                      exerciseData: workoutData[FIREBASE_FIELDS.EXERCISE_DATA] || {},
-                      note: workoutData[FIREBASE_FIELDS.NOTE] || '',
-                    },
-                  },
-                });
-              }}
-              className="px-6 py-3 rounded-3xl shadow-lg text-white font-semibold transition-all bg-green-600 hover:bg-green-700 active:bg-green-500 active:scale-95"
-            >
-              ▶️ Start Workout
-            </button>
-            <button
-              onClick={() => {
                 setIsEditing(true);
                 setHasUnsavedChanges(false);
               }}

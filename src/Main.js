@@ -13,13 +13,11 @@ import ColorDesignPage from './pages/ColorDesignPage';
 import SavedWorkout from './SavedWorkout/SavedWorkout';
 import ListOfWorkouts from './pages/ListOfWorkouts';
 import MyExercisesPage from './pages/MyExercisesPage';
-import ResumeWorkoutModal from './components/ResumeWorkoutModal';
 
 function Main() {
     return (
         <WorkoutProvider>
             <BrowserRouter>
-                <ResumeWorkoutModal />
                 <Routes>
                     <Route exact path="/" element={<LandingPage />} />
                     <Route exact path="/Templates" element={<TemplateSelectionPage />} />
