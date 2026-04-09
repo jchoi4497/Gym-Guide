@@ -1445,160 +1445,33 @@ function HypertrophyPage() {
 
         {/* Workflow Choice - Only show if nothing selected yet */}
         {workflowMode === 'choose' && !selectedMuscleGroup && !selectedTemplateFromDropdown && Object.keys(exerciseData).length === 0 && (
-          <div className="mb-10">
-            <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">How would you like to train today?</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              {/* Follow My Program Option */}
-              <button
-                onClick={() => setWorkflowMode('custom')}
-                className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-white group relative"
-              >
-                <div className="absolute top-4 right-4 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-full">
-                  RECOMMENDED
-                </div>
-                <div className="text-6xl mb-4">💪</div>
-                <h3 className="text-2xl font-bold mb-3">Follow My Program</h3>
-                <p className="text-blue-100 text-sm mb-4">
-                  Use my proven hypertrophy split. Just pick your muscle group and I'll give you the exercises.
-                </p>
-                <div className="bg-white/20 rounded-lg p-3 text-sm">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span>✓</span>
-                    <span>Quick & simple</span>
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span>✓</span>
-                    <span>My tested exercises</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>✓</span>
-                    <span>Perfect for beginners</span>
-                  </div>
-                </div>
-              </button>
-
-              {/* Use Custom Templates Option */}
-              <button
-                onClick={() => setWorkflowMode('template')}
-                className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-white group"
-              >
-                <div className="text-6xl mb-4">📋</div>
-                <h3 className="text-2xl font-bold mb-3">Use Custom Templates</h3>
-                <p className="text-purple-100 text-sm mb-4">
-                  Load your saved templates or create new ones for custom splits (PPL, Upper/Lower, etc.)
-                </p>
-                <div className="bg-white/20 rounded-lg p-3 text-sm">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span>✓</span>
-                    <span>Your saved routines</span>
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span>✓</span>
-                    <span>Full customization</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>✓</span>
-                    <span>Advanced training</span>
-                  </div>
-                </div>
-              </button>
-            </div>
-
-            {/* Link to manage templates */}
-            <div className="text-center mt-6">
-              <Link to="/MyTemplates" className="text-purple-700 hover:text-purple-800 font-semibold text-sm underline">
-                Manage My Custom Templates →
-              </Link>
-            </div>
+          <div className="mb-10 text-center">
+            <h2 className="text-3xl font-bold mb-6 text-gray-800">Ready to start your workout?</h2>
+            <button
+              onClick={() => navigate('/Create')}
+              className="px-12 py-4 bg-blue-600 text-white text-xl font-bold rounded-full shadow-2xl hover:bg-blue-700 hover:scale-105 transition-all duration-300"
+            >
+              Create Workout →
+            </button>
+            <p className="text-gray-600 mt-4 text-sm">
+              Build from scratch or use your saved templates
+            </p>
           </div>
         )}
 
-        {/* Template Mode - Show template selector */}
+        {/* Redirect to create page if template mode is triggered */}
         {workflowMode === 'template' && (
           <div className="mb-8">
-            <div className="bg-sky-50 rounded-3xl p-6 shadow-lg">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-semibold">Choose Your Template</h2>
-                <button
-                  onClick={() => {
-                    setWorkflowMode('choose');
-                    setSelectedTemplateFromDropdown(null);
-                    setLoadedTemplate(null);
-                    setExerciseData({});
-                    setSelectedMuscleGroup(null);
-                    setNumberOfSets(null);
-                  }}
-                  className="text-sm text-gray-600 hover:text-gray-800 underline"
-                >
-                  ← Back to choices
-                </button>
-              </div>
-
-              {/* Option 1: Use existing template */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Load an existing template
-                </label>
-                <TemplateSelector
-                  onSelectTemplate={(templateId) => {
-                    handleTemplateSelect(templateId);
-                  }}
-                  selectedTemplateId={selectedTemplateFromDropdown}
-                />
-              </div>
-
-              {/* Divider */}
-              <div className="flex items-center my-6">
-                <div className="flex-1 border-t border-gray-300"></div>
-                <span className="px-4 text-gray-500 text-sm">OR</span>
-                <div className="flex-1 border-t border-gray-300"></div>
-              </div>
-
-              {/* Option 2: Create new template */}
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-3">
-                  Don't have a template for this workout yet?
-                </p>
-                <Link to="/MyTemplates">
-                  <button className="px-6 py-3 bg-purple-600 text-white rounded-full font-semibold hover:bg-purple-700 transition-all shadow-lg hover:shadow-xl hover:scale-105 inline-flex items-center gap-2">
-                    <span>➕</span>
-                    <span>Create New Template</span>
-                  </button>
-                </Link>
-                <p className="text-xs text-gray-500 mt-2">
-                  Build a custom template with your own exercises and save it for future workouts
-                </p>
-              </div>
+            <div className="bg-sky-50 rounded-3xl p-6 shadow-lg text-center">
+              <h2 className="text-2xl font-semibold mb-4">Templates have moved!</h2>
+              <p className="text-gray-700 mb-6">Templates are now available on the Create Workout page.</p>
+              <button
+                onClick={() => navigate('/Create')}
+                className="px-8 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-all"
+              >
+                Go to Create Workout
+              </button>
             </div>
-
-            {/* Show template info when loaded */}
-            {loadedTemplate && (
-              <div className="mt-6 bg-blue-50 border-2 border-blue-200 rounded-2xl p-6">
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-blue-900 mb-2">{loadedTemplate.name}</h3>
-                  {loadedTemplate.description && (
-                    <p className="text-blue-800 mb-3">{loadedTemplate.description}</p>
-                  )}
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
-                    <div className="bg-white/50 rounded-lg p-2">
-                      <div className="text-blue-600 font-semibold">Muscle Group</div>
-                      <div className="text-gray-800">{actualMuscleGroup}</div>
-                    </div>
-                    <div className="bg-white/50 rounded-lg p-2">
-                      <div className="text-blue-600 font-semibold">Sets × Reps</div>
-                      <div className="text-gray-800">{setRangeLabel}</div>
-                    </div>
-                    <div className="bg-white/50 rounded-lg p-2">
-                      <div className="text-blue-600 font-semibold">Exercises</div>
-                      <div className="text-gray-800">{Object.keys(exerciseData).length} loaded</div>
-                    </div>
-                  </div>
-                  <div className="mt-4 text-sm text-blue-700">
-                    ✓ Template loaded! Scroll down to see exercises and start your workout.
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
