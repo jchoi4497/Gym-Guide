@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { collection, addDoc, serverTimestamp, doc, getDoc, query, where, getDocs, deleteDoc, orderBy, limit } from 'firebase/firestore';
 import { auth } from '../config/firebase';
 import db from '../config/firebase';
 import Navbar from '../components/Navbar';
 import DropDown from '../components/DropDown';
 import MuscleGroupAutocomplete from '../components/MuscleGroupAutocomplete';
 import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS } from '../config/constants';
+import { templateToExerciseData } from '../utils/templateHelpers';
 
 function CreateWorkoutPage() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Form selections
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(null);
@@ -30,9 +32,14 @@ function CreateWorkoutPage() {
 
   // Templates state
   const [recentTemplates, setRecentTemplates] = useState([]);
+  const [loadedTemplate, setLoadedTemplate] = useState(null);
 
   // Wizard step state (1, 2, or 3)
   const [currentStep, setCurrentStep] = useState(1);
+
+  // Draft workout detection
+  const [draftWorkout, setDraftWorkout] = useState(null);
+  const [showDraftModal, setShowDraftModal] = useState(false);
 
   // Get actual muscle group name
   const actualMuscleGroup = selectedMuscleGroup === 'custom' && customMuscleGroupName
@@ -50,6 +57,80 @@ function CreateWorkoutPage() {
     (selectedMuscleGroup !== 'custom' || customMuscleGroupName.trim()) &&
     numberOfSets &&
     (numberOfSets !== 'custom' || (customSetCount && parseInt(customSetCount) > 0));
+
+  // Load template from navigation state if provided
+  useEffect(() => {
+    const loadTemplateFromState = async () => {
+      if (!location.state) return;
+
+      let templateToLoad = null;
+
+      // If template object is passed directly (built-in templates)
+      if (location.state.template) {
+        templateToLoad = location.state.template;
+      }
+      // If templateId is passed (user templates)
+      else if (location.state.templateId && auth.currentUser) {
+        try {
+          const templateDoc = await getDoc(doc(db, 'userTemplates', auth.currentUser.uid));
+          if (templateDoc.exists()) {
+            const templates = templateDoc.data().templates || [];
+            templateToLoad = templates.find(t => t.id === location.state.templateId);
+          }
+        } catch (error) {
+          console.error('Error loading template:', error);
+        }
+      }
+
+      // Load the template into the form
+      if (templateToLoad) {
+        setSelectedMuscleGroup(templateToLoad.muscleGroup || null);
+        setCustomMuscleGroupName(templateToLoad.customMuscleGroupName || '');
+        setNumberOfSets(templateToLoad.numberOfSets || null);
+        setCustomSetCount(templateToLoad.customSetCount?.toString() || '');
+        setCustomRepCount(templateToLoad.customRepCount?.toString() || '');
+        setLoadedTemplate(templateToLoad);
+        setCurrentStep(3); // Auto-advance to date selection
+      }
+    };
+
+    loadTemplateFromState();
+  }, [location.state]);
+
+  // Check for draft workouts on mount
+  useEffect(() => {
+    const checkForDrafts = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      try {
+        const q = query(
+          collection(db, 'workoutLogs'),
+          where('userId', '==', user.uid),
+          where('status', '==', 'draft'),
+          orderBy('createdAt', 'desc'),
+          limit(1)
+        );
+
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const draftDoc = querySnapshot.docs[0];
+          setDraftWorkout({ id: draftDoc.id, ...draftDoc.data() });
+          setShowDraftModal(true);
+        }
+      } catch (error) {
+        console.error('Error checking for drafts:', error);
+      }
+    };
+
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        checkForDrafts();
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Fetch recent templates on mount
   useEffect(() => {
@@ -101,12 +182,14 @@ function CreateWorkoutPage() {
     setNumberOfSets(template.numberOfSets || null);
     setCustomSetCount(template.customSetCount?.toString() || '');
     setCustomRepCount(template.customRepCount?.toString() || '');
+    setLoadedTemplate(template); // Save the template so we can access exercises later
     // Auto-advance to step 3 (date selection) when template is loaded
     setCurrentStep(3);
   };
 
   const handleMuscleGroupSelect = (option) => {
     setSelectedMuscleGroup(option);
+    setLoadedTemplate(null); // Clear loaded template when manually changing selection
     // Clear custom name if switching away from custom
     if (option !== 'custom') {
       setCustomMuscleGroupName('');
@@ -117,12 +200,33 @@ function CreateWorkoutPage() {
 
   const handleSetCountSelect = (option) => {
     setNumberOfSets(option);
+    setLoadedTemplate(null); // Clear loaded template when manually changing selection
     // Clear custom values if switching away from custom
     if (option !== 'custom') {
       setCustomSetCount('');
       setCustomRepCount('');
       // Auto-advance to step 3 for non-custom selections
       setCurrentStep(3);
+    }
+  };
+
+  const handleResumeDraft = () => {
+    if (draftWorkout) {
+      navigate(`/workout/${draftWorkout.id}`);
+    }
+  };
+
+  const handleDeleteDraft = async () => {
+    if (!draftWorkout) return;
+
+    try {
+      await deleteDoc(doc(db, 'workoutLogs', draftWorkout.id));
+      setDraftWorkout(null);
+      setShowDraftModal(false);
+      console.log('Draft workout deleted');
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+      alert('Failed to delete draft. Please try again.');
     }
   };
 
@@ -136,6 +240,13 @@ function CreateWorkoutPage() {
       const [year, month, day] = workoutDate.split('-');
       const selectedDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12, 0, 0);
 
+      // Convert template exercises to exerciseData format if template was loaded
+      let exerciseData = {};
+      if (loadedTemplate && loadedTemplate.exercises) {
+        exerciseData = templateToExerciseData(loadedTemplate, actualNumberOfSets);
+        console.log('✅ Loaded exercises from template:', Object.keys(exerciseData).length);
+      }
+
       // Create draft workout directly in workoutLogs
       const workoutRef = await addDoc(collection(db, 'workoutLogs'), {
         userId: auth.currentUser.uid,
@@ -145,7 +256,7 @@ function CreateWorkoutPage() {
         numberOfSets: actualNumberOfSets,
         customSetCount: numberOfSets === 'custom' ? parseInt(customSetCount) : null,
         customRepCount: numberOfSets === 'custom' && customRepCount ? parseInt(customRepCount) : null,
-        exerciseData: {},
+        exerciseData: exerciseData,
         date: selectedDate,
         workoutDate: workoutDate,
         createdAt: serverTimestamp(),
@@ -188,7 +299,7 @@ function CreateWorkoutPage() {
             <div className="bg-sky-50 rounded-3xl p-6 shadow-lg max-w-2xl mx-auto">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-800">💡 Quick Start - Load Template</h2>
-                <Link to="/MyTemplates" className="text-blue-600 hover:text-blue-800 font-semibold text-sm">
+                <Link to="/Templates" className="text-blue-600 hover:text-blue-800 font-semibold text-sm">
                   Manage Templates →
                 </Link>
               </div>
@@ -414,6 +525,53 @@ function CreateWorkoutPage() {
           </div>
         )}
       </div>
+
+      {/* Draft Workout Modal */}
+      {showDraftModal && draftWorkout && (
+        <div className="fixed inset-0 backdrop-blur-md bg-white/10 z-[9999] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                Resume Draft Workout?
+              </h2>
+              <p className="text-gray-600">
+                You have an unfinished workout
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 mb-6">
+              <h3 className="font-semibold text-lg text-gray-800 mb-2">
+                {draftWorkout.muscleGroup || 'Workout'}
+              </h3>
+              <div className="text-sm text-gray-600">
+                <p>Created: {draftWorkout.createdAt ? new Date(draftWorkout.createdAt.toDate()).toLocaleDateString() : 'Recently'}</p>
+                <p>Sets: {draftWorkout.numberOfSets || 'N/A'}</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleResumeDraft}
+                className="w-full py-3 rounded-lg bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold transition-colors shadow-lg"
+              >
+                ▶️ Resume Draft
+              </button>
+              <button
+                onClick={handleDeleteDraft}
+                className="w-full py-3 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 font-semibold transition-colors"
+              >
+                Delete Draft
+              </button>
+              <button
+                onClick={() => setShowDraftModal(false)}
+                className="w-full py-3 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

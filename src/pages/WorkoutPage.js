@@ -703,7 +703,7 @@ function WorkoutPage() {
       <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 min-h-screen">
         {/* Page Title */}
         <h1 className="text-4xl font-extrabold mb-2 text-gray-800">
-          {actualMuscleGroup ? `${actualMuscleGroup.charAt(0).toUpperCase() + actualMuscleGroup.slice(1)} Day` : 'Workout'}
+          {actualMuscleGroup ? `${actualMuscleGroup.charAt(0).toUpperCase() + actualMuscleGroup.slice(1)} Day Overview` : 'Workout Overview'}
         </h1>
         <p className="text-sm text-gray-600 italic mb-8">
           {workout.type === 'program' ? "Following Jonathan's Hypertrophy Program" : 'Custom Workout'}
