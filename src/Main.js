@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import './index.css';
 import { WorkoutProvider } from './context/WorkoutContext';
 import LandingPage from './pages/LandingPage';
@@ -7,6 +7,8 @@ import TemplateSelectionPage from './pages/TemplateSelectionPage';
 import MyTemplatesPage from './pages/MyTemplatesPage';
 import StrengthPage from './pages/StrengthPage';
 import HypertrophyPage from './pages/HypertrophyPage';
+import CreateWorkoutPage from './pages/CreateWorkoutPage';
+import WorkoutPage from './pages/WorkoutPage';
 import StartWorkoutPage from './pages/StartWorkoutPage';
 import ColorDesignPage from './pages/ColorDesignPage';
 import SavedWorkout from './SavedWorkout/SavedWorkout';
@@ -26,6 +28,9 @@ function Main() {
                     <Route exact path="/TrainingStyle" element={<TrainingStylePage />} />
                     <Route exact path="/Strength" element={<StrengthPage />} />
                     <Route exact path="/Hypertrophy" element={<HypertrophyPage />} />
+                    <Route exact path="/Create" element={<CreateWorkoutPage />} />
+                    <Route exact path="/create" element={<Navigate to="/Create" replace />} />
+                    <Route exact path="/workout/:workoutId" element={<WorkoutPage />} />
                     <Route exact path="/start-workout" element={<StartWorkoutPage />} />
                     <Route exact path="ColorDesign" element={<ColorDesignPage />} />
                     <Route exact path="/SavedWorkout/:workoutId" element={<SavedWorkout />} />
