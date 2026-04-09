@@ -1,29 +1,23 @@
-import WorkoutType from '../components/WorkoutType';
 import HypertrophyImage from '../images/Hypertrophy.png';
 import Navbar from '../components/Navbar';
-import StrengthImage from '../images/Strength.jpg';
 
-function TrainingStylePage() {
+function InfoPage() {
   return (
     <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-32 font-serif">
       <Navbar />
 
-      <h1 className="text-5xl font-bold text-center mb-10 italic">Training Style</h1>
+      <h1 className="text-5xl font-bold text-center mb-10 italic">Training Info</h1>
 
       <div className="flex flex-wrap gap-10 justify-center mb-16">
-        <WorkoutType
-          to="/Hypertrophy"
-          type="Hypertrophy"
-          image={HypertrophyImage}
-          desc="Program designed to increase muscle size and mass. Click the picture above ⬆️ to get started!"
-        />
-        {/* Uncomment if you want to use the Strength type too */}
-        {/* <WorkoutType
-                    to="/Strength"
-                    type="Strength"
-                    image={StrengthImage}
-                    desc="Program designed to build muscle strength and mass."
-                    /> */}
+        <div>
+          <h3 className="text-xl font-serif text-center">Hypertrophy Training</h3>
+          <img
+            src={HypertrophyImage}
+            alt="Hypertrophy Training"
+            className="w-72 h-72 object-cover border-sky-50 border-2 border-solid rounded-2xl shadow-lg mb-6 mt-4"
+          />
+          <p className="text-center w-72 h-12 font-serif">Program designed to increase muscle size and mass.</p>
+        </div>
       </div>
 
       <div className="max-w-5xl mx-auto bg-sky-50 rounded-3xl shadow-2xl p-10 text-gray-800 space-y-6">
@@ -60,4 +54,4 @@ function TrainingStylePage() {
   );
 }
 
-export default TrainingStylePage;
+export default InfoPage;
