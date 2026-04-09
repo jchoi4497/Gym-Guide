@@ -368,16 +368,26 @@ function StartWorkoutPage() {
     try {
       const completedExerciseData = {};
 
-      // Convert exercises to exerciseData format
+      // Convert exercises to exerciseData format, preserving original sets structure
       updatedExercises.forEach(exercise => {
+        // Create an array with the correct total number of sets
+        const setsArray = new Array(exercise.totalSets).fill('');
+
+        // Fill in the completed sets
+        exercise.completedSets.forEach(set => {
+          const setIndex = set.setNumber - 1; // Convert to 0-based index
+          if (setIndex >= 0 && setIndex < setsArray.length) {
+            if (set.weight) {
+              setsArray[setIndex] = `${set.weight}x${set.reps}`;
+            } else {
+              setsArray[setIndex] = set.reps;
+            }
+          }
+        });
+
         completedExerciseData[exercise.key] = {
           exerciseName: exercise.exerciseName,
-          sets: exercise.completedSets.map(set => {
-            if (set.weight) {
-              return `${set.weight}x${set.reps}`;
-            }
-            return set.reps;
-          }),
+          sets: setsArray,
         };
       });
 
@@ -503,16 +513,26 @@ function StartWorkoutPage() {
     try {
       const completedExerciseData = {};
 
-      // Add completed sets to exerciseData
+      // Add completed sets to exerciseData, preserving original sets structure
       exercises.forEach(exercise => {
+        // Create an array with the correct total number of sets
+        const setsArray = new Array(exercise.totalSets).fill('');
+
+        // Fill in the completed sets
+        exercise.completedSets.forEach(set => {
+          const setIndex = set.setNumber - 1; // Convert to 0-based index
+          if (setIndex >= 0 && setIndex < setsArray.length) {
+            if (set.weight) {
+              setsArray[setIndex] = `${set.weight}x${set.reps}`;
+            } else {
+              setsArray[setIndex] = set.reps;
+            }
+          }
+        });
+
         completedExerciseData[exercise.key] = {
           exerciseName: exercise.exerciseName,
-          sets: exercise.completedSets.map(set => {
-            if (set.weight) {
-              return `${set.weight}x${set.reps}`;
-            }
-            return set.reps;
-          }),
+          sets: setsArray,
         };
       });
 
