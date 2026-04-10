@@ -11,6 +11,7 @@ import ColorDesignPage from './pages/ColorDesignPage';
 import SavedWorkout from './SavedWorkout/SavedWorkout';
 import ListOfWorkouts from './pages/ListOfWorkouts';
 import MyExercisesPage from './pages/MyExercisesPage';
+import ProfilePage from './pages/ProfilePage';
 
 function Main() {
     return (
@@ -29,6 +30,7 @@ function Main() {
                     <Route exact path="/SavedWorkout/:workoutId" element={<SavedWorkout />} />
                     <Route exact path="/SavedWorkouts" element={<ListOfWorkouts />} />
                     <Route exact path="/MyExercises" element={<MyExercisesPage />} />
+                    <Route exact path="/Profile" element={<ProfilePage />} />
                 </Routes>
             </BrowserRouter>
         </WorkoutProvider>

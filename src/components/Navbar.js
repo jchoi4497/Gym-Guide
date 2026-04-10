@@ -104,11 +104,13 @@ function Navbar() {
         {/* Profile UI */}
         {user ? (
           <div className="flex items-center space-x-3 ml-4 border-l pl-6 text-sky-50">
-            <img
-              src={user.photoURL}
-              alt="Profile"
-              className="w-10 h-10 rounded-full border-2 border-sky-50 shadow-sm"
-            />
+            <Link to="/Profile">
+              <img
+                src={user.photoURL}
+                alt="Profile"
+                className="w-10 h-10 rounded-full border-2 border-sky-50 shadow-sm cursor-pointer hover:border-blue-300 transition-all"
+              />
+            </Link>
             <button
               onClick={handleLogout}
               className="text-sky-50 hover:text-red-500 hover:bg-sky-50 transition-all px-4 py-2 rounded-lg"
@@ -145,14 +147,18 @@ function Navbar() {
         >
           {/* 1. User Profile Header (Only shows if logged in) */}
           {user && (
-            <div className="flex items-center space-x-3 pb-3 border-b border-blue-100 mb-2">
+            <Link
+              to="/Profile"
+              onClick={toggleMenu}
+              className="flex items-center space-x-3 pb-3 border-b border-blue-100 mb-2 hover:bg-blue-50 px-2 py-2 rounded-lg transition-colors"
+            >
               <img
                 src={user.photoURL}
                 alt="Profile"
                 className="w-8 h-8 rounded-full border border-blue-200"
               />
               <span className="text-sm font-bold text-blue-800 truncate">{user.displayName}</span>
-            </div>
+            </Link>
           )}
 
           <MobileLink to="/Create" label="New Workout" toggleMenu={toggleMenu} />
