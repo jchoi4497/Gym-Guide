@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import StatsTab from '../components/profile/StatsTab';
 
 function ProfilePage() {
-  const [activeTab, setActiveTab] = useState('stats');
+  const [activeTab, setActiveTab] = useState('settings');
   const user = auth.currentUser;
 
   if (!user) {
@@ -42,17 +42,6 @@ function ProfilePage() {
         <div className="border-b border-gray-300 mb-6">
           <nav className="flex space-x-8">
             <button
-              onClick={() => setActiveTab('stats')}
-              className={`py-3 px-4 font-semibold transition-colors ${
-                activeTab === 'stats'
-                  ? 'border-b-4 border-blue-600 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              Stats
-            </button>
-            {/* Placeholder for future tabs */}
-            <button
               onClick={() => setActiveTab('settings')}
               className={`py-3 px-4 font-semibold transition-colors ${
                 activeTab === 'settings'
@@ -61,6 +50,16 @@ function ProfilePage() {
               }`}
             >
               Settings
+            </button>
+            <button
+              onClick={() => setActiveTab('stats')}
+              className={`py-3 px-4 font-semibold transition-colors ${
+                activeTab === 'stats'
+                  ? 'border-b-4 border-blue-600 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Stats
             </button>
           </nav>
         </div>
