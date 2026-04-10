@@ -9,30 +9,14 @@ import { getExerciseName, getPlaceholderForExercise, getDefaultExercises } from 
 import { getFirestore, collection, addDoc, doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { auth } from '../config/firebase';
 import { useIsMobile } from '../hooks/useIsMobile';
-import { workoutSession } from '../services/storageService';
 
 function StartWorkoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const db = getFirestore();
 
-  // Try to recover workoutData from location.state or localStorage
-  const getInitialWorkoutData = () => {
-    // First try location.state (normal flow)
-    if (location.state?.workoutData) {
-      return location.state.workoutData;
-    }
-
-    // If page was refreshed, try to recover from session persistence
-    const savedSession = workoutSession.get();
-    if (savedSession) {
-      return savedSession.workoutData;
-    }
-
-    return null;
-  };
-
-  const workoutData = getInitialWorkoutData();
+  // Get workout data from navigation state
+  const workoutData = location.state?.workoutData || null;
 
   // State
   const [user, setUser] = useState(null);
@@ -55,8 +39,7 @@ function StartWorkoutPage() {
       setUser(currentUser);
       setAuthChecked(true);
       if (!currentUser) {
-        // User logged out - clear session and redirect
-        workoutSession.clear();
+        // User logged out - redirect
         navigate('/');
       }
     });
@@ -143,26 +126,7 @@ function StartWorkoutPage() {
 
     console.log('[StartWorkoutPage] Initializing exercises from latestWorkoutData');
 
-    // Check if we have a saved session to restore from
-    const savedSession = workoutSession.get();
-    let restoredCompletedSets = null;
-
-    if (savedSession && savedSession.workoutId === latestWorkoutData.workoutId) {
-      // Verify the session matches the current workout
-      if (savedSession.workoutName === workoutName) {
-        // Extract completed sets from saved session to merge with latest exercise list
-        restoredCompletedSets = new Map();
-        savedSession.exercises?.forEach(exercise => {
-          if (exercise.completedSets && exercise.completedSets.length > 0) {
-            restoredCompletedSets.set(exercise.key, exercise.completedSets);
-          }
-        });
-        workoutStartRef.current = savedSession.startTime;
-        console.log('[StartWorkoutPage] Found saved session with completed sets');
-      }
-    }
-
-    // No saved session or session doesn't match - initialize from latest workout data
+    // Initialize from latest workout data (already contains completed sets from Firebase)
     const workoutDataToUse = latestWorkoutData;
     // Convert workout data to exercise array
     const exerciseArray = [];
@@ -268,54 +232,49 @@ function StartWorkoutPage() {
     if (!workoutDataToUse.cardioAtTop) finalExercises.push(...cardioExercises);
     if (!workoutDataToUse.absAtTop) finalExercises.push(...absExercises);
 
-    // Merge completed sets from saved session if available
-    if (restoredCompletedSets) {
-      finalExercises.forEach(exercise => {
-        const savedCompletedSets = restoredCompletedSets.get(exercise.key);
-        if (savedCompletedSets) {
-          exercise.completedSets = savedCompletedSets;
-        }
-      });
-
-      // Calculate where to resume based on completed sets
-      let totalCompleted = 0;
-      for (const exercise of finalExercises) {
-        totalCompleted += exercise.completedSets.length;
+    // Parse completed sets from Firebase exerciseData
+    finalExercises.forEach(exercise => {
+      const exerciseData = workoutDataToUse.exerciseData[exercise.key];
+      if (exerciseData && exerciseData.sets) {
+        const completedSets = [];
+        exerciseData.sets.forEach((setString, index) => {
+          if (setString && setString.trim()) {
+            // Parse "50x12" or just "12" format
+            const match = setString.match(/^(\d+)x(\d+)$/);
+            if (match) {
+              completedSets.push({
+                setNumber: index + 1,
+                weight: match[1],
+                reps: match[2],
+                completedAt: Date.now(),
+                restDuration: 0,
+              });
+            } else {
+              // Just reps (bodyweight/timed exercise)
+              completedSets.push({
+                setNumber: index + 1,
+                weight: '',
+                reps: setString.trim(),
+                completedAt: Date.now(),
+                restDuration: 0,
+              });
+            }
+          }
+        });
+        exercise.completedSets = completedSets;
       }
-      setCurrentSetIndex(totalCompleted);
+    });
+
+    // Calculate where to resume based on completed sets
+    let totalCompleted = 0;
+    for (const exercise of finalExercises) {
+      totalCompleted += exercise.completedSets.length;
     }
+    setCurrentSetIndex(totalCompleted);
 
     setExercises(finalExercises);
     initializedRef.current = true;
   }, [workoutData, latestWorkoutData, navigate, workoutName]);
-
-  // Save session to localStorage whenever state changes
-  useEffect(() => {
-    if (exercises.length > 0) {
-      const session = {
-        workoutName,
-        startTime: workoutStartRef.current,
-        currentSetIndex,
-        exercises,
-        workoutId: workoutData?.workoutId, // Save workout ID to link session to workout
-        // Include original workoutData for restoration in HypertrophyPage
-        workoutData: {
-          selectedMuscleGroup: workoutData?.selectedMuscleGroup,
-          numberOfSets: workoutData?.numberOfSets,
-          showCardio: workoutData?.showCardio,
-          showAbs: workoutData?.showAbs,
-          cardioAtTop: workoutData?.cardioAtTop,
-          absAtTop: workoutData?.absAtTop,
-          note: workoutData?.note,
-          templateId: workoutData?.templateId,
-          templateName: workoutData?.templateName,
-          workoutId: workoutData?.workoutId,
-          mainExerciseOrder: workoutData?.mainExerciseOrder,
-        },
-      };
-      workoutSession.save(session);
-    }
-  }, [exercises, currentSetIndex, workoutName, workoutData]);
 
   // Calculate total sets across all exercises
   const totalSets = exercises.reduce((sum, ex) => sum + ex.totalSets, 0);
@@ -572,9 +531,6 @@ function StartWorkoutPage() {
         lastModified: serverTimestamp(),
       });
 
-      // Clear session storage
-      workoutSession.clear();
-
       // Navigate to the completed workout page
       navigate(`/SavedWorkout/${workoutId}`);
     } catch (error) {
@@ -585,7 +541,6 @@ function StartWorkoutPage() {
 
   // Discard workout
   const handleDiscardWorkout = () => {
-    workoutSession.clear();
     navigate('/');
   };
 
