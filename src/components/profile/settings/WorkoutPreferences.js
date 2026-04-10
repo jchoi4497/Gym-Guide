@@ -1,8 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function WorkoutPreferences({ settings, onUpdate, isSaving }) {
   const [localSettings, setLocalSettings] = useState(settings);
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Sync local state when settings prop updates
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
 
   const handleChange = (field, value) => {
     setLocalSettings({ ...localSettings, [field]: parseInt(value) });
