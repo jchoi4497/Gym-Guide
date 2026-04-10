@@ -10,7 +10,6 @@ import WorkoutNotesInput from '../components/WorkoutNotesInput';
 import { generateSummary } from '../utils/summaryUtil';
 import { FIREBASE_FIELDS } from '../config/constants';
 import { getMuscleGroupFromCategory } from '../utils/categoryDetection';
-import { workoutSession } from '../services/storageService';
 import { EXERCISES } from '../config/exerciseConfig';
 
 function WorkoutPage() {
@@ -58,8 +57,10 @@ function WorkoutPage() {
 
   const isWorkoutConfigured = !!workout;
 
-  // Load workout from Firebase
+  // Load workout from Firebase (only once on mount)
   useEffect(() => {
+    let hasLoaded = false;
+
     const loadWorkout = async () => {
       if (!workoutId) {
         setLoading(false);
@@ -70,6 +71,10 @@ function WorkoutPage() {
         // Wait for auth to initialize
         return;
       }
+
+      // Prevent reloading if already loaded
+      if (hasLoaded) return;
+      hasLoaded = true;
 
       try {
         const workoutRef = doc(db, 'workoutLogs', workoutId);
@@ -114,15 +119,19 @@ function WorkoutPage() {
     return () => unsubscribe();
   }, [workoutId, navigate]);
 
-  // Check for active workout session
+  // Check for active workout session (has completed sets in Firebase)
   useEffect(() => {
-    const session = workoutSession.get();
-    if (session && session.workoutId === workoutId) {
-      setHasActiveSession(true);
+    if (workout && workout.status === 'draft') {
+      // Check if there are any completed sets in exerciseData
+      const hasCompletedSets = Object.values(workout.exerciseData || {}).some(exercise => {
+        const sets = exercise.sets || [];
+        return sets.some(set => set && set.trim() !== '');
+      });
+      setHasActiveSession(hasCompletedSets);
     } else {
       setHasActiveSession(false);
     }
-  }, [workoutId]);
+  }, [workout]);
 
   // Fetch user data (favorites, previous workouts, custom exercises)
   useEffect(() => {
@@ -360,9 +369,6 @@ function WorkoutPage() {
 
       return updatedExerciseData;
     });
-
-    // Auto-save to Firebase (no debounce for now)
-    saveWorkoutDraft();
   };
 
   // Remove an entire exercise
@@ -377,13 +383,11 @@ function WorkoutPage() {
       setMainExerciseOrder(prev => prev.filter(key => key !== categoryKey));
     }
 
-    saveWorkoutDraft();
   };
 
   // Handle reordering of main workout exercises
   const handleReorderExercises = (newOrder) => {
     setMainExerciseOrder(newOrder);
-    saveWorkoutDraft();
   };
 
   // Remove a specific set from an exercise
@@ -400,7 +404,6 @@ function WorkoutPage() {
 
     updatedExerciseData[categoryKey].sets = updatedExerciseData[categoryKey].sets.filter((_, i) => i !== setIndex);
     setExerciseData(updatedExerciseData);
-    saveWorkoutDraft();
   };
 
   // Handle moving cardio section
@@ -422,7 +425,6 @@ function WorkoutPage() {
         }
       }
     }
-    saveWorkoutDraft();
   };
 
   const handleCardioMoveDown = () => {
@@ -443,7 +445,6 @@ function WorkoutPage() {
         }
       }
     }
-    saveWorkoutDraft();
   };
 
   // Handle moving abs section
@@ -465,7 +466,6 @@ function WorkoutPage() {
         }
       }
     }
-    saveWorkoutDraft();
   };
 
   const handleAbsMoveDown = () => {
@@ -486,30 +486,40 @@ function WorkoutPage() {
         }
       }
     }
-    saveWorkoutDraft();
   };
 
-  // Save workout draft to Firebase (called after every change)
-  const saveWorkoutDraft = async () => {
-    if (!workoutId || !auth.currentUser) return;
+  // Auto-save workout draft to Firebase whenever state changes
+  useEffect(() => {
+    const saveWorkoutDraft = async () => {
+      if (!workoutId || !auth.currentUser || loading) return;
 
-    try {
-      const workoutRef = doc(db, 'workoutLogs', workoutId);
-      await updateDoc(workoutRef, {
-        exerciseData: exerciseData,
-        note: note,
-        showCardio: showCardio,
-        showAbs: showAbs,
-        cardioAtTop: cardioAtTop,
-        absAtTop: absAtTop,
-        sectionOrder: sectionOrder,
-        mainExerciseOrder: mainExerciseOrder,
-        lastModified: serverTimestamp()
-      });
-    } catch (error) {
-      console.error('Error saving workout draft:', error);
-    }
-  };
+      // Don't save if exerciseData is empty (initial load)
+      if (Object.keys(exerciseData).length === 0 && !note) return;
+
+      try {
+        const workoutRef = doc(db, 'workoutLogs', workoutId);
+        await updateDoc(workoutRef, {
+          exerciseData: exerciseData,
+          note: note,
+          showCardio: showCardio,
+          showAbs: showAbs,
+          cardioAtTop: cardioAtTop,
+          absAtTop: absAtTop,
+          sectionOrder: sectionOrder,
+          mainExerciseOrder: mainExerciseOrder,
+          lastModified: serverTimestamp()
+        });
+      } catch (error) {
+        console.error('Error saving workout draft:', error);
+      }
+    };
+
+    // Debounce to avoid too many Firebase writes
+    const timeoutId = setTimeout(() => {
+      }, 500); // Save 500ms after last change
+
+    return () => clearTimeout(timeoutId);
+  }, [exerciseData, note, showCardio, showAbs, cardioAtTop, absAtTop, sectionOrder, mainExerciseOrder, workoutId, loading]);
 
   // Auto-save custom exercises to "My Exercises" when completing workout
   const autoSaveCustomExercises = async (userId, exerciseDataToSave) => {
