@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import DrumPicker from './DrumPicker';
 import NumPad from './NumPad';
+import { useSettings } from '../contexts/SettingsContext';
+import { displayWeight, saveWeight } from '../utils/weightConversion';
 
 function WeightRepsPicker({
   isOpen,
@@ -12,6 +14,7 @@ function WeightRepsPicker({
   initialField = 'weight', // Which field to focus on initially
   customLabel = null, // Custom label for the reps field (e.g., "Incline", "Speed (mph)")
 }) {
+  const { settings } = useSettings();
   const [selectedWeight, setSelectedWeight] = useState(weight || '');
   const [selectedReps, setSelectedReps] = useState(reps || '');
   const [inputMode, setInputMode] = useState('keypad'); // 'scroll' or 'keypad' - default to keypad
@@ -22,7 +25,9 @@ function WeightRepsPicker({
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedWeight(weight || '');
+      // Convert weight from storage (lbs) to display unit
+      const displayedWeight = displayWeight(weight, settings.weightUnit);
+      setSelectedWeight(displayedWeight || '');
       setSelectedReps(reps || '');
 
       // Only set active field when modal FIRST opens (transition from closed to open)
@@ -31,10 +36,12 @@ function WeightRepsPicker({
       }
     }
     previousIsOpen.current = isOpen;
-  }, [isOpen, weight, reps, initialField]);
+  }, [isOpen, weight, reps, initialField, settings.weightUnit]);
 
   const handleDone = () => {
-    onSave(selectedWeight, selectedReps);
+    // Convert weight back to lbs for storage
+    const weightToSave = saveWeight(selectedWeight, settings.weightUnit);
+    onSave(weightToSave, selectedReps);
     onClose();
   };
 
@@ -148,9 +155,9 @@ function WeightRepsPicker({
                   value={parseFloat(selectedWeight) || 0}
                   onChange={(val) => setSelectedWeight(val.toString())}
                   min={0}
-                  max={500}
+                  max={settings.weightUnit === 'kg' ? 225 : 500}
                   step={0.5}
-                  label="Weight (lbs)"
+                  label={`Weight (${settings.weightUnit})`}
                   unit=""
                 />
               )}
@@ -171,7 +178,7 @@ function WeightRepsPicker({
               <div className="flex items-center justify-center gap-3 mb-4 w-full">
                 {showWeight && (
                   <div className="flex-1 max-w-[130px]">
-                    <label className="text-xs text-gray-600 font-medium mb-1 block">Weight (lbs)</label>
+                    <label className="text-xs text-gray-600 font-medium mb-1 block">Weight ({settings.weightUnit})</label>
                     <button
                       onClick={() => setActiveField('weight')}
                       className={`w-full px-3 py-2 rounded-lg text-lg font-semibold text-center transition-all min-h-[44px] ${

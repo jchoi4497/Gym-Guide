@@ -5,6 +5,8 @@ import { getPlaceholderForExercise } from '../config/exerciseConfig';
 import WeightRepsPicker from './WeightRepsPicker';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { parseSet, combineSet, getPreviousSet, countFilledSets } from '../utils/setHelpers';
+import { useSettings } from '../contexts/SettingsContext';
+import { displayWeight, saveWeight } from '../utils/weightConversion';
 
 function TableRow({
   numberOfSets,
@@ -23,6 +25,7 @@ function TableRow({
   onToggleFavorite,
   expandAll,
 }) {
+  const { settings } = useSettings();
 
   // Calculate current set count consistently
   const baseSetCount = Number(numberOfSets);
@@ -49,7 +52,9 @@ function TableRow({
   // Handle weight input change
   const handleWeightChange = (setIndex, newWeight) => {
     const currentSet = parseSet((setInputs && setInputs[setIndex]) || '');
-    const combined = combineSet(newWeight, currentSet.reps);
+    // Convert weight from user's unit to lbs for storage
+    const weightInLbs = saveWeight(newWeight, settings.weightUnit);
+    const combined = combineSet(weightInLbs, currentSet.reps);
     cellInput(setIndex, combined);
   };
 
@@ -111,7 +116,7 @@ function TableRow({
                     onClick={() => handleOpenPicker(i, 'weight')}
                     className="px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
                   >
-                    {currentSet.weight || <span className="text-gray-400">lbs</span>}
+                    {displayWeight(currentSet.weight, settings.weightUnit) || <span className="text-gray-400">{settings.weightUnit}</span>}
                   </button>
                   <span className="text-gray-500 font-bold text-xs">×</span>
                 </>
@@ -132,9 +137,9 @@ function TableRow({
                   <input
                     type="number"
                     step="0.5"
-                    value={currentSet.weight}
+                    value={displayWeight(currentSet.weight, settings.weightUnit)}
                     onChange={(e) => handleWeightChange(i, e.target.value)}
-                    placeholder="lbs"
+                    placeholder={settings.weightUnit}
                     className="px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm"
                   />
                   <span className="text-gray-500 font-bold text-xs">×</span>

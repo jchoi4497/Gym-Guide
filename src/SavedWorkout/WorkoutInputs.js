@@ -4,6 +4,8 @@ import DataChart from '../components/DataChart';
 import ExerciseAutocomplete from '../components/ExerciseAutocomplete';
 import { getPlaceholderForExercise, getExerciseById, getExerciseIdByName, EXERCISE_CATEGORIES, MUSCLE_GROUPS } from '../config/exerciseConfig';
 import WeightRepsPicker from '../components/WeightRepsPicker';
+import { useSettings } from '../contexts/SettingsContext';
+import { displayWeight, saveWeight } from '../utils/weightConversion';
 import {
   DndContext,
   closestCenter,
@@ -80,6 +82,7 @@ function SortableExerciseItem({
   onMoveDown,
   isFirst,
   isLast,
+  settings,
 }) {
   const {
     attributes,
@@ -323,7 +326,7 @@ function SortableExerciseItem({
                               onClick={() => handleOpenPicker(idx, 'weight')}
                               className="px-2 py-3 w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg hover:bg-blue-200 active:scale-95"
                             >
-                              {currentSet.weight || <span className="text-gray-400">lbs</span>}
+                              {displayWeight(currentSet.weight, settings.weightUnit) || <span className="text-gray-400">{settings.weightUnit}</span>}
                             </button>
                             <span className="text-gray-500 font-bold">×</span>
                           </>
@@ -344,9 +347,10 @@ function SortableExerciseItem({
                             <input
                               type="number"
                               step="0.5"
-                              value={currentSet.weight}
+                              value={displayWeight(currentSet.weight, settings.weightUnit)}
                               onChange={(e) => {
-                                const combined = combineSet(e.target.value, currentSet.reps);
+                                const weightInLbs = saveWeight(e.target.value, settings.weightUnit);
+                                const combined = combineSet(weightInLbs, currentSet.reps);
                                 const newInputs = { ...editedInputs };
                                 if (!newInputs[exerciseKey].sets) newInputs[exerciseKey].sets = [];
                                 if (!newInputs[exerciseKey].input) newInputs[exerciseKey].input = [];
@@ -354,7 +358,7 @@ function SortableExerciseItem({
                                 newInputs[exerciseKey].input[idx] = combined;
                                 setEditedInputs(newInputs);
                               }}
-                              placeholder="lbs"
+                              placeholder={settings.weightUnit}
                               className="px-2 py-3 w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg"
                             />
                             <span className="text-gray-500 font-bold">×</span>
@@ -379,9 +383,19 @@ function SortableExerciseItem({
                       </div>
                     )
                   ) : (
-                    // NON-EDIT MODE: Regular display
+                    // NON-EDIT MODE: Regular display (with conversion)
                     <div className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl min-w-[60px] text-center">
-                      {setData || '-'}
+                      {(() => {
+                        if (!setData || setData === '-') return '-';
+                        const parsed = parseSet(setData);
+                        const convertedWeight = displayWeight(parsed.weight, settings.weightUnit);
+                        if (convertedWeight && parsed.reps) {
+                          return `${convertedWeight} × ${parsed.reps}`;
+                        } else if (parsed.reps) {
+                          return parsed.reps;
+                        }
+                        return setData;
+                      })()}
                     </div>
                   )}
                 </div>
@@ -494,6 +508,7 @@ function WorkoutInputs({
   previousCustomExercises = [],
   expandAll = true, // Controlled by parent
 }) {
+  const { settings } = useSettings();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -570,6 +585,7 @@ function WorkoutInputs({
                 onMoveUp={() => handleMoveUp(key)}
                 onMoveDown={() => handleMoveDown(key)}
                 isFirst={index === 0}
+                settings={settings}
                 isLast={index === order.length - 1}
               />
             );

@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom';
 import './index.css';
-import { WorkoutProvider } from './context/WorkoutContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import LandingPage from './pages/LandingPage';
 import InfoPage from './pages/InfoPage';
 import TemplateSelectionPage from './pages/TemplateSelectionPage';
@@ -15,7 +15,7 @@ import ProfilePage from './pages/ProfilePage';
 
 function Main() {
     return (
-        <WorkoutProvider>
+        <SettingsProvider>
             <BrowserRouter>
                 <Routes>
                     <Route exact path="/" element={<LandingPage />} />
@@ -33,7 +33,7 @@ function Main() {
                     <Route exact path="/Profile" element={<ProfilePage />} />
                 </Routes>
             </BrowserRouter>
-        </WorkoutProvider>
+        </SettingsProvider>
     );
 }
 

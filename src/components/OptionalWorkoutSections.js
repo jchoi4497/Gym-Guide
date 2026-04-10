@@ -4,6 +4,8 @@ import WeightRepsPicker from './WeightRepsPicker';
 import ExerciseAutocomplete from './ExerciseAutocomplete';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { parseSet, combineSet } from '../utils/setHelpers';
+import { useSettings } from '../contexts/SettingsContext';
+import { displayWeight, saveWeight } from '../utils/weightConversion';
 
 // Field templates for different cardio exercise types
 const CARDIO_FIELD_TEMPLATES = {
@@ -108,6 +110,7 @@ function OptionalWorkoutSections({
   const [cardioPickerLabel, setCardioPickerLabel] = useState('');
 
   const isMobile = useIsMobile();
+  const { settings } = useSettings();
 
   // Populate cardio exercises from existing exerciseData when cardio is enabled
   useEffect(() => {
@@ -507,7 +510,7 @@ function OptionalWorkoutSections({
                                             disabled={disableCheckboxes}
                                             className={`px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : 'hover:bg-blue-200 active:scale-95'}`}
                                           >
-                                            {currentSet.weight || <span className="text-gray-400">lbs</span>}
+                                            {displayWeight(currentSet.weight, settings.weightUnit) || <span className="text-gray-400">{settings.weightUnit}</span>}
                                           </button>
                                           <span className="text-gray-500 font-bold text-xs">×</span>
                                         </>
@@ -529,12 +532,13 @@ function OptionalWorkoutSections({
                                           <input
                                             type="number"
                                             step="0.5"
-                                            value={currentSet.weight}
+                                            value={displayWeight(currentSet.weight, settings.weightUnit)}
                                             onChange={(e) => {
-                                              const combined = combineSet(e.target.value, currentSet.reps);
+                                              const weightInLbs = saveWeight(e.target.value, settings.weightUnit);
+                                              const combined = combineSet(weightInLbs, currentSet.reps);
                                               handleAbsInput(exercise.id, selectedExercise, idx, combined);
                                             }}
-                                            placeholder="lbs"
+                                            placeholder={settings.weightUnit}
                                             readOnly={disableCheckboxes}
                                             className={`px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : ''}`}
                                           />

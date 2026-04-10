@@ -1,7 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useSettings } from '../contexts/SettingsContext';
+import { displayWeight, saveWeight } from '../utils/weightConversion';
 
 function WorkoutProgress({ exercises, currentSetIndex, onUpdateSet, onOpenPicker, onReorderExercise }) {
+  const { settings } = useSettings();
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState(null); // null = all collapsed
 
   // Mobile detection (using shared hook)
@@ -131,7 +134,7 @@ function WorkoutProgress({ exercises, currentSetIndex, onUpdateSet, onOpenPicker
 
                       // Check if this is a cardio exercise
                       const isCardioExercise = exercise.key?.startsWith('cardio') || exercise.key?.startsWith('custom_cardio');
-                      const weightLabel = isCardioExercise ? 'mi' : 'lbs';
+                      const weightLabel = isCardioExercise ? 'mi' : settings.weightUnit;
                       const repsLabel = isCardioExercise ? 'min' : 'reps';
 
                       return (
@@ -147,7 +150,7 @@ function WorkoutProgress({ exercises, currentSetIndex, onUpdateSet, onOpenPicker
                                     onClick={() => onOpenPicker && onOpenPicker(idx, setNumber, 'weight', completedSet?.weight || '', completedSet?.reps || '')}
                                     className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded bg-white text-center"
                                   >
-                                    {completedSet?.weight || <span className="text-gray-400">{weightLabel}</span>}
+                                    {displayWeight(completedSet?.weight, settings.weightUnit) || <span className="text-gray-400">{weightLabel}</span>}
                                   </button>
                                   <span className="text-gray-400 font-bold">{isCardioExercise ? '' : '×'}</span>
                                   <button
@@ -162,8 +165,8 @@ function WorkoutProgress({ exercises, currentSetIndex, onUpdateSet, onOpenPicker
                                   <input
                                     type="number"
                                     step={isCardioExercise ? "0.1" : "0.5"}
-                                    value={completedSet?.weight || ''}
-                                    onChange={(e) => onUpdateSet && onUpdateSet(idx, setNumber, 'weight', e.target.value)}
+                                    value={displayWeight(completedSet?.weight, settings.weightUnit) || ''}
+                                    onChange={(e) => onUpdateSet && onUpdateSet(idx, setNumber, 'weight', saveWeight(e.target.value, settings.weightUnit))}
                                     placeholder={weightLabel}
                                     className="w-20 px-2 py-1.5 text-sm border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-center"
                                   />

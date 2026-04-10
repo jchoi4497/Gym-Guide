@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import db from '../../../config/firebase';
 import { FIREBASE_FIELDS } from '../../../config/constants';
-import { useUserSettings } from './useUserSettings';
+import { useSettings } from '../../../contexts/SettingsContext';
 import AccountInfo from './AccountInfo';
 import WorkoutPreferences from './WorkoutPreferences';
 import UnitPreference from './UnitPreference';
 import DataManagement from './DataManagement';
 
 function SettingsTab({ user }) {
-  const { settings, isLoading, isSaving, updateSettings } = useUserSettings(user);
+  const { settings, loading, updateSettings } = useSettings();
   const [memberSince, setMemberSince] = useState(null);
 
   // Fetch member since date from first workout
@@ -41,7 +41,7 @@ function SettingsTab({ user }) {
     fetchMemberSince();
   }, [user]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-xl text-gray-600">Loading settings...</div>
@@ -52,8 +52,8 @@ function SettingsTab({ user }) {
   return (
     <div className="space-y-6">
       <AccountInfo user={user} memberSince={memberSince} />
-      <WorkoutPreferences settings={settings} onUpdate={updateSettings} isSaving={isSaving} />
-      <UnitPreference settings={settings} onUpdate={updateSettings} isSaving={isSaving} />
+      <WorkoutPreferences settings={settings} onUpdate={updateSettings} />
+      <UnitPreference settings={settings} onUpdate={updateSettings} />
       <DataManagement user={user} />
     </div>
   );
