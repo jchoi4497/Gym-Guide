@@ -21,6 +21,7 @@ function WorkoutPage() {
   const [workout, setWorkout] = useState(null);
   const [loading, setLoading] = useState(true);
   const [hasActiveSession, setHasActiveSession] = useState(false);
+  const [user, setUser] = useState(null);
 
   // Workout state
   const [exerciseData, setExerciseData] = useState({});
@@ -98,10 +99,14 @@ function WorkoutPage() {
     };
 
     // Listen for auth state changes
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
         loadWorkout();
       } else {
+        // User logged out - clear workout data and stop loading
+        setWorkout(null);
+        setExerciseData({});
         setLoading(false);
       }
     });
@@ -810,6 +815,19 @@ function WorkoutPage() {
         <Navbar />
         <div className="max-w-6xl mx-auto px-6 pt-14 pb-20">
           <p className="text-xl text-gray-700">Loading workout...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
+        <Navbar />
+        <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 text-center">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">Session Expired</h1>
+          <p className="text-xl text-gray-700 mb-6">Please sign in to view your workout.</p>
+          <p className="text-gray-600">Use the navigation bar above to sign in with Google.</p>
         </div>
       </div>
     );

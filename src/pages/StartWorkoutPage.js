@@ -3,9 +3,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import WeightRepsPicker from '../components/WeightRepsPicker';
 import WorkoutProgress from '../components/WorkoutProgress';
 import WorkoutSummary from '../components/WorkoutSummary';
+import Navbar from '../components/Navbar';
 import { WORKOUT_SETTINGS, formatDuration, formatTime } from '../config/workoutSettings';
 import { getExerciseName, getPlaceholderForExercise, getDefaultExercises } from '../config/exerciseConfig';
 import { getFirestore, collection, addDoc, doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { auth } from '../config/firebase';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { workoutSession } from '../services/storageService';
 
@@ -33,6 +35,8 @@ function StartWorkoutPage() {
   const workoutData = getInitialWorkoutData();
 
   // State
+  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
   const [exercises, setExercises] = useState([]);
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -44,6 +48,20 @@ function StartWorkoutPage() {
   const [lastSetCompletedTime, setLastSetCompletedTime] = useState(null); // Track when last set was completed
   const [restTimeElapsed, setRestTimeElapsed] = useState(0); // Current rest time
   const [editingFromTable, setEditingFromTable] = useState(null); // {exerciseIndex, setNumber} when editing from table
+
+  // Check auth state
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+      setAuthChecked(true);
+      if (!currentUser) {
+        // User logged out - clear session and redirect
+        workoutSession.clear();
+        navigate('/');
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
 
   const workoutStartRef = useRef(workoutStartTime);
 
@@ -670,6 +688,29 @@ function StartWorkoutPage() {
           >
             Go Home
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading while checking auth
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 pb-20 flex items-center justify-center">
+        <p className="text-xl text-gray-700">Loading...</p>
+      </div>
+    );
+  }
+
+  // Show auth required message if not logged in
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-serif">
+        <Navbar />
+        <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 text-center">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">Session Expired</h1>
+          <p className="text-xl text-gray-700 mb-6">Please sign in to start your workout.</p>
+          <p className="text-gray-600">Use the navigation bar above to sign in with Google.</p>
         </div>
       </div>
     );

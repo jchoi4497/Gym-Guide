@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { auth } from '../config/firebase';
 import Navbar from '../components/Navbar';
 import StatsTab from '../components/profile/stats/StatsTab';
@@ -6,14 +6,37 @@ import SettingsTab from '../components/profile/settings/SettingsTab';
 
 function ProfilePage() {
   const [activeTab, setActiveTab] = useState('settings');
-  const user = auth.currentUser;
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Listen to auth state changes
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-serif">
+        <Navbar />
+        <div className="flex items-center justify-center mt-20 text-gray-700">
+          Loading...
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-serif">
         <Navbar />
-        <div className="flex items-center justify-center mt-20 text-red-600">
-          Please log in to view your profile.
+        <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 text-center">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">Sign In Required</h1>
+          <p className="text-xl text-gray-700 mb-6">Please sign in to view your profile.</p>
+          <p className="text-gray-600">Use the navigation bar above to sign in with Google.</p>
         </div>
       </div>
     );
