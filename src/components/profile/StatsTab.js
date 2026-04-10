@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import db from '../../config/firebase';
 import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from '../../config/constants';
+import { getExerciseName } from '../../config/exerciseConfig';
 
 function StatsTab({ user }) {
   const [stats, setStats] = useState(null);
@@ -98,8 +99,11 @@ function StatsTab({ user }) {
         workouts.forEach((workout) => {
           const exerciseData = workout.exerciseData || workout.inputs || {};
           Object.entries(exerciseData).forEach(([key, exercise]) => {
-            const exerciseName = exercise.exerciseName || exercise.selection;
-            if (exerciseName) {
+            const rawExerciseName = exercise.exerciseName || exercise.selection;
+            if (rawExerciseName) {
+              // Convert exercise ID to full name if it's an ID
+              const exerciseName = getExerciseName(rawExerciseName);
+
               totalExercises++;
               exerciseCounts[exerciseName] = (exerciseCounts[exerciseName] || 0) + 1;
 
@@ -108,7 +112,7 @@ function StatsTab({ user }) {
               totalSets += sets.filter((set) => set && set.trim() !== '').length;
 
               // Track custom exercises
-              if (key.startsWith('custom_') || !exerciseName.match(/^[a-z]+$/)) {
+              if (key.startsWith('custom_') || !rawExerciseName.match(/^[a-z]+$/)) {
                 customExercisesSet.add(exerciseName.toLowerCase().trim());
               }
             }
