@@ -13,6 +13,10 @@ function CreateWorkoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Auth state
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
   // Form selections
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(null);
   const [numberOfSets, setNumberOfSets] = useState(null);
@@ -29,6 +33,15 @@ function CreateWorkoutPage() {
 
   // Loading state
   const [isCreating, setIsCreating] = useState(false);
+
+  // Listen to auth state
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Templates state
   const [recentTemplates, setRecentTemplates] = useState([]);
@@ -282,6 +295,60 @@ function CreateWorkoutPage() {
       setIsCreating(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
+        <Navbar />
+        <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 text-center">
+          <p className="text-xl text-gray-700">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
+        <Navbar />
+        <div className="max-w-4xl mx-auto px-6 pt-14 pb-20">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-12 text-center">
+            <div className="mb-6">
+              <div className="text-6xl mb-4">🔒</div>
+              <h1 className="text-4xl font-extrabold mb-4 text-gray-800">Sign In Required</h1>
+              <p className="text-xl text-gray-700 mb-8">
+                Please sign in with Google to create and track your workouts.
+              </p>
+            </div>
+            <div className="bg-blue-50 rounded-xl p-6 mb-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-3">What you'll get:</h2>
+              <ul className="text-left space-y-2 text-gray-700">
+                <li className="flex items-start gap-3">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span>Create unlimited custom workouts</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span>Track your progress over time</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span>Save workout templates for quick access</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-green-600 font-bold">✓</span>
+                  <span>View stats and workout history</span>
+                </li>
+              </ul>
+            </div>
+            <p className="text-gray-600 text-sm">
+              Use the "Sign In with Google" button in the navigation bar above to get started.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
