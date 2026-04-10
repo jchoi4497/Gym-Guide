@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { auth } from '../config/firebase';
 import Navbar from '../components/Navbar';
-import StatsTab from '../components/profile/StatsTab';
+import StatsTab from '../components/profile/stats/StatsTab';
+import SettingsTab from '../components/profile/settings/SettingsTab';
 
 function ProfilePage() {
   const [activeTab, setActiveTab] = useState('settings');
@@ -66,11 +67,7 @@ function ProfilePage() {
 
         {/* Tab Content */}
         {activeTab === 'stats' && <StatsTab user={user} />}
-        {activeTab === 'settings' && (
-          <div className="text-center text-gray-600 py-20">
-            Settings tab coming soon...
-          </div>
-        )}
+        {activeTab === 'settings' && <SettingsTab user={user} />}
       </div>
     </div>
   );
