@@ -1,0 +1,62 @@
+import { useEffect, useState } from 'react';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import db from '../../../config/firebase';
+import { FIREBASE_FIELDS } from '../../../config/constants';
+import { useUserSettings } from './useUserSettings';
+import AccountInfo from './AccountInfo';
+import WorkoutPreferences from './WorkoutPreferences';
+import UnitPreference from './UnitPreference';
+import DataManagement from './DataManagement';
+
+function SettingsTab({ user }) {
+  const { settings, isLoading, isSaving, updateSettings } = useUserSettings(user);
+  const [memberSince, setMemberSince] = useState(null);
+
+  // Fetch member since date from first workout
+  useEffect(() => {
+    const fetchMemberSince = async () => {
+      if (!user) return;
+
+      try {
+        const q = query(
+          collection(db, 'workoutLogs'),
+          where(FIREBASE_FIELDS.USER_ID, '==', user.uid)
+        );
+
+        const querySnapshot = await getDocs(q);
+        if (querySnapshot.docs.length > 0) {
+          const workouts = querySnapshot.docs.map((doc) => {
+            const data = doc.data();
+            return data.date?.toDate ? data.date.toDate() : new Date(data.date?.seconds * 1000);
+          });
+
+          workouts.sort((a, b) => a - b);
+          setMemberSince(workouts[0]);
+        }
+      } catch (error) {
+        console.error('Error fetching member since:', error);
+      }
+    };
+
+    fetchMemberSince();
+  }, [user]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-xl text-gray-600">Loading settings...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <AccountInfo user={user} memberSince={memberSince} />
+      <WorkoutPreferences settings={settings} onUpdate={updateSettings} isSaving={isSaving} />
+      <UnitPreference settings={settings} onUpdate={updateSettings} isSaving={isSaving} />
+      <DataManagement user={user} />
+    </div>
+  );
+}
+
+export default SettingsTab;
