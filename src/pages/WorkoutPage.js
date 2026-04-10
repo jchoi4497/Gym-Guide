@@ -516,10 +516,24 @@ function WorkoutPage() {
 
     // Debounce to avoid too many Firebase writes
     const timeoutId = setTimeout(() => {
-      }, 500); // Save 500ms after last change
+      saveWorkoutDraft();
+    }, 500); // Save 500ms after last change
 
     return () => clearTimeout(timeoutId);
   }, [exerciseData, note, showCardio, showAbs, cardioAtTop, absAtTop, sectionOrder, mainExerciseOrder, workoutId, loading]);
+
+  // Force re-render when returning from app switch to ensure UI reflects current state
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && workoutId && !loading) {
+        // Page became visible - trigger a state update to force re-render
+        setExerciseData(prev => ({ ...prev }));
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [workoutId, loading]);
 
   // Auto-save custom exercises to "My Exercises" when completing workout
   const autoSaveCustomExercises = async (userId, exerciseDataToSave) => {
