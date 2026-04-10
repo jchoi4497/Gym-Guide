@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react';
 import { formatDuration } from '../config/workoutSettings';
+import { useSettings } from '../contexts/SettingsContext';
+import { displayWeight } from '../utils/weightConversion';
 
 function WorkoutSummary({
   workoutName,
@@ -9,6 +11,7 @@ function WorkoutSummary({
   onSave,
   onDiscard,
 }) {
+  const { settings } = useSettings();
   // Total duration in seconds (editable)
   const calculatedDuration = Math.floor((endTime - startTime) / 1000);
   const [duration, setDuration] = useState(calculatedDuration);
@@ -142,7 +145,7 @@ function WorkoutSummary({
                       <div key={setIdx} className="flex items-center justify-between text-sm">
                         <span className="text-gray-600">Set {set.setNumber}</span>
                         <span className="font-medium text-gray-800">
-                          {set.weight && `${set.weight} lbs × `}{set.reps} reps
+                          {set.weight && `${displayWeight(set.weight, settings.weightUnit)} ${settings.weightUnit} × `}{set.reps} reps
                         </span>
                       </div>
                     ))}

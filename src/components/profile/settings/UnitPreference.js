@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 
-function UnitPreference({ settings, onUpdate, isSaving }) {
+function UnitPreference({ settings, onUpdate }) {
   const [localSettings, setLocalSettings] = useState(settings);
   const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Sync local state when settings prop updates
   useEffect(() => {
@@ -15,11 +16,14 @@ function UnitPreference({ settings, onUpdate, isSaving }) {
   };
 
   const handleSave = async () => {
+    setIsSaving(true);
     try {
       await onUpdate(localSettings);
       setHasChanges(false);
     } catch (error) {
       alert('Failed to save unit preference. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 

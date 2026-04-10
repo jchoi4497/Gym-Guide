@@ -9,8 +9,11 @@ import { getExerciseName, getPlaceholderForExercise, getDefaultExercises } from 
 import { getFirestore, collection, addDoc, doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { auth } from '../config/firebase';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useSettings } from '../contexts/SettingsContext';
+import { displayWeight, saveWeight } from '../utils/weightConversion';
 
 function StartWorkoutPage() {
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const location = useLocation();
   const db = getFirestore();
@@ -767,7 +770,7 @@ function StartWorkoutPage() {
           <div className="flex items-center justify-center gap-4 mb-8">
             <div className="flex-1 max-w-[150px]">
               <label className="text-sm text-gray-600 font-medium mb-2 block text-center">
-                {isCardio ? 'Distance (mi)' : 'Weight (lbs)'}
+                {isCardio ? 'Distance (mi)' : `Weight (${settings.weightUnit})`}
               </label>
               {isMobile ? (
                 <button
@@ -778,15 +781,15 @@ function StartWorkoutPage() {
                       : 'bg-gray-100 text-gray-400 border-gray-300'
                   }`}
                 >
-                  {currentSetData.weight || '---'}
+                  {displayWeight(currentSetData.weight, settings.weightUnit) || '---'}
                 </button>
               ) : (
                 <input
                   type="number"
                   step={isCardio ? "0.1" : "0.5"}
-                  value={currentSetData.weight}
-                  onChange={(e) => setCurrentSetData({ ...currentSetData, weight: e.target.value })}
-                  placeholder={isCardio ? 'mi' : 'lbs'}
+                  value={displayWeight(currentSetData.weight, settings.weightUnit)}
+                  onChange={(e) => setCurrentSetData({ ...currentSetData, weight: saveWeight(e.target.value, settings.weightUnit) })}
+                  placeholder={isCardio ? 'mi' : settings.weightUnit}
                   className="w-full px-4 py-4 rounded-xl text-2xl font-bold text-center border-2 border-gray-300 focus:border-blue-500 focus:outline-none transition-all"
                 />
               )}

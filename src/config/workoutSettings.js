@@ -24,12 +24,6 @@ export const WORKOUT_SETTINGS = {
   },
 };
 
-// localStorage keys for workout sessions
-export const STORAGE_KEYS = {
-  ACTIVE_WORKOUT_SESSION: 'activeWorkoutSession',
-  WORKOUT_SETTINGS: 'workoutSettings',
-};
-
 // Get rest duration for a specific template
 export const getRestDurationForTemplate = (templateName) => {
   return WORKOUT_SETTINGS.TEMPLATE_REST_DURATIONS[templateName] || WORKOUT_SETTINGS.DEFAULT_REST_DURATION;
