@@ -354,19 +354,19 @@ function CreateWorkoutPage() {
     <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
       <Navbar />
 
-      <div className="max-w-6xl mx-auto px-6 pt-14 pb-20">
-        <h1 className="text-5xl font-extrabold mb-4 text-gray-800">Create Workout</h1>
-        <p className="text-lg text-gray-700 italic mb-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-14 pb-16 sm:pb-20">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 sm:mb-4 text-gray-800">Create Workout</h1>
+        <p className="text-base sm:text-lg text-gray-700 italic mb-8 sm:mb-10">
           Set up your workout and start training.
         </p>
 
         {/* Quick Start - Template Dropdown */}
         {recentTemplates.length > 0 && (
-          <div className="mb-10">
-            <div className="bg-sky-50 rounded-3xl p-6 shadow-lg max-w-2xl mx-auto">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-gray-800">💡 Quick Start - Load Template</h2>
-                <Link to="/Templates" className="text-blue-600 hover:text-blue-800 font-semibold text-sm">
+          <div className="mb-8 sm:mb-10">
+            <div className="bg-sky-50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg max-w-2xl mx-auto">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-800">💡 Quick Start - Load Template</h2>
+                <Link to="/Templates" className="text-blue-600 hover:text-blue-800 font-semibold text-sm whitespace-nowrap">
                   Manage Templates →
                 </Link>
               </div>
@@ -380,7 +380,7 @@ function CreateWorkoutPage() {
                     }
                   }
                 }}
-                className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg bg-white"
+                className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg bg-white"
               >
                 <option value="">Select a template to auto-fill...</option>
                 {recentTemplates.map((template) => (
@@ -398,27 +398,27 @@ function CreateWorkoutPage() {
 
         {/* Wizard Progress Indicator */}
         <div className="mb-6 flex items-center justify-center gap-2">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm sm:text-base ${currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
             1
           </div>
-          <div className={`w-16 h-1 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+          <div className={`w-12 sm:w-16 h-1 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm sm:text-base ${currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
             2
           </div>
-          <div className={`w-16 h-1 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+          <div className={`w-12 sm:w-16 h-1 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm sm:text-base ${currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
             3
           </div>
         </div>
 
         {/* Wizard Card - Shows one step at a time */}
-        <div className="max-w-2xl mx-auto mb-10">
-          <div className="bg-sky-50 rounded-3xl p-8 shadow-xl">
+        <div className="max-w-2xl mx-auto mb-8 sm:mb-10">
+          <div className="bg-sky-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl">
             {/* Step 1: Select Workout */}
             {currentStep === 1 && (
               <div>
-                <h2 className="text-3xl font-bold mb-2 text-gray-800">Step 1: Select Workout</h2>
-                <p className="text-gray-600 mb-6">Choose your muscle group or workout type</p>
+                <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-gray-800">Step 1: Select Workout</h2>
+                <p className="text-sm sm:text-base text-gray-600 mb-6">Choose your muscle group or workout type</p>
                 <DropDown
                   options={MUSCLE_GROUP_OPTIONS}
                   value={selectedMuscleGroup}
@@ -463,8 +463,8 @@ function CreateWorkoutPage() {
             {/* Step 2: Set Range */}
             {currentStep === 2 && (
               <div>
-                <h2 className="text-3xl font-bold mb-2 text-gray-800">Step 2: Set × Rep Range</h2>
-                <p className="text-gray-600 mb-6">Choose your training volume</p>
+                <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-gray-800">Step 2: Set × Rep Range</h2>
+                <p className="text-sm sm:text-base text-gray-600 mb-6">Choose your training volume</p>
                 <DropDown
                   options={SET_RANGE_OPTIONS}
                   value={numberOfSets}
@@ -541,8 +541,8 @@ function CreateWorkoutPage() {
             {/* Step 3: Date */}
             {currentStep === 3 && (
               <div>
-                <h2 className="text-3xl font-bold mb-2 text-gray-800">Step 3: Workout Date</h2>
-                <p className="text-gray-600 mb-6">When did you do this workout?</p>
+                <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-gray-800">Step 3: Workout Date</h2>
+                <p className="text-sm sm:text-base text-gray-600 mb-6">When did you do this workout?</p>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Select date for this workout
                 </label>
@@ -576,11 +576,11 @@ function CreateWorkoutPage() {
 
         {/* Create Workout Button - Always show on step 3, disabled if incomplete */}
         {currentStep === 3 && (
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-2 px-4">
             <button
               onClick={handleCreateWorkout}
               disabled={!canCreateWorkout || isCreating}
-              className="px-12 py-4 bg-green-600 text-white text-xl font-bold rounded-full shadow-2xl hover:bg-green-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="w-full sm:w-auto px-8 sm:px-12 py-3 sm:py-4 bg-green-600 text-white text-lg sm:text-xl font-bold rounded-full shadow-2xl hover:bg-green-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {isCreating ? 'Creating Workout...' : 'Create Workout →'}
             </button>
