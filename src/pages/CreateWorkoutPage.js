@@ -361,40 +361,45 @@ function CreateWorkoutPage() {
         </p>
 
         {/* Quick Start - Template Dropdown */}
-        {recentTemplates.length > 0 && (
-          <div className="mb-8 sm:mb-10">
-            <div className="bg-sky-50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg max-w-2xl mx-auto">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-800">💡 Quick Start - Load Template</h2>
-                <Link to="/Templates" className="text-blue-600 hover:text-blue-800 font-semibold text-sm whitespace-nowrap">
-                  Manage Templates →
-                </Link>
-              </div>
-              <select
-                onChange={(e) => {
-                  const templateId = e.target.value;
-                  if (templateId) {
-                    const template = recentTemplates.find(t => t.id === templateId);
-                    if (template) {
-                      handleLoadTemplate(template);
-                    }
-                  }
-                }}
-                className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg bg-white"
-              >
-                <option value="">Select a template to auto-fill...</option>
-                {recentTemplates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name} ({template.muscleGroup || template.customMuscleGroupName} - {template.customSetCount || template.numberOfSets}x{template.customRepCount || '8-12'})
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-2 italic">
-                Or fill in the form below to create from scratch
-              </p>
+        <div className="mb-8 sm:mb-10">
+          <div className="bg-sky-50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg max-w-2xl mx-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">💡 Quick Start - Load Template</h2>
+              <Link to="/Templates" className="text-blue-600 hover:text-blue-800 font-semibold text-sm whitespace-nowrap">
+                Manage Templates →
+              </Link>
             </div>
+            <select
+              onChange={(e) => {
+                const templateId = e.target.value;
+                if (templateId) {
+                  const template = recentTemplates.find(t => t.id === templateId);
+                  if (template) {
+                    handleLoadTemplate(template);
+                  }
+                }
+              }}
+              className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg bg-white"
+              disabled={recentTemplates.length === 0}
+            >
+              <option value="">
+                {recentTemplates.length === 0
+                  ? 'No templates yet - create one from Templates page'
+                  : 'Select a template to auto-fill...'}
+              </option>
+              {recentTemplates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name} ({template.muscleGroup || template.customMuscleGroupName} - {template.customSetCount || template.numberOfSets}x{template.customRepCount || '8-12'})
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 mt-2 italic">
+              {recentTemplates.length === 0
+                ? 'Create templates to quickly start workouts'
+                : 'Or fill in the form below to create from scratch'}
+            </p>
           </div>
-        )}
+        </div>
 
         {/* Wizard Progress Indicator */}
         <div className="mb-6 flex items-center justify-center gap-2">
