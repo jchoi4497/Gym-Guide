@@ -358,7 +358,7 @@ function CreateWorkoutPage() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
+    <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-32 font-serif">
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-14 pb-16 sm:pb-20">
@@ -424,7 +424,7 @@ function CreateWorkoutPage() {
         </div>
 
         {/* Wizard Card - Shows one step at a time */}
-        <div className="max-w-2xl mx-auto mb-8 sm:mb-10">
+        <div className="max-w-2xl mx-auto mb-8 sm:mb-10 pb-8">
           <div className="bg-sky-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl">
             {/* Step 1: Select Workout */}
             {currentStep === 1 && (
