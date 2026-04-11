@@ -147,16 +147,16 @@ function CreateWorkoutPage() {
 
   // Fetch recent templates on mount
   useEffect(() => {
-    const fetchRecentTemplates = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+    const fetchRecentTemplates = async (userId) => {
+      if (!userId) return;
 
       try {
         // Fetch the user's template document directly (document ID = user.uid)
-        const templateDoc = await getDoc(doc(db, 'userTemplates', user.uid));
+        const templateDoc = await getDoc(doc(db, 'userTemplates', userId));
 
         if (templateDoc.exists()) {
           const templatesArray = templateDoc.data().templates || [];
+          console.log('Fetched templates:', templatesArray.length);
 
           // Sort by lastUsed and take the first 3
           const recentThree = templatesArray
@@ -172,16 +172,23 @@ function CreateWorkoutPage() {
             })
             .slice(0, 3);
 
+          console.log('Recent templates:', recentThree);
           setRecentTemplates(recentThree);
+        } else {
+          console.log('No template document found');
+          setRecentTemplates([]);
         }
       } catch (error) {
         console.error('Error fetching templates:', error);
+        setRecentTemplates([]);
       }
     };
 
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        fetchRecentTemplates();
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      if (currentUser) {
+        fetchRecentTemplates(currentUser.uid);
+      } else {
+        setRecentTemplates([]);
       }
     });
 
