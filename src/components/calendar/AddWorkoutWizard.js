@@ -62,7 +62,7 @@ function AddWorkoutWizard({ templates, onComplete, onCancel }) {
     if (!value) return;
     setNumberOfSets(value);
     if (value !== 'custom') {
-      setStep(4);
+      setStep(3);
     }
   };
 
@@ -107,7 +107,15 @@ function AddWorkoutWizard({ templates, onComplete, onCancel }) {
           <h3 className="text-sm font-bold text-gray-800 mb-2">Step 1: Quick Start</h3>
           <select
             onChange={handleTemplateSelect}
-            value={selectedMuscleGroup === 'custom' ? 'custom' : ''}
+            value={
+              selectedTemplate
+                ? selectedTemplate.id
+                : selectedMuscleGroup === 'custom'
+                  ? 'custom'
+                  : selectedMuscleGroup
+                    ? `preset-${selectedMuscleGroup}`
+                    : ''
+            }
             className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white mb-3"
           >
             <option value="">Select option...</option>
@@ -138,8 +146,8 @@ function AddWorkoutWizard({ templates, onComplete, onCancel }) {
             </optgroup>
           </select>
 
-          {/* Custom Workout Name Input - shown inline */}
-          {selectedMuscleGroup === 'custom' && (
+          {/* Custom Workout Name Input - shown inline only if user explicitly selected "Create Custom Workout" */}
+          {selectedMuscleGroup === 'custom' && !selectedTemplate && (
             <div className="mb-4">
               <input
                 type="text"
@@ -159,7 +167,7 @@ function AddWorkoutWizard({ templates, onComplete, onCancel }) {
             >
               Cancel
             </button>
-            {selectedMuscleGroup === 'custom' && (
+            {selectedMuscleGroup === 'custom' && !selectedTemplate && (
               <button
                 onClick={() => {
                   if (customWorkoutName.trim()) {
