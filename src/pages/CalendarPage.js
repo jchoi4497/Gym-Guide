@@ -1,17 +1,20 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { doc, getDoc } from 'firebase/firestore';
+import { useState, useEffect, useRef } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth } from '../config/firebase';
 import db from '../config/firebase';
 import Navbar from '../components/Navbar';
+import CalendarHeader from '../components/calendar/CalendarHeader';
+import CalendarGrid from '../components/calendar/CalendarGrid';
+import TodaysWorkouts from '../components/calendar/TodaysWorkouts';
 
 function CalendarPage() {
-  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [schedule, setSchedule] = useState({});
   const [selectedDate, setSelectedDate] = useState(null);
+  const [templates, setTemplates] = useState([]);
+  const calendarRef = useRef();
 
   // Listen to auth state
   useEffect(() => {
@@ -41,6 +44,44 @@ function CalendarPage() {
       fetchSchedule();
     }
   }, [user]);
+
+  // Fetch user's templates
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      if (!user) return;
+
+      try {
+        const templateDoc = await getDoc(doc(db, 'userTemplates', user.uid));
+        if (templateDoc.exists()) {
+          const templatesArray = templateDoc.data().templates || [];
+          setTemplates(templatesArray);
+        }
+      } catch (error) {
+        console.error('Error fetching templates:', error);
+      }
+    };
+
+    if (user) {
+      fetchTemplates();
+    }
+  }, [user]);
+
+  // Close popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+        setSelectedDate(null);
+      }
+    };
+
+    if (selectedDate) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [selectedDate]);
 
   // Get calendar data for current month
   const getCalendarDays = () => {
@@ -101,12 +142,41 @@ function CalendarPage() {
 
   const handleDateClick = (date) => {
     if (date) {
-      setSelectedDate(date);
+      // Toggle: if same date clicked, deselect
+      if (selectedDate && formatDateKey(selectedDate) === formatDateKey(date)) {
+        setSelectedDate(null);
+      } else {
+        setSelectedDate(date);
+      }
     }
   };
 
-  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
+  const handleAddWorkout = async (date, workoutData) => {
+    if (!user) return;
+
+    const dateKey = formatDateKey(date);
+    const newSchedule = { ...schedule };
+
+    if (!newSchedule[dateKey]) {
+      newSchedule[dateKey] = [];
+    }
+
+    newSchedule[dateKey].push({
+      id: `schedule-${Date.now()}`,
+      ...workoutData
+    });
+
+    try {
+      await setDoc(doc(db, 'workoutSchedule', user.uid), {
+        schedule: newSchedule
+      });
+      setSchedule(newSchedule);
+      console.log('Workout added to schedule');
+    } catch (error) {
+      console.error('Error adding workout to schedule:', error);
+      alert('Failed to add workout. Please try again.');
+    }
+  };
 
   if (authLoading) {
     return (
@@ -151,156 +221,31 @@ function CalendarPage() {
           Plan and schedule your workouts
         </p>
 
-        {/* Calendar Header */}
-        <div className="bg-white rounded-3xl shadow-xl p-4 sm:p-6 mb-6">
-          <div className="flex items-center justify-between mb-6 gap-2">
-            <button
-              onClick={handlePreviousMonth}
-              className="px-2 py-1 sm:px-4 sm:py-2 bg-blue-100 hover:bg-blue-200 rounded-lg text-sm sm:text-base font-semibold transition-colors"
-            >
-              ←
-            </button>
-
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
-              <h2 className="text-lg sm:text-2xl font-bold text-gray-800 text-center">
-                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-              </h2>
-              <button
-                onClick={handleToday}
-                className="px-2 py-1 sm:px-3 sm:py-1 bg-green-100 hover:bg-green-200 rounded-lg text-xs sm:text-sm font-semibold transition-colors whitespace-nowrap"
-              >
-                Today
-              </button>
-            </div>
-
-            <button
-              onClick={handleNextMonth}
-              className="px-2 py-1 sm:px-4 sm:py-2 bg-blue-100 hover:bg-blue-200 rounded-lg text-sm sm:text-base font-semibold transition-colors"
-            >
-              →
-            </button>
-          </div>
-
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-2">
-            {/* Day headers */}
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="text-center font-bold text-gray-600 py-2">
-                {day}
-              </div>
-            ))}
-
-            {/* Calendar days */}
-            {calendarDays.map((date, index) => {
-              const workouts = getWorkoutsForDate(date);
-              const isCurrentDay = isToday(date);
-              const isSelected = selectedDate && date && formatDateKey(selectedDate) === formatDateKey(date);
-
-              return (
-                <div
-                  key={index}
-                  onClick={() => handleDateClick(date)}
-                  className={`
-                    min-h-20 p-2 rounded-lg cursor-pointer transition-all
-                    ${!date ? 'bg-transparent cursor-default' : 'bg-gray-50 hover:bg-blue-50'}
-                    ${isCurrentDay ? 'ring-2 ring-blue-500 bg-blue-50' : ''}
-                    ${isSelected ? 'ring-2 ring-green-500 bg-green-50' : ''}
-                  `}
-                >
-                  {date && (
-                    <>
-                      <div className={`text-sm font-semibold mb-1 ${isCurrentDay ? 'text-blue-600' : 'text-gray-700'}`}>
-                        {date.getDate()}
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {workouts.map((workout, idx) => (
-                          <div
-                            key={idx}
-                            className="w-2 h-2 rounded-full bg-blue-500"
-                            title={workout.muscleGroup}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+        {/* Calendar */}
+        <div
+          ref={calendarRef}
+          className="bg-white rounded-3xl shadow-xl p-4 sm:p-6 mb-6"
+          onClick={() => setSelectedDate(null)}
+        >
+          <CalendarHeader
+            currentDate={currentDate}
+            onPreviousMonth={handlePreviousMonth}
+            onNextMonth={handleNextMonth}
+            onToday={handleToday}
+          />
+          <CalendarGrid
+            calendarDays={calendarDays}
+            schedule={schedule}
+            selectedDate={selectedDate}
+            onDateClick={handleDateClick}
+            formatDateKey={formatDateKey}
+            templates={templates}
+            onAddWorkout={handleAddWorkout}
+          />
         </div>
 
         {/* Today's Workouts */}
-        {todayWorkouts.length > 0 && (
-          <div className="bg-sky-50 rounded-3xl shadow-xl p-6 mb-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Today's Scheduled Workouts</h2>
-            <div className="space-y-3">
-              {todayWorkouts.map((workout, idx) => (
-                <div
-                  key={idx}
-                  className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-bold text-lg text-gray-800">
-                        {workout.muscleGroup || 'Workout'}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {workout.customSetCount || workout.numberOfSets}x{workout.customRepCount || '8-12'}
-                      </p>
-                      {workout.label && (
-                        <p className="text-sm text-gray-500 italic">{workout.label}</p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => navigate('/Create', { state: { scheduledWorkout: workout } })}
-                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
-                    >
-                      Start
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Selected Date Info */}
-        {selectedDate && (
-          <div className="bg-white rounded-3xl shadow-xl p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-            </h2>
-
-            {getWorkoutsForDate(selectedDate).length > 0 ? (
-              <div className="space-y-3 mb-4">
-                {getWorkoutsForDate(selectedDate).map((workout, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-gray-50 rounded-xl p-4"
-                  >
-                    <h3 className="font-bold text-lg text-gray-800">
-                      {workout.muscleGroup || 'Workout'}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {workout.customSetCount || workout.numberOfSets}x{workout.customRepCount || '8-12'}
-                    </p>
-                    {workout.label && (
-                      <p className="text-sm text-gray-500 italic">{workout.label}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 italic mb-4">No workouts scheduled for this day</p>
-            )}
-
-            <button
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
-            >
-              + Add Workout to This Day
-            </button>
-          </div>
-        )}
+        <TodaysWorkouts workouts={todayWorkouts} />
       </div>
     </div>
   );
