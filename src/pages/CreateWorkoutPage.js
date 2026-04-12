@@ -47,6 +47,9 @@ function CreateWorkoutPage() {
   const [recentTemplates, setRecentTemplates] = useState([]);
   const [loadedTemplate, setLoadedTemplate] = useState(null);
 
+  // Scheduled workouts state
+  const [todayScheduledWorkouts, setTodayScheduledWorkouts] = useState([]);
+
   // Wizard step state (1, 2, or 3)
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -78,8 +81,14 @@ function CreateWorkoutPage() {
 
       let templateToLoad = null;
 
+      // If scheduled workout is passed (from calendar "Start" button)
+      if (location.state.scheduledWorkout) {
+        const workout = location.state.scheduledWorkout;
+        handleLoadScheduledWorkout(workout);
+        return;
+      }
       // If template object is passed directly (built-in templates)
-      if (location.state.template) {
+      else if (location.state.template) {
         templateToLoad = location.state.template;
       }
       // If templateId is passed (user templates)
@@ -158,22 +167,27 @@ function CreateWorkoutPage() {
           const templatesArray = templateDoc.data().templates || [];
           console.log('Fetched templates:', templatesArray.length);
 
-          // Sort by lastUsed and take the first 3
-          const recentThree = templatesArray
-            .sort((a, b) => {
-              // Handle both Firestore Timestamp and ISO string
-              const aTime = a.lastUsed
-                ? (typeof a.lastUsed === 'string' ? new Date(a.lastUsed) : a.lastUsed.toDate?.() || new Date(0))
-                : new Date(0);
-              const bTime = b.lastUsed
-                ? (typeof b.lastUsed === 'string' ? new Date(b.lastUsed) : b.lastUsed.toDate?.() || new Date(0))
-                : new Date(0);
-              return bTime - aTime;
-            })
-            .slice(0, 3);
+          // Separate favorites and non-favorites
+          const favorites = templatesArray.filter(t => t.isFavorite);
+          const nonFavorites = templatesArray.filter(t => !t.isFavorite);
 
-          console.log('Recent templates:', recentThree);
-          setRecentTemplates(recentThree);
+          // Sort non-favorites by lastUsed
+          const sortedNonFavorites = nonFavorites.sort((a, b) => {
+            // Handle both Firestore Timestamp and ISO string
+            const aTime = a.lastUsed
+              ? (typeof a.lastUsed === 'string' ? new Date(a.lastUsed) : a.lastUsed.toDate?.() || new Date(0))
+              : new Date(0);
+            const bTime = b.lastUsed
+              ? (typeof b.lastUsed === 'string' ? new Date(b.lastUsed) : b.lastUsed.toDate?.() || new Date(0))
+              : new Date(0);
+            return bTime - aTime;
+          });
+
+          // Combine: all favorites first, then recent non-favorites to fill up to 5 total
+          const combined = [...favorites, ...sortedNonFavorites].slice(0, 5);
+
+          console.log('Templates to show:', combined.length, '(Favorites:', favorites.length, ')');
+          setRecentTemplates(combined);
         } else {
           console.log('No template document found');
           setRecentTemplates([]);
@@ -195,6 +209,42 @@ function CreateWorkoutPage() {
     return () => unsubscribe();
   }, []);
 
+  // Fetch today's scheduled workouts
+  useEffect(() => {
+    const fetchTodayScheduledWorkouts = async (userId) => {
+      if (!userId) return;
+
+      try {
+        const scheduleDoc = await getDoc(doc(db, 'workoutSchedule', userId));
+        if (scheduleDoc.exists()) {
+          const scheduleData = scheduleDoc.data().schedule || {};
+
+          // Get today's date key (YYYY-MM-DD)
+          const today = new Date();
+          const dateKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+          const todaysWorkouts = scheduleData[dateKey] || [];
+          setTodayScheduledWorkouts(todaysWorkouts);
+        } else {
+          setTodayScheduledWorkouts([]);
+        }
+      } catch (error) {
+        console.error('Error fetching scheduled workouts:', error);
+        setTodayScheduledWorkouts([]);
+      }
+    };
+
+    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+      if (currentUser) {
+        fetchTodayScheduledWorkouts(currentUser.uid);
+      } else {
+        setTodayScheduledWorkouts([]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   // Load template into form
   const handleLoadTemplate = (template) => {
     setSelectedMuscleGroup(template.muscleGroup || null);
@@ -204,6 +254,41 @@ function CreateWorkoutPage() {
     setCustomRepCount(template.customRepCount?.toString() || '');
     setLoadedTemplate(template); // Save the template so we can access exercises later
     // Auto-advance to step 3 (date selection) when template is loaded
+    setCurrentStep(3);
+  };
+
+  // Load scheduled workout into form
+  const handleLoadScheduledWorkout = (workout) => {
+    // Check if it's a custom muscle group (not in preset options)
+    const isCustomMuscleGroup = !MUSCLE_GROUP_OPTIONS.find(opt => opt.value === workout.muscleGroup && opt.value !== 'custom');
+
+    if (isCustomMuscleGroup) {
+      setSelectedMuscleGroup('custom');
+      setCustomMuscleGroupName(workout.muscleGroup);
+    } else {
+      setSelectedMuscleGroup(workout.muscleGroup);
+      setCustomMuscleGroupName('');
+    }
+
+    // Handle sets/reps
+    if (workout.numberOfSets) {
+      setNumberOfSets(workout.numberOfSets);
+      setCustomSetCount(workout.customSetCount?.toString() || '');
+      setCustomRepCount(workout.customRepCount?.toString() || '');
+    } else if (workout.customSetCount) {
+      setNumberOfSets('custom');
+      setCustomSetCount(workout.customSetCount.toString());
+      setCustomRepCount(workout.customRepCount?.toString() || '');
+    }
+
+    // Save as loaded template if it has exercises
+    if (workout.exercises && workout.exercises.length > 0) {
+      setLoadedTemplate(workout);
+    } else {
+      setLoadedTemplate(null);
+    }
+
+    // Auto-advance to step 3 (date selection)
     setCurrentStep(3);
   };
 
@@ -378,32 +463,62 @@ function CreateWorkoutPage() {
             </div>
             <select
               onChange={(e) => {
-                const templateId = e.target.value;
-                if (templateId) {
-                  const template = recentTemplates.find(t => t.id === templateId);
+                const value = e.target.value;
+                if (!value) return;
+
+                // Check if it's a scheduled workout (prefixed with 'scheduled-')
+                if (value.startsWith('scheduled-')) {
+                  const workoutId = value.replace('scheduled-', '');
+                  const workout = todayScheduledWorkouts.find(w => w.id === workoutId);
+                  if (workout) {
+                    handleLoadScheduledWorkout(workout);
+                  }
+                } else {
+                  // It's a template
+                  const template = recentTemplates.find(t => t.id === value);
                   if (template) {
                     handleLoadTemplate(template);
                   }
                 }
               }}
               className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg bg-white"
-              disabled={recentTemplates.length === 0}
+              disabled={todayScheduledWorkouts.length === 0 && recentTemplates.length === 0}
             >
               <option value="">
-                {recentTemplates.length === 0
-                  ? 'No templates yet - create one from Templates page'
-                  : 'Select a template to auto-fill...'}
+                {todayScheduledWorkouts.length === 0 && recentTemplates.length === 0
+                  ? 'No scheduled workouts or templates'
+                  : 'Select a workout to auto-fill...'}
               </option>
-              {recentTemplates.map((template) => (
-                <option key={template.id} value={template.id}>
-                  {template.name} ({template.muscleGroup || template.customMuscleGroupName} - {template.customSetCount || template.numberOfSets}x{template.customRepCount || '8-12'})
-                </option>
-              ))}
+
+              {/* Today's Scheduled Workouts */}
+              {todayScheduledWorkouts.length > 0 && (
+                <optgroup label="📅 Today's Scheduled Workouts">
+                  {todayScheduledWorkouts.map((workout) => (
+                    <option key={workout.id} value={`scheduled-${workout.id}`}>
+                      {workout.templateName || workout.muscleGroup} - {workout.customSetCount || workout.numberOfSets}x{workout.customRepCount || '8-12'}
+                      {workout.label && ` [${workout.label}]`}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+
+              {/* Templates (Favorites + Recent) */}
+              {recentTemplates.length > 0 && (
+                <optgroup label="📋 Templates">
+                  {recentTemplates.map((template) => (
+                    <option key={template.id} value={template.id}>
+                      {template.isFavorite ? '⭐ ' : ''}{template.name} ({template.muscleGroup || template.customMuscleGroupName} - {template.customSetCount || template.numberOfSets}x{template.customRepCount || '8-12'})
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
             <p className="text-xs text-gray-500 mt-2 italic">
-              {recentTemplates.length === 0
-                ? 'Create templates to quickly start workouts'
-                : 'Or fill in the form below to create from scratch'}
+              {todayScheduledWorkouts.length > 0
+                ? `${todayScheduledWorkouts.length} workout${todayScheduledWorkouts.length > 1 ? 's' : ''} scheduled for today`
+                : recentTemplates.length === 0
+                  ? 'Create templates or schedule workouts to quickly start'
+                  : 'Or fill in the form below to create from scratch'}
             </p>
           </div>
         </div>

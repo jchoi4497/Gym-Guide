@@ -1,6 +1,6 @@
 import ScheduledWorkoutCard from './ScheduledWorkoutCard';
 
-function TodaysWorkouts({ workouts }) {
+function TodaysWorkouts({ workouts, onDeleteWorkout }) {
   if (workouts.length === 0) {
     return null;
   }
@@ -10,7 +10,7 @@ function TodaysWorkouts({ workouts }) {
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Today's Scheduled Workouts</h2>
       <div className="space-y-3">
         {workouts.map((workout, idx) => (
-          <ScheduledWorkoutCard key={idx} workout={workout} />
+          <ScheduledWorkoutCard key={idx} workout={workout} onDeleteWorkout={onDeleteWorkout} />
         ))}
       </div>
     </div>

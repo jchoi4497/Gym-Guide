@@ -45,6 +45,10 @@ export function useWorkoutStats(user) {
             lastWorkout: null,
             currentStreak: 0,
             longestStreak: 0,
+            currentWeeklyStreak: 0,
+            longestWeeklyStreak: 0,
+            currentMonthlyStreak: 0,
+            longestMonthlyStreak: 0,
             muscleGroupBreakdown: {},
             mostTrainedMuscleGroup: null,
             thisMonthWorkouts: 0,
@@ -111,6 +115,8 @@ function calculateStats(workouts) {
 
   // Streaks
   const { currentStreak, longestStreak } = calculateStreaks(workouts);
+  const { currentWeeklyStreak, longestWeeklyStreak } = calculateWeeklyStreaks(workouts);
+  const { currentMonthlyStreak, longestMonthlyStreak } = calculateMonthlyStreaks(workouts);
 
   // Exercise stats
   const { exerciseCounts, totalSets, totalExercises, customExercisesSet } = calculateExerciseStats(workouts);
@@ -127,6 +133,10 @@ function calculateStats(workouts) {
     lastWorkout,
     currentStreak,
     longestStreak,
+    currentWeeklyStreak,
+    longestWeeklyStreak,
+    currentMonthlyStreak,
+    longestMonthlyStreak,
     muscleGroupBreakdown,
     mostTrainedMuscleGroup: mostTrainedMuscleGroup.group,
     thisMonthWorkouts: thisMonth,
@@ -194,6 +204,148 @@ function calculateStreaks(workouts) {
   }
 
   return { currentStreak, longestStreak };
+}
+
+/**
+ * Calculate weekly streaks (consecutive weeks with at least one workout)
+ */
+function calculateWeeklyStreaks(workouts) {
+  if (workouts.length === 0) return { currentWeeklyStreak: 0, longestWeeklyStreak: 0 };
+
+  // Helper function to get week key (year-week)
+  const getWeekKey = (date) => {
+    const d = new Date(date);
+    // Get ISO week number
+    const firstDayOfYear = new Date(d.getFullYear(), 0, 1);
+    const pastDaysOfYear = (d - firstDayOfYear) / 86400000;
+    const weekNum = Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+    return `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+  };
+
+  // Get unique workout weeks
+  const workoutWeeks = workouts.map((workout) => {
+    const date = workout.date?.toDate ? workout.date.toDate() : new Date(workout.date?.seconds * 1000);
+    return getWeekKey(date);
+  });
+
+  const uniqueWeeks = [...new Set(workoutWeeks)].sort();
+
+  let currentWeeklyStreak = 0;
+  let longestWeeklyStreak = 0;
+  let tempStreak = 1;
+
+  // Calculate longest weekly streak
+  for (let i = 1; i < uniqueWeeks.length; i++) {
+    const [prevYear, prevWeek] = uniqueWeeks[i - 1].split('-W').map(Number);
+    const [currYear, currWeek] = uniqueWeeks[i].split('-W').map(Number);
+
+    // Check if consecutive weeks (accounting for year rollover)
+    const isConsecutive =
+      (currYear === prevYear && currWeek === prevWeek + 1) ||
+      (currYear === prevYear + 1 && prevWeek >= 52 && currWeek === 1);
+
+    if (isConsecutive) {
+      tempStreak++;
+    } else {
+      longestWeeklyStreak = Math.max(longestWeeklyStreak, tempStreak);
+      tempStreak = 1;
+    }
+  }
+  longestWeeklyStreak = Math.max(longestWeeklyStreak, tempStreak);
+
+  // Calculate current weekly streak
+  const thisWeek = getWeekKey(new Date());
+  const lastWeek = getWeekKey(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000));
+
+  if (uniqueWeeks.includes(thisWeek) || uniqueWeeks.includes(lastWeek)) {
+    currentWeeklyStreak = 1;
+    let checkIndex = uniqueWeeks.length - 1;
+
+    // Count backwards for consecutive weeks
+    for (let i = checkIndex - 1; i >= 0; i--) {
+      const [prevYear, prevWeek] = uniqueWeeks[i].split('-W').map(Number);
+      const [currYear, currWeek] = uniqueWeeks[i + 1].split('-W').map(Number);
+
+      const isConsecutive =
+        (currYear === prevYear && currWeek === prevWeek + 1) ||
+        (currYear === prevYear + 1 && prevWeek >= 52 && currWeek === 1);
+
+      if (isConsecutive) {
+        currentWeeklyStreak++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  return { currentWeeklyStreak, longestWeeklyStreak };
+}
+
+/**
+ * Calculate monthly streaks (consecutive months with at least one workout)
+ */
+function calculateMonthlyStreaks(workouts) {
+  if (workouts.length === 0) return { currentMonthlyStreak: 0, longestMonthlyStreak: 0 };
+
+  // Get unique workout months (YYYY-MM format)
+  const workoutMonths = workouts.map((workout) => {
+    const date = workout.date?.toDate ? workout.date.toDate() : new Date(workout.date?.seconds * 1000);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  });
+
+  const uniqueMonths = [...new Set(workoutMonths)].sort();
+
+  let currentMonthlyStreak = 0;
+  let longestMonthlyStreak = 0;
+  let tempStreak = 1;
+
+  // Calculate longest monthly streak
+  for (let i = 1; i < uniqueMonths.length; i++) {
+    const [prevYear, prevMonth] = uniqueMonths[i - 1].split('-').map(Number);
+    const [currYear, currMonth] = uniqueMonths[i].split('-').map(Number);
+
+    // Check if consecutive months (accounting for year rollover)
+    const isConsecutive =
+      (currYear === prevYear && currMonth === prevMonth + 1) ||
+      (currYear === prevYear + 1 && prevMonth === 12 && currMonth === 1);
+
+    if (isConsecutive) {
+      tempStreak++;
+    } else {
+      longestMonthlyStreak = Math.max(longestMonthlyStreak, tempStreak);
+      tempStreak = 1;
+    }
+  }
+  longestMonthlyStreak = Math.max(longestMonthlyStreak, tempStreak);
+
+  // Calculate current monthly streak
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthKey = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`;
+
+  if (uniqueMonths.includes(thisMonth) || uniqueMonths.includes(lastMonthKey)) {
+    currentMonthlyStreak = 1;
+    let checkIndex = uniqueMonths.length - 1;
+
+    // Count backwards for consecutive months
+    for (let i = checkIndex - 1; i >= 0; i--) {
+      const [prevYear, prevMonth] = uniqueMonths[i].split('-').map(Number);
+      const [currYear, currMonth] = uniqueMonths[i + 1].split('-').map(Number);
+
+      const isConsecutive =
+        (currYear === prevYear && currMonth === prevMonth + 1) ||
+        (currYear === prevYear + 1 && prevMonth === 12 && currMonth === 1);
+
+      if (isConsecutive) {
+        currentMonthlyStreak++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  return { currentMonthlyStreak, longestMonthlyStreak };
 }
 
 /**

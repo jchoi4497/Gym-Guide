@@ -1,6 +1,6 @@
 import DayCell from './DayCell';
 
-function CalendarGrid({ calendarDays, schedule, selectedDate, onDateClick, formatDateKey, templates, onAddWorkout }) {
+function CalendarGrid({ calendarDays, schedule, selectedDate, onDateClick, formatDateKey, templates, onAddWorkout, onDeleteWorkout }) {
   const getWorkoutsForDate = (date) => {
     if (!date) return [];
     const dateKey = formatDateKey(date);
@@ -37,6 +37,7 @@ function CalendarGrid({ calendarDays, schedule, selectedDate, onDateClick, forma
           onClick={() => date && onDateClick(date)}
           templates={templates}
           onAddWorkout={onAddWorkout}
+          onDeleteWorkout={onDeleteWorkout}
         />
       ))}
     </div>

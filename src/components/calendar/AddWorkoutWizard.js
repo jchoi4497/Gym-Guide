@@ -1,15 +1,27 @@
 import { useState } from 'react';
 import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS } from '../../config/constants';
 
-function AddWorkoutWizard({ templates, onComplete, onCancel }) {
+function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
   const [step, setStep] = useState(1);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(null);
-  const [customWorkoutName, setCustomWorkoutName] = useState('');
-  const [numberOfSets, setNumberOfSets] = useState(null);
-  const [customSetCount, setCustomSetCount] = useState('');
-  const [customRepCount, setCustomRepCount] = useState('');
-  const [label, setLabel] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState(
+    initialData?.templateId ? templates.find(t => t.id === initialData.templateId) : null
+  );
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState(
+    initialData?.muscleGroup || null
+  );
+  const [customWorkoutName, setCustomWorkoutName] = useState(
+    initialData?.muscleGroup && !initialData?.templateId ? initialData.muscleGroup : ''
+  );
+  const [numberOfSets, setNumberOfSets] = useState(
+    initialData?.numberOfSets || (initialData?.customSetCount ? 'custom' : null)
+  );
+  const [customSetCount, setCustomSetCount] = useState(
+    initialData?.customSetCount?.toString() || ''
+  );
+  const [customRepCount, setCustomRepCount] = useState(
+    initialData?.customRepCount?.toString() || ''
+  );
+  const [label, setLabel] = useState(initialData?.label || '');
 
   const handleTemplateSelect = (e) => {
     const value = e.target.value;
@@ -25,7 +37,10 @@ function AddWorkoutWizard({ templates, onComplete, onCancel }) {
       const muscleGroup = value.replace('preset-', '');
       setSelectedTemplate(null);
       setSelectedMuscleGroup(muscleGroup);
-      setStep(2); // Go to set/rep selection
+      // Only auto-advance if not editing
+      if (!initialData) {
+        setStep(2); // Go to set/rep selection
+      }
     } else {
       // Saved template selected
       const template = templates.find(t => t.id === value);
@@ -53,7 +68,10 @@ function AddWorkoutWizard({ templates, onComplete, onCancel }) {
         setCustomRepCount(template.customRepCount?.toString() || '');
       }
 
-      setStep(3); // Skip to last step (review & confirm)
+      // Only auto-advance if not editing
+      if (!initialData) {
+        setStep(3); // Skip to last step (review & confirm)
+      }
     }
   };
 
@@ -61,7 +79,8 @@ function AddWorkoutWizard({ templates, onComplete, onCancel }) {
     const value = e.target.value;
     if (!value) return;
     setNumberOfSets(value);
-    if (value !== 'custom') {
+    // Only auto-advance if not editing
+    if (value !== 'custom' && !initialData) {
       setStep(3);
     }
   };
@@ -71,6 +90,7 @@ function AddWorkoutWizard({ templates, onComplete, onCancel }) {
 
     const workoutData = {
       templateId: selectedTemplate?.id || null,
+      templateName: selectedTemplate?.name || null,
       muscleGroup: selectedMuscleGroup === 'custom' ? customWorkoutName.trim() : selectedMuscleGroup,
       numberOfSets: numberOfSets !== 'custom' ? numberOfSets : null,
       customSetCount: (numberOfSets === 'custom' || customSetCount) ? parseInt(customSetCount) : null,
@@ -167,7 +187,7 @@ function AddWorkoutWizard({ templates, onComplete, onCancel }) {
             >
               Cancel
             </button>
-            {selectedMuscleGroup === 'custom' && !selectedTemplate && (
+            {(selectedMuscleGroup === 'custom' && !selectedTemplate) && (
               <button
                 onClick={() => {
                   if (customWorkoutName.trim()) {
@@ -176,6 +196,14 @@ function AddWorkoutWizard({ templates, onComplete, onCancel }) {
                 }}
                 disabled={!customWorkoutName.trim()}
                 className="text-blue-600 hover:text-blue-800 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next →
+              </button>
+            )}
+            {(initialData && (selectedTemplate || (selectedMuscleGroup && selectedMuscleGroup !== 'custom'))) && (
+              <button
+                onClick={() => setStep(2)}
+                className="text-blue-600 hover:text-blue-800 text-sm font-semibold transition-colors"
               >
                 Next →
               </button>
@@ -299,7 +327,7 @@ function AddWorkoutWizard({ templates, onComplete, onCancel }) {
               disabled={!canComplete()}
               className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             >
-              Add Workout
+              {initialData ? 'Save' : 'Add Workout'}
             </button>
           </div>
 

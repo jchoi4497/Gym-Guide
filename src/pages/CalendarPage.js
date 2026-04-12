@@ -161,20 +161,61 @@ function CalendarPage() {
       newSchedule[dateKey] = [];
     }
 
-    newSchedule[dateKey].push({
-      id: `schedule-${Date.now()}`,
-      ...workoutData
-    });
+    // Check if this is an update (has an ID) or a new workout
+    if (workoutData.id) {
+      // Update existing workout
+      const index = newSchedule[dateKey].findIndex(w => w.id === workoutData.id);
+      if (index !== -1) {
+        newSchedule[dateKey][index] = workoutData;
+      } else {
+        // ID not found, treat as new
+        newSchedule[dateKey].push(workoutData);
+      }
+    } else {
+      // Add new workout with generated ID
+      newSchedule[dateKey].push({
+        id: `schedule-${Date.now()}`,
+        ...workoutData
+      });
+    }
 
     try {
       await setDoc(doc(db, 'workoutSchedule', user.uid), {
         schedule: newSchedule
       });
       setSchedule(newSchedule);
-      console.log('Workout added to schedule');
+      console.log(workoutData.id ? 'Workout updated in schedule' : 'Workout added to schedule');
     } catch (error) {
-      console.error('Error adding workout to schedule:', error);
-      alert('Failed to add workout. Please try again.');
+      console.error('Error saving workout to schedule:', error);
+      alert('Failed to save workout. Please try again.');
+    }
+  };
+
+  const handleDeleteWorkout = async (date, workoutId) => {
+    if (!user) return;
+
+    const dateKey = formatDateKey(date);
+    const newSchedule = { ...schedule };
+
+    if (!newSchedule[dateKey]) return;
+
+    // Remove the workout with the matching id
+    newSchedule[dateKey] = newSchedule[dateKey].filter(w => w.id !== workoutId);
+
+    // If no workouts left for this date, remove the date key
+    if (newSchedule[dateKey].length === 0) {
+      delete newSchedule[dateKey];
+    }
+
+    try {
+      await setDoc(doc(db, 'workoutSchedule', user.uid), {
+        schedule: newSchedule
+      });
+      setSchedule(newSchedule);
+      console.log('Workout deleted from schedule');
+    } catch (error) {
+      console.error('Error deleting workout from schedule:', error);
+      alert('Failed to delete workout. Please try again.');
     }
   };
 
@@ -241,11 +282,12 @@ function CalendarPage() {
             formatDateKey={formatDateKey}
             templates={templates}
             onAddWorkout={handleAddWorkout}
+            onDeleteWorkout={handleDeleteWorkout}
           />
         </div>
 
         {/* Today's Workouts */}
-        <TodaysWorkouts workouts={todayWorkouts} />
+        <TodaysWorkouts workouts={todayWorkouts} onDeleteWorkout={(workoutId) => handleDeleteWorkout(new Date(), workoutId)} />
       </div>
     </div>
   );

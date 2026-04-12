@@ -1,16 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
 import AddWorkoutWizard from './AddWorkoutWizard';
 
-function DayCell({ date, workouts, isToday, isSelected, onClick, templates, onAddWorkout }) {
+function DayCell({ date, workouts, isToday, isSelected, onClick, templates, onAddWorkout, onDeleteWorkout }) {
   const [isAddMode, setIsAddMode] = useState(false);
+  const [editingWorkout, setEditingWorkout] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [popoverStyle, setPopoverStyle] = useState({});
   const cellRef = useRef(null);
   const popoverRef = useRef(null);
 
-  // Reset add mode when popover closes
+  // Reset modes when popover closes
   useEffect(() => {
     if (!isSelected) {
       setIsAddMode(false);
+      setEditingWorkout(null);
+      setShowDeleteConfirm(null);
     }
   }, [isSelected]);
 
@@ -103,8 +107,8 @@ function DayCell({ date, workouts, isToday, isSelected, onClick, templates, onAd
           {workouts.map((workout, idx) => (
             <div
               key={idx}
-              className="w-2 h-2 rounded-full bg-blue-500"
-              title={workout.muscleGroup}
+              className="w-2 h-2 rounded-full bg-green-500"
+              title={workout.templateName || workout.muscleGroup}
             />
           ))}
         </div>
@@ -122,7 +126,7 @@ function DayCell({ date, workouts, isToday, isSelected, onClick, templates, onAd
             ...popoverStyle,
           }}
         >
-          {!isAddMode ? (
+          {!isAddMode && !editingWorkout ? (
             /* View Mode */
             <>
               <div className="mb-3">
@@ -137,13 +141,75 @@ function DayCell({ date, workouts, isToday, isSelected, onClick, templates, onAd
               {workouts.length > 0 ? (
                 <div className="space-y-2 mb-3">
                   {workouts.map((workout, idx) => (
-                    <div key={idx} className="bg-gray-50 rounded-lg p-2">
-                      <p className="font-bold text-sm text-gray-800">{workout.muscleGroup}</p>
-                      <p className="text-xs text-gray-600">
-                        {workout.customSetCount || workout.numberOfSets}x{workout.customRepCount || '8-12'}
-                      </p>
-                      {workout.label && (
-                        <p className="text-xs text-gray-500 italic mt-1">{workout.label}</p>
+                    <div key={idx} className="bg-gray-50 rounded-lg p-3 relative">
+                      {showDeleteConfirm === workout.id ? (
+                        /* Delete Confirmation */
+                        <div className="text-center">
+                          <p className="text-sm text-gray-800 font-semibold mb-2">Delete this workout?</p>
+                          <div className="flex gap-2 justify-center">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteWorkout(date, workout.id);
+                                setShowDeleteConfirm(null);
+                              }}
+                              className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded transition-colors"
+                            >
+                              Delete
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowDeleteConfirm(null);
+                              }}
+                              className="px-3 py-1 bg-gray-300 hover:bg-gray-400 text-gray-800 text-xs font-semibold rounded transition-colors"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Normal Display */
+                        <>
+                          <div className="flex gap-1 absolute top-2 right-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEditingWorkout(workout);
+                              }}
+                              className="text-blue-600 hover:text-blue-800 transition-colors"
+                              title="Edit workout"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowDeleteConfirm(workout.id);
+                              }}
+                              className="text-red-500 hover:text-red-700 transition-colors"
+                              title="Delete workout"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                          <p className="font-bold text-sm text-gray-800 pr-12">
+                            {workout.templateName || workout.muscleGroup}
+                          </p>
+                          {workout.templateName && workout.muscleGroup && (
+                            <p className="text-xs text-blue-600 font-semibold">{workout.muscleGroup}</p>
+                          )}
+                          <p className="text-xs text-gray-600">
+                            {workout.customSetCount || workout.numberOfSets}x{workout.customRepCount || '8-12'}
+                          </p>
+                          {workout.label && (
+                            <p className="text-xs text-gray-500 italic mt-1">{workout.label}</p>
+                          )}
+                        </>
                       )}
                     </div>
                   ))}
@@ -159,6 +225,18 @@ function DayCell({ date, workouts, isToday, isSelected, onClick, templates, onAd
                 + Add Workout
               </button>
             </>
+          ) : editingWorkout ? (
+            /* Edit Mode - Wizard */
+            <AddWorkoutWizard
+              templates={templates}
+              initialData={editingWorkout}
+              onComplete={(workoutData) => {
+                // Update the workout while preserving its ID
+                onAddWorkout(date, { ...workoutData, id: editingWorkout.id });
+                setEditingWorkout(null);
+              }}
+              onCancel={() => setEditingWorkout(null)}
+            />
           ) : (
             /* Add Mode - Wizard */
             <AddWorkoutWizard
