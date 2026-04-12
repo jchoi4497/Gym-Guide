@@ -96,6 +96,7 @@ function Navbar() {
       {/* Desktop Nav */}
       <div className="hidden md:flex space-x-6">
         <NavButton to="/Create" label="New Workout" />
+        <NavButton to="/Calendar" label="Calendar" />
         <NavButton to="/Templates" label="Templates" />
         <NavButton to="/SavedWorkouts" label="History" />
         <NavButton to="/MyExercises" label="My Exercises" />
@@ -177,6 +178,7 @@ function Navbar() {
           )}
 
           <MobileLink to="/Create" label="New Workout" toggleMenu={toggleMenu} />
+          <MobileLink to="/Calendar" label="Calendar" toggleMenu={toggleMenu} />
           <MobileLink to="/Templates" label="Templates" toggleMenu={toggleMenu} />
           <MobileLink to="/SavedWorkouts" label="History" toggleMenu={toggleMenu} />
           <MobileLink to="/MyExercises" label="My Exercises" toggleMenu={toggleMenu} />
