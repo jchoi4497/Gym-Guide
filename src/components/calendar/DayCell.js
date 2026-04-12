@@ -1,8 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import AddWorkoutWizard from './AddWorkoutWizard';
 
-function DayCell({ date, workouts, isToday, isSelected, onClick, dayOfWeek, weekRow, templates, onAddWorkout }) {
+function DayCell({ date, workouts, isToday, isSelected, onClick, templates, onAddWorkout }) {
   const [isAddMode, setIsAddMode] = useState(false);
+  const [popoverStyle, setPopoverStyle] = useState({});
+  const cellRef = useRef(null);
+  const popoverRef = useRef(null);
 
   // Reset add mode when popover closes
   useEffect(() => {
@@ -10,34 +13,78 @@ function DayCell({ date, workouts, isToday, isSelected, onClick, dayOfWeek, week
       setIsAddMode(false);
     }
   }, [isSelected]);
+
+  // Dynamic positioning to prevent overflow
+  useEffect(() => {
+    if (!isSelected || !cellRef.current || !popoverRef.current) {
+      return;
+    }
+
+    const updatePosition = () => {
+      const cellRect = cellRef.current.getBoundingClientRect();
+      const popoverRect = popoverRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      const MARGIN = 8; // Margin from viewport edges
+      const style = {};
+
+      // Horizontal positioning
+      // Try to position left-aligned first
+      let left = cellRect.left;
+
+      // If it overflows right, align to the right edge of the cell
+      if (left + popoverRect.width > viewportWidth - MARGIN) {
+        left = cellRect.right - popoverRect.width;
+      }
+
+      // If still overflows left (on very small screens), push it right
+      if (left < MARGIN) {
+        left = MARGIN;
+      }
+
+      style.left = `${left}px`;
+
+      // Vertical positioning
+      // Try below first
+      let top = cellRect.bottom + 8;
+
+      // If it overflows bottom, show above
+      if (top + popoverRect.height > viewportHeight - MARGIN) {
+        top = cellRect.top - popoverRect.height - 8;
+      }
+
+      // If still overflows top, position at top of viewport
+      if (top < MARGIN) {
+        top = MARGIN;
+      }
+
+      style.top = `${top}px`;
+
+      setPopoverStyle(style);
+    };
+
+    // Initial position calculation
+    updatePosition();
+
+    // Recalculate on scroll or resize
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
+  }, [isSelected, isAddMode]);
+
   if (!date) {
     return <div className="min-h-16 sm:min-h-20 p-1 sm:p-2 rounded-lg bg-transparent" />;
   }
 
-  // Bulletproof positioning - prevent overflow on all screen sizes
-  let verticalPosition = 'top-full mt-2'; // Default: below
-
-  // Aggressive positioning to prevent any overflow
-  let horizontalPosition = '';
-  if (dayOfWeek === 0 || dayOfWeek === 1) {
-    // Sun, Mon - safe to align left
-    horizontalPosition = 'left-0';
-  } else if (dayOfWeek === 5 || dayOfWeek === 6) {
-    // Fri, Sat - safe to align right
-    horizontalPosition = 'right-0';
-  } else {
-    // Tue, Wed, Thu - use right alignment to prevent right-side overflow
-    horizontalPosition = 'right-0';
-  }
-
-  // Vertical: show above if in bottom rows
-  if (weekRow >= 3) {
-    verticalPosition = 'bottom-full mb-2';
-  }
-
   return (
-    <div className="relative">
+    <>
       <div
+        ref={cellRef}
         onClick={(e) => {
           e.stopPropagation();
           onClick();
@@ -63,14 +110,16 @@ function DayCell({ date, workouts, isToday, isSelected, onClick, dayOfWeek, week
         </div>
       </div>
 
-      {/* Expanded Popover */}
+      {/* Expanded Popover - Fixed positioning to prevent overflow */}
       {isSelected && (
         <div
-          className={`absolute ${verticalPosition} ${horizontalPosition} bg-white rounded-xl shadow-2xl p-4 z-50 animate-fadeIn border-2 border-green-500 max-h-96 overflow-y-auto`}
+          ref={popoverRef}
+          className="fixed bg-white rounded-xl shadow-2xl p-4 z-50 animate-fadeIn border-2 border-green-500 max-h-96 overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
           style={{
             width: 'min(270px, 90vw)',
             maxWidth: '90vw',
+            ...popoverStyle,
           }}
         >
           {!isAddMode ? (
@@ -123,7 +172,7 @@ function DayCell({ date, workouts, isToday, isSelected, onClick, dayOfWeek, week
           )}
         </div>
       )}
-    </div>
+    </>
   );
 }
 

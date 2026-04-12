@@ -27,24 +27,18 @@ function CalendarGrid({ calendarDays, schedule, selectedDate, onDateClick, forma
       ))}
 
       {/* Calendar days */}
-      {calendarDays.map((date, index) => {
-        const dayOfWeek = index % 7; // 0 = Sunday, 6 = Saturday
-        const weekRow = Math.floor(index / 7); // Which row (0-5)
-        return (
-          <DayCell
-            key={index}
-            date={date}
-            workouts={getWorkoutsForDate(date)}
-            isToday={isToday(date)}
-            isSelected={isSelected(date)}
-            onClick={() => date && onDateClick(date)}
-            dayOfWeek={dayOfWeek}
-            weekRow={weekRow}
-            templates={templates}
-            onAddWorkout={onAddWorkout}
-          />
-        );
-      })}
+      {calendarDays.map((date, index) => (
+        <DayCell
+          key={index}
+          date={date}
+          workouts={getWorkoutsForDate(date)}
+          isToday={isToday(date)}
+          isSelected={isSelected(date)}
+          onClick={() => date && onDateClick(date)}
+          templates={templates}
+          onAddWorkout={onAddWorkout}
+        />
+      ))}
     </div>
   );
 }
