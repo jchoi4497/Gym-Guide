@@ -8,6 +8,7 @@ import DropDown from '../components/DropDown';
 import MuscleGroupAutocomplete from '../components/MuscleGroupAutocomplete';
 import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS } from '../config/constants';
 import { templateToExerciseData } from '../utils/templateHelpers';
+import { getWorkoutRepCount, getWorkoutSetCount } from '../utils/workoutDisplay';
 
 function CreateWorkoutPage() {
   const navigate = useNavigate();
@@ -65,7 +66,7 @@ function CreateWorkoutPage() {
   // Get actual number of sets
   const actualNumberOfSets = numberOfSets === 'custom' && customSetCount
     ? parseInt(customSetCount)
-    : numberOfSets;
+    : parseInt(numberOfSets) || null;
 
   // Check if ready to create workout
   const canCreateWorkout =
@@ -495,7 +496,7 @@ function CreateWorkoutPage() {
                 <optgroup label="📅 Today's Scheduled Workouts">
                   {todayScheduledWorkouts.map((workout) => (
                     <option key={workout.id} value={`scheduled-${workout.id}`}>
-                      {workout.templateName || workout.muscleGroup} - {workout.customSetCount || workout.numberOfSets}x{workout.customRepCount || '8-12'}
+                      {workout.templateName || workout.muscleGroup} - {getWorkoutSetCount(workout)}x{getWorkoutRepCount(workout)}
                       {workout.label && ` [${workout.label}]`}
                     </option>
                   ))}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getWorkoutSetsRepsDisplay } from '../../utils/workoutDisplay';
 
 function ScheduledWorkoutCard({ workout, onDeleteWorkout }) {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ function ScheduledWorkoutCard({ workout, onDeleteWorkout }) {
               <p className="text-sm text-blue-600 font-semibold">{workout.muscleGroup}</p>
             )}
             <p className="text-sm text-gray-600">
-              {workout.customSetCount || workout.numberOfSets}x{workout.customRepCount || '8-12'}
+              {getWorkoutSetsRepsDisplay(workout)}
             </p>
             {workout.label && (
               <p className="text-sm text-gray-500 italic">{workout.label}</p>

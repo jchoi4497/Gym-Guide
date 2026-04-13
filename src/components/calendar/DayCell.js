@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import AddWorkoutWizard from './AddWorkoutWizard';
+import { getWorkoutSetsRepsDisplay } from '../../utils/workoutDisplay';
 
 function DayCell({ date, workouts, isToday, isSelected, onClick, templates, onAddWorkout, onDeleteWorkout }) {
   const [isAddMode, setIsAddMode] = useState(false);
@@ -204,7 +205,7 @@ function DayCell({ date, workouts, isToday, isSelected, onClick, templates, onAd
                             <p className="text-xs text-blue-600 font-semibold">{workout.muscleGroup}</p>
                           )}
                           <p className="text-xs text-gray-600">
-                            {workout.customSetCount || workout.numberOfSets}x{workout.customRepCount || '8-12'}
+                            {getWorkoutSetsRepsDisplay(workout)}
                           </p>
                           {workout.label && (
                             <p className="text-xs text-gray-500 italic mt-1">{workout.label}</p>

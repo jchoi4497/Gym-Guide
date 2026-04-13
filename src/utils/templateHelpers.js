@@ -45,6 +45,10 @@ export function templateToExerciseData(template, numberOfSets) {
     return exerciseData;
   }
 
+  // Ensure numberOfSets is a valid integer (handle string values from form inputs)
+  const setsCount = parseInt(numberOfSets) || 4;
+  console.log('🔍 [templateToExerciseData] Parsed sets count:', setsCount);
+
   template.exercises.forEach((exercise, index) => {
     console.log(`🔍 [templateToExerciseData] Processing exercise ${index}:`, exercise);
 
@@ -60,7 +64,7 @@ export function templateToExerciseData(template, numberOfSets) {
 
       exerciseData[exercise.category] = {
         exerciseName: displayName, // Use the full name, not the ID
-        sets: new Array(numberOfSets).fill(''), // Initialize empty sets
+        sets: new Array(setsCount).fill(''), // Initialize empty sets
         detectedCategory: exercise.detectedCategory, // Preserve detected category
       };
 

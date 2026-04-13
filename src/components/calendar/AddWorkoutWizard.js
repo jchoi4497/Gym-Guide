@@ -88,13 +88,23 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
   const handleComplete = () => {
     if (!canComplete()) return;
 
+    // Get rep count from preset option if applicable
+    let repCount = null;
+    if (numberOfSets === 'custom') {
+      repCount = customRepCount ? parseInt(customRepCount) : null;
+    } else if (numberOfSets) {
+      // Find the preset option to get its reps value
+      const presetOption = SET_RANGE_OPTIONS.find(opt => opt.value === numberOfSets);
+      repCount = presetOption?.reps || null;
+    }
+
     const workoutData = {
       templateId: selectedTemplate?.id || null,
       templateName: selectedTemplate?.name || null,
       muscleGroup: selectedMuscleGroup === 'custom' ? customWorkoutName.trim() : selectedMuscleGroup,
-      numberOfSets: numberOfSets !== 'custom' ? numberOfSets : null,
+      numberOfSets: numberOfSets !== 'custom' ? parseInt(numberOfSets) : null,
       customSetCount: (numberOfSets === 'custom' || customSetCount) ? parseInt(customSetCount) : null,
-      customRepCount: (numberOfSets === 'custom' || customRepCount) ? parseInt(customRepCount) : null,
+      customRepCount: repCount,
       label: label.trim() || null,
       exercises: selectedTemplate?.exercises || []
     };

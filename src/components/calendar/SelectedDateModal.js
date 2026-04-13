@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { getWorkoutSetsRepsDisplay } from '../../utils/workoutDisplay';
 
 function SelectedDateModal({ date, workouts, onClose }) {
   const modalRef = useRef();
@@ -50,7 +51,7 @@ function SelectedDateModal({ date, workouts, onClose }) {
                   {workout.muscleGroup || 'Workout'}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {workout.customSetCount || workout.numberOfSets}x{workout.customRepCount || '8-12'}
+                  {getWorkoutSetsRepsDisplay(workout)}
                 </p>
                 {workout.label && (
                   <p className="text-sm text-gray-500 italic">{workout.label}</p>

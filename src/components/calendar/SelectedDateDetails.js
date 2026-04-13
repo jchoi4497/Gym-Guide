@@ -1,3 +1,5 @@
+import { getWorkoutSetsRepsDisplay } from '../../utils/workoutDisplay';
+
 function SelectedDateDetails({ date, workouts }) {
   if (!date) {
     return null;
@@ -17,7 +19,7 @@ function SelectedDateDetails({ date, workouts }) {
                 {workout.muscleGroup || 'Workout'}
               </h3>
               <p className="text-sm text-gray-600">
-                {workout.customSetCount || workout.numberOfSets}x{workout.customRepCount || '8-12'}
+                {getWorkoutSetsRepsDisplay(workout)}
               </p>
               {workout.label && (
                 <p className="text-sm text-gray-500 italic">{workout.label}</p>

@@ -50,7 +50,7 @@ function WorkoutPage() {
 
   // Derived values from workout
   const actualMuscleGroup = workout?.muscleGroup || '';
-  const actualNumberOfSets = workout?.numberOfSets || 4;
+  const actualNumberOfSets = parseInt(workout?.numberOfSets) || parseInt(workout?.customSetCount) || 4;
   const setRangeLabel = workout?.customRepCount
     ? `${actualNumberOfSets}x${workout.customRepCount}`
     : `${actualNumberOfSets} sets`;
