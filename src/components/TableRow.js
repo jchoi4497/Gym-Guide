@@ -51,6 +51,9 @@ function TableRow({
 
   // Handle weight input change
   const handleWeightChange = (setIndex, newWeight) => {
+    // Prevent negative values
+    if (parseFloat(newWeight) < 0) return;
+
     const currentSet = parseSet((setInputs && setInputs[setIndex]) || '');
     // Convert weight from user's unit to lbs for storage
     const weightInLbs = saveWeight(newWeight, settings.weightUnit);
@@ -60,6 +63,9 @@ function TableRow({
 
   // Handle reps input change
   const handleRepsChange = (setIndex, newReps) => {
+    // Prevent negative values
+    if (parseFloat(newReps) < 0) return;
+
     const currentSet = parseSet((setInputs && setInputs[setIndex]) || '');
     const combined = combineSet(currentSet.weight, newReps);
     cellInput(setIndex, combined);
@@ -137,6 +143,7 @@ function TableRow({
                   <input
                     type="number"
                     step="0.5"
+                    min="0"
                     value={displayWeight(currentSet.weight, settings.weightUnit)}
                     onChange={(e) => handleWeightChange(i, e.target.value)}
                     placeholder={settings.weightUnit}
@@ -148,6 +155,7 @@ function TableRow({
               <input
                 type="number"
                 step={isCardio ? "0.1" : "1"}
+                min="0"
                 value={currentSet.reps}
                 onChange={(e) => handleRepsChange(i, e.target.value)}
                 placeholder={isCardio ? placeholder : (isTimed ? "sec" : "reps")}

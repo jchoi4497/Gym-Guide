@@ -534,8 +534,10 @@ function OptionalWorkoutSections({
                                           <input
                                             type="number"
                                             step="0.5"
+                                            min="0"
                                             value={displayWeight(currentSet.weight, settings.weightUnit)}
                                             onChange={(e) => {
+                                              if (parseFloat(e.target.value) < 0) return;
                                               const weightInLbs = saveWeight(e.target.value, settings.weightUnit);
                                               const combined = combineSet(weightInLbs, currentSet.reps);
                                               handleAbsInput(exercise.id, selectedExercise, idx, combined);
@@ -550,8 +552,10 @@ function OptionalWorkoutSections({
                                       <input
                                         type="number"
                                         step="1"
+                                        min="0"
                                         value={currentSet.reps}
                                         onChange={(e) => {
+                                          if (parseFloat(e.target.value) < 0) return;
                                           const combined = combineSet(currentSet.weight, e.target.value);
                                           handleAbsInput(exercise.id, selectedExercise, idx, combined);
                                         }}
@@ -766,9 +770,13 @@ function OptionalWorkoutSections({
                                     <input
                                       type="number"
                                       step="0.1"
+                                      min="0"
                                       placeholder={label}
                                       value={value}
-                                      onChange={(e) => handleCardioInput(exercise.id, exercise.selected, idx, e.target.value)}
+                                      onChange={(e) => {
+                                        if (parseFloat(e.target.value) < 0) return;
+                                        handleCardioInput(exercise.id, exercise.selected, idx, e.target.value);
+                                      }}
                                       readOnly={disableCheckboxes}
                                       className={`px-2 py-2 w-24 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : ''}`}
                                     />
