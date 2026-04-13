@@ -3,7 +3,7 @@ import { getExercisesByCategory, EXERCISE_CATEGORIES, getPlaceholderForExercise,
 import WeightRepsPicker from './WeightRepsPicker';
 import ExerciseAutocomplete from './ExerciseAutocomplete';
 import { useIsMobile } from '../hooks/useIsMobile';
-import { parseSet, combineSet } from '../utils/setHelpers';
+import { parseSet, combineSet, getPreviousSet } from '../utils/setHelpers';
 import { useSettings } from '../contexts/SettingsContext';
 import { displayWeight, saveWeight } from '../utils/weightConversion';
 
@@ -496,9 +496,11 @@ function OptionalWorkoutSections({
                           <>
                             {Array.from({ length: currentSetCount }).map((_, idx) => {
                               const currentSet = parseSet((exerciseData[exercise.id]?.sets || [])[idx] || '');
+                              const previousSet = idx > 0 ? parseSet((exerciseData[exercise.id]?.sets || [])[idx - 1] || '') : null;
+                              const hasPreviousSet = previousSet && (previousSet.weight || previousSet.reps);
 
                               return (
-                                <div key={idx} className="flex items-center gap-1 mb-2 sm:mb-0">
+                                <div key={idx} className="relative flex items-center gap-1 mb-2 sm:mb-0">
                                   {isMobile ? (
                                     // MOBILE: Buttons that open picker
                                     <>
@@ -558,6 +560,23 @@ function OptionalWorkoutSections({
                                         className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${disableCheckboxes ? 'cursor-not-allowed opacity-60' : ''} ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
                                       />
                                     </>
+                                  )}
+
+                                  {/* Copy Previous Set Button - only show if there's a previous set and current set is empty */}
+                                  {hasPreviousSet && !currentSet.weight && !currentSet.reps && !disableCheckboxes && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const previousSetString = getPreviousSet(exerciseData[exercise.id]?.sets, idx);
+                                        if (previousSetString) {
+                                          handleAbsInput(exercise.id, selectedExercise, idx, previousSetString);
+                                        }
+                                      }}
+                                      className="absolute top-1/2 -translate-y-1/2 -right-8 w-7 h-7 rounded-full bg-green-500 hover:bg-green-600 active:bg-green-700 text-white text-sm font-bold transition-all active:scale-90 flex items-center justify-center shadow-md z-10"
+                                      title="Copy previous set"
+                                    >
+                                      ↑
+                                    </button>
                                   )}
                                 </div>
                               );
