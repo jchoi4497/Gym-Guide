@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, doc, updateDoc, arrayUnion, serverTimestamp, getDoc } from 'firebase/firestore';
 import db from '../../../config/firebase';
 
-function FriendRequests({ userId, onRequestHandled }) {
+function FriendRequests({ userId, onRequestHandled, onRequestCountChange }) {
   const [receivedRequests, setReceivedRequests] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,6 +12,13 @@ function FriendRequests({ userId, onRequestHandled }) {
     if (!userId) return;
     fetchRequests();
   }, [userId]);
+
+  useEffect(() => {
+    // Notify parent of request count change
+    if (onRequestCountChange) {
+      onRequestCountChange(receivedRequests.length);
+    }
+  }, [receivedRequests, onRequestCountChange]);
 
   const fetchRequests = async () => {
     try {
@@ -158,31 +165,33 @@ function FriendRequests({ userId, onRequestHandled }) {
             receivedRequests.map((request) => (
               <div
                 key={request.id}
-                className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg border border-blue-200"
+                className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200"
               >
                 {request.sender && (
                   <>
-                    <img
-                      src={request.sender.photoURL || '/default-avatar.png'}
-                      alt={request.sender.displayName}
-                      className="w-12 h-12 rounded-full border-2 border-white"
-                    />
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-800">
-                        {request.sender.displayName}
-                      </p>
-                      <p className="text-sm text-gray-600">{request.sender.email}</p>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <img
+                        src={request.sender.photoURL || '/default-avatar.png'}
+                        alt={request.sender.displayName}
+                        className="w-12 h-12 rounded-full border-2 border-white flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-800 truncate">
+                          {request.sender.displayName}
+                        </p>
+                        <p className="text-sm text-gray-600 truncate">{request.sender.email}</p>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 sm:flex-shrink-0">
                       <button
                         onClick={() => handleAccept(request.id, request.fromUserId)}
-                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+                        className="flex-1 sm:flex-none px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
                       >
                         Accept
                       </button>
                       <button
                         onClick={() => handleDecline(request.id)}
-                        className="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold rounded-lg transition-colors"
+                        className="flex-1 sm:flex-none px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold rounded-lg transition-colors"
                       >
                         Decline
                       </button>
@@ -204,22 +213,24 @@ function FriendRequests({ userId, onRequestHandled }) {
             sentRequests.map((request) => (
               <div
                 key={request.id}
-                className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-gray-50 rounded-lg"
               >
                 {request.receiver && (
                   <>
-                    <img
-                      src={request.receiver.photoURL || '/default-avatar.png'}
-                      alt={request.receiver.displayName}
-                      className="w-12 h-12 rounded-full border-2 border-gray-200"
-                    />
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-800">
-                        {request.receiver.displayName}
-                      </p>
-                      <p className="text-sm text-gray-600">{request.receiver.email}</p>
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <img
+                        src={request.receiver.photoURL || '/default-avatar.png'}
+                        alt={request.receiver.displayName}
+                        className="w-12 h-12 rounded-full border-2 border-gray-200 flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-800 truncate">
+                          {request.receiver.displayName}
+                        </p>
+                        <p className="text-sm text-gray-600 truncate">{request.receiver.email}</p>
+                      </div>
                     </div>
-                    <span className="text-sm text-gray-500 italic">Pending...</span>
+                    <span className="text-sm text-gray-500 italic sm:flex-shrink-0">Pending...</span>
                   </>
                 )}
               </div>

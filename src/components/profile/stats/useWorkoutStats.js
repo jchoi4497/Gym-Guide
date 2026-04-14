@@ -127,6 +127,9 @@ function calculateStats(workouts) {
     { exercise: null, count: 0 }
   );
 
+  // Heaviest lift
+  const heaviestLift = calculateHeaviestLift(workouts);
+
   return {
     totalWorkouts,
     memberSince: firstWorkout,
@@ -146,6 +149,7 @@ function calculateStats(workouts) {
     favoriteExerciseCount: favoriteExercise.count,
     customExercisesCount: customExercisesSet.size,
     totalSets,
+    heaviestLift,
   };
 }
 
@@ -381,4 +385,47 @@ function calculateExerciseStats(workouts) {
   });
 
   return { exerciseCounts, totalSets, totalExercises, customExercisesSet };
+}
+
+/**
+ * Calculate the heaviest lift across all workouts
+ */
+function calculateHeaviestLift(workouts) {
+  let heaviest = {
+    exercise: null,
+    weight: 0,
+    reps: 0,
+  };
+
+  workouts.forEach((workout) => {
+    const exerciseData = workout.exerciseData || workout.inputs || {};
+    Object.values(exerciseData).forEach((exercise) => {
+      const rawExerciseName = exercise.exerciseName || exercise.selection;
+      if (!rawExerciseName) return;
+
+      const exerciseName = getExerciseName(rawExerciseName);
+      const sets = exercise.sets || exercise.input || [];
+
+      sets.forEach((set) => {
+        if (!set || typeof set !== 'string') return;
+
+        // Parse set format like "225x8" or "225 x 8"
+        const match = set.match(/(\d+\.?\d*)\s*x\s*(\d+)/i);
+        if (match) {
+          const weight = parseFloat(match[1]);
+          const reps = parseInt(match[2]);
+
+          if (weight > heaviest.weight) {
+            heaviest = {
+              exercise: exerciseName,
+              weight,
+              reps,
+            };
+          }
+        }
+      });
+    });
+  });
+
+  return heaviest.exercise ? heaviest : null;
 }

@@ -115,9 +115,7 @@ function AddFriend({ userId }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6">
-      <h3 className="text-xl font-bold text-gray-800 mb-4">Add Friends</h3>
-
+    <div>
       {/* Search Form */}
       <form onSubmit={handleSearch} className="flex gap-2 mb-4">
         <input
@@ -125,13 +123,13 @@ function AddFriend({ userId }) {
           value={searchEmail}
           onChange={(e) => setSearchEmail(e.target.value)}
           placeholder="Enter email address..."
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           disabled={searching}
         />
         <button
           type="submit"
           disabled={searching}
-          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:bg-gray-400"
+          className="flex-shrink-0 px-4 sm:px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:bg-gray-400 whitespace-nowrap"
         >
           {searching ? 'Searching...' : 'Search'}
         </button>
@@ -152,34 +150,36 @@ function AddFriend({ userId }) {
           {searchResults.map((user) => (
             <div
               key={user.id}
-              className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+              className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-gray-50 rounded-lg"
             >
-              <img
-                src={user.photoURL || '/default-avatar.png'}
-                alt={user.displayName}
-                className="w-12 h-12 rounded-full border-2 border-gray-200"
-              />
-              <div className="flex-1">
-                <p className="font-semibold text-gray-800">{user.displayName}</p>
-                <p className="text-sm text-gray-600">{user.email}</p>
+              <div className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
+                <img
+                  src={user.photoURL || '/default-avatar.png'}
+                  alt={user.displayName}
+                  className="w-12 h-12 rounded-full border-2 border-gray-200 flex-shrink-0"
+                />
+                <div className="flex-1 min-w-0 overflow-hidden">
+                  <p className="font-semibold text-gray-800 truncate">{user.displayName}</p>
+                  <p className="text-sm text-gray-600 truncate">{user.email}</p>
+                </div>
               </div>
-              <div>
+              <div className="flex-shrink-0 w-full sm:w-auto">
                 {user.status === 'can_add' && (
                   <button
                     onClick={() => handleSendRequest(user.id)}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                    className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap"
                   >
                     Add Friend
                   </button>
                 )}
                 {user.status === 'already_friends' && (
-                  <span className="text-sm text-gray-500 italic">Already friends</span>
+                  <span className="text-sm text-gray-500 italic block text-center sm:text-left">Already friends</span>
                 )}
                 {user.status === 'request_sent' && (
-                  <span className="text-sm text-gray-500 italic">Request sent</span>
+                  <span className="text-sm text-gray-500 italic block text-center sm:text-left">Request sent</span>
                 )}
                 {user.status === 'request_received' && (
-                  <span className="text-sm text-blue-600 italic">Check requests</span>
+                  <span className="text-sm text-blue-600 italic block text-center sm:text-left">Check requests</span>
                 )}
               </div>
             </div>

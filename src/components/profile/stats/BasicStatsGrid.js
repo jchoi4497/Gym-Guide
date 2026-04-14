@@ -1,8 +1,14 @@
 import StatCard from './StatCard';
 
 function BasicStatsGrid({ stats }) {
+  const heaviestLiftValue = stats.heaviestLift
+    ? `${stats.heaviestLift.weight} lbs × ${stats.heaviestLift.reps}`
+    : 'No data';
+
+  const heaviestLiftSubtitle = stats.heaviestLift ? stats.heaviestLift.exercise : null;
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
       <StatCard title="Total Workouts" value={stats.totalWorkouts} />
       <StatCard
         title="Member Since"
@@ -13,6 +19,12 @@ function BasicStatsGrid({ stats }) {
         value={stats.lastWorkout?.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
       />
       <StatCard title="Current Streak" value={`${stats.currentStreak} days`} highlight />
+      <StatCard
+        title="Heaviest Lift"
+        value={heaviestLiftValue}
+        subtitle={heaviestLiftSubtitle}
+        highlight
+      />
     </div>
   );
 }

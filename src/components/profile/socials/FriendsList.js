@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, arrayRemove } from 'firebase/firestore';
 import db from '../../../config/firebase';
 
 function FriendsList({ userId }) {
@@ -45,6 +45,28 @@ function FriendsList({ userId }) {
     }
   };
 
+  const handleUnfriend = async (friendId) => {
+    if (!confirm('Are you sure you want to unfriend this user?')) {
+      return;
+    }
+
+    try {
+      // Remove from both users' friends arrays
+      await updateDoc(doc(db, 'users', userId), {
+        friends: arrayRemove(friendId),
+      });
+      await updateDoc(doc(db, 'users', friendId), {
+        friends: arrayRemove(userId),
+      });
+
+      // Refresh friends list
+      await fetchFriends();
+    } catch (error) {
+      console.error('Error unfriending user:', error);
+      alert('Failed to unfriend user. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="text-center py-4 text-gray-600">
@@ -67,23 +89,33 @@ function FriendsList({ userId }) {
       {friends.map((friend) => (
         <div
           key={friend.id}
-          className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
         >
-          <img
-            src={friend.photoURL || '/default-avatar.png'}
-            alt={friend.displayName}
-            className="w-12 h-12 rounded-full border-2 border-gray-200"
-          />
-          <div className="flex-1">
-            <p className="font-semibold text-gray-800">{friend.displayName}</p>
-            <p className="text-sm text-gray-600">{friend.email}</p>
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <img
+              src={friend.photoURL || '/default-avatar.png'}
+              alt={friend.displayName}
+              className="w-12 h-12 rounded-full border-2 border-gray-200 flex-shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-gray-800 truncate">{friend.displayName}</p>
+              <p className="text-sm text-gray-600 truncate">{friend.email}</p>
+            </div>
           </div>
-          <button
-            onClick={() => navigate(`/user/${friend.id}`)}
-            className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
-          >
-            View Profile
-          </button>
+          <div className="flex gap-2 sm:flex-shrink-0">
+            <button
+              onClick={() => navigate(`/user/${friend.id}`)}
+              className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+            >
+              View Profile
+            </button>
+            <button
+              onClick={() => handleUnfriend(friend.id)}
+              className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-red-600 hover:text-red-800 transition-colors"
+            >
+              Unfriend
+            </button>
+          </div>
         </div>
       ))}
     </div>
