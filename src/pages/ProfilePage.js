@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { auth } from '../config/firebase';
 import Navbar from '../components/Navbar';
+import SocialsTab from '../components/profile/socials/SocialsTab';
 import StatsTab from '../components/profile/stats/StatsTab';
 import SettingsTab from '../components/profile/settings/SettingsTab';
 
 function ProfilePage() {
-  const [activeTab, setActiveTab] = useState('settings');
+  const [activeTab, setActiveTab] = useState('socials');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -66,14 +67,14 @@ function ProfilePage() {
         <div className="border-b border-gray-300 mb-6">
           <nav className="flex space-x-8">
             <button
-              onClick={() => setActiveTab('settings')}
+              onClick={() => setActiveTab('socials')}
               className={`py-3 px-4 font-semibold transition-colors ${
-                activeTab === 'settings'
+                activeTab === 'socials'
                   ? 'border-b-4 border-blue-600 text-blue-600'
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              Settings
+              Socials
             </button>
             <button
               onClick={() => setActiveTab('stats')}
@@ -85,10 +86,21 @@ function ProfilePage() {
             >
               Stats
             </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`py-3 px-4 font-semibold transition-colors ${
+                activeTab === 'settings'
+                  ? 'border-b-4 border-blue-600 text-blue-600'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              Settings
+            </button>
           </nav>
         </div>
 
         {/* Tab Content */}
+        {activeTab === 'socials' && <SocialsTab user={user} />}
         {activeTab === 'stats' && <StatsTab user={user} />}
         {activeTab === 'settings' && <SettingsTab user={user} />}
       </div>
