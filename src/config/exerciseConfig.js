@@ -717,9 +717,32 @@ export function getPlaceholderForExercise(exerciseId) {
 
 /**
  * Get exercise by ID
+ * Also tries to find by name as fallback for backwards compatibility
  */
 export function getExerciseById(exerciseId) {
-  return Object.values(EXERCISES).find(exercise => exercise.id === exerciseId);
+  if (!exerciseId) return undefined;
+
+  // First try exact ID match
+  let exercise = Object.values(EXERCISES).find(ex => ex.id === exerciseId);
+
+  // If not found, try case-insensitive ID match
+  if (!exercise) {
+    const lowerCaseId = exerciseId.toLowerCase();
+    exercise = Object.values(EXERCISES).find(ex => ex.id.toLowerCase() === lowerCaseId);
+  }
+
+  // If still not found, try to match by name (for old data that stored names instead of IDs)
+  if (!exercise) {
+    exercise = Object.values(EXERCISES).find(ex => ex.name === exerciseId);
+  }
+
+  // Final fallback: case-insensitive name match
+  if (!exercise) {
+    const lowerCaseId = exerciseId.toLowerCase();
+    exercise = Object.values(EXERCISES).find(ex => ex.name.toLowerCase() === lowerCaseId);
+  }
+
+  return exercise;
 }
 
 /**
