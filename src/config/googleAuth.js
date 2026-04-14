@@ -15,9 +15,10 @@ export const loginWithGoogle = async () => {
 
   if (!userSnap.exists()) {
     await setDoc(userRef, {
-      name: user.displayName,
+      displayName: user.displayName,
       email: user.email,
-      photo: user.photoURL,
+      photoURL: user.photoURL,
+      friends: [],
       createdAt: new Date(),
     });
   }

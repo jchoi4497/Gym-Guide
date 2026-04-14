@@ -12,6 +12,7 @@ import SavedWorkout from './SavedWorkout/SavedWorkout';
 import ListOfWorkouts from './pages/ListOfWorkouts';
 import MyExercisesPage from './pages/MyExercisesPage';
 import ProfilePage from './pages/ProfilePage';
+import UserProfilePage from './pages/UserProfilePage';
 import CalendarPage from './pages/CalendarPage';
 
 function Main() {
@@ -32,6 +33,7 @@ function Main() {
                     <Route exact path="/SavedWorkouts" element={<ListOfWorkouts />} />
                     <Route exact path="/MyExercises" element={<MyExercisesPage />} />
                     <Route exact path="/Profile" element={<ProfilePage />} />
+                    <Route exact path="/user/:userId" element={<UserProfilePage />} />
                     <Route exact path="/Calendar" element={<CalendarPage />} />
                 </Routes>
             </BrowserRouter>
