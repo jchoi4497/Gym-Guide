@@ -4,11 +4,13 @@ import Navbar from '../components/Navbar';
 import SocialsTab from '../components/profile/socials/SocialsTab';
 import StatsTab from '../components/profile/stats/StatsTab';
 import SettingsTab from '../components/profile/settings/SettingsTab';
+import { useTheme } from '../contexts/ThemeContext';
 
 function ProfilePage() {
   const [activeTab, setActiveTab] = useState('socials');
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { theme } = useTheme();
 
   // Listen to auth state changes
   useEffect(() => {
@@ -21,9 +23,9 @@ function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-serif">
+      <div className={`min-h-screen ${theme.pageBg} font-serif`}>
         <Navbar />
-        <div className="flex items-center justify-center mt-20 text-gray-700">
+        <div className={`flex items-center justify-center mt-20 ${theme.cardText}`}>
           Loading...
         </div>
       </div>
@@ -32,19 +34,19 @@ function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-serif">
+      <div className={`min-h-screen ${theme.pageBg} font-serif`}>
         <Navbar />
         <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Sign In Required</h1>
-          <p className="text-xl text-gray-700 mb-6">Please sign in to view your profile.</p>
-          <p className="text-gray-600">Use the navigation bar above to sign in with Google.</p>
+          <h1 className={`text-3xl font-bold ${theme.headerText} mb-4`}>Sign In Required</h1>
+          <p className={`text-xl ${theme.cardText} mb-6`}>Please sign in to view your profile.</p>
+          <p className={theme.cardTextSecondary}>Use the navigation bar above to sign in with Google.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-serif pb-32">
+    <div className={`min-h-screen ${theme.pageBg} font-serif pb-32`}>
       <Navbar />
 
       {/* Profile Header */}
@@ -56,22 +58,22 @@ function ProfilePage() {
             className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white shadow-lg"
           />
           <div className="text-center sm:text-left">
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-800 mb-2">
+            <h1 className={`text-4xl sm:text-5xl font-bold ${theme.headerText} mb-2`}>
               {user.displayName}
             </h1>
-            <p className="text-lg text-gray-600">{user.email}</p>
+            <p className={`text-lg ${theme.cardTextSecondary}`}>{user.email}</p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="border-b border-gray-300 mb-6">
+        <div className={`border-b ${theme.cardBorder} mb-6`}>
           <nav className="flex space-x-8">
             <button
               onClick={() => setActiveTab('socials')}
               className={`py-3 px-4 font-semibold transition-colors ${
                 activeTab === 'socials'
                   ? 'border-b-4 border-blue-600 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
+                  : `${theme.cardTextSecondary} hover:${theme.cardText}`
               }`}
             >
               Socials
@@ -81,7 +83,7 @@ function ProfilePage() {
               className={`py-3 px-4 font-semibold transition-colors ${
                 activeTab === 'stats'
                   ? 'border-b-4 border-blue-600 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
+                  : `${theme.cardTextSecondary} hover:${theme.cardText}`
               }`}
             >
               Stats
@@ -91,7 +93,7 @@ function ProfilePage() {
               className={`py-3 px-4 font-semibold transition-colors ${
                 activeTab === 'settings'
                   ? 'border-b-4 border-blue-600 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-800'
+                  : `${theme.cardTextSecondary} hover:${theme.cardText}`
               }`}
             >
               Settings

@@ -1,28 +1,31 @@
 import HypertrophyImage from '../images/Hypertrophy.png';
 import Navbar from '../components/Navbar';
+import { useTheme } from '../contexts/ThemeContext';
 
 function InfoPage() {
+  const { theme } = useTheme();
+
   return (
-    <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-32 font-serif">
+    <div className={`${theme.pageBg} min-h-screen pb-32 font-serif`}>
       <Navbar />
 
-      <h1 className="text-5xl font-bold text-center mb-10 italic">Training Info</h1>
+      <h1 className={`text-5xl font-bold text-center mb-10 italic ${theme.headerText}`}>Training Info</h1>
 
       <div className="flex flex-wrap gap-10 justify-center mb-16">
         <div>
-          <h3 className="text-xl font-serif text-center">Hypertrophy Training</h3>
+          <h3 className={`text-xl font-serif text-center ${theme.cardText}`}>Hypertrophy Training</h3>
           <img
             src={HypertrophyImage}
             alt="Hypertrophy Training"
-            className="w-72 h-72 object-cover border-sky-50 border-2 border-solid rounded-2xl shadow-lg mb-6 mt-4"
+            className="w-72 h-72 object-cover border-2 border-solid rounded-2xl shadow-lg mb-6 mt-4"
           />
-          <p className="text-center w-72 h-12 font-serif">Program designed to increase muscle size and mass.</p>
+          <p className={`text-center w-72 h-12 font-serif ${theme.cardTextSecondary}`}>Program designed to increase muscle size and mass.</p>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto bg-sky-50 rounded-3xl shadow-2xl p-10 text-gray-800 space-y-6">
-        <h3 className="text-2xl font-bold underline mb-4">📌 Key Insights for Optimal Results</h3>
-        <ul className="space-y-3 text-lg leading-relaxed">
+      <div className={`max-w-5xl mx-auto ${theme.cardBg} rounded-3xl shadow-2xl p-10 ${theme.cardText} space-y-6`}>
+        <h3 className={`text-2xl font-bold underline mb-4 ${theme.cardText}`}>📌 Key Insights for Optimal Results</h3>
+        <ul className={`space-y-3 text-lg leading-relaxed ${theme.cardText}`}>
           <li>
             <strong>Discipline:</strong> Train consistently. I personally go to the gym four times a
             week to stay strong and keep improving. The journey matters more than the destination.

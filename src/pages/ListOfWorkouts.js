@@ -5,6 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, getDocs, query, orderBy, deleteDoc, doc, where } from 'firebase/firestore';
 import Navbar from '../components/Navbar';
 import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from '../config/constants';
+import { useTheme } from '../contexts/ThemeContext';
 
 function ListOfWorkouts() {
   const [workouts, setWorkouts] = useState([]);
@@ -12,6 +13,7 @@ function ListOfWorkouts() {
   const [error, setError] = useState(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState(null); // modal state
   const [isDeleting, setIsDeleting] = useState(false); // loading state for deletion
+  const { theme } = useTheme();
 
   const handleDeleteWorkout = async (id) => {
     setIsDeleting(true);
@@ -84,7 +86,7 @@ function ListOfWorkouts() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-300 to-stone-300 font-serif text-gray-800">
+      <div className={`min-h-screen flex items-center justify-center ${theme.pageBg} font-serif ${theme.cardText}`}>
         Loading saved workouts...
       </div>
     );
@@ -92,7 +94,7 @@ function ListOfWorkouts() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-serif">
+      <div className={`min-h-screen ${theme.pageBg} font-serif`}>
         <Navbar />
         <div className="flex items-center justify-center mt-20 text-red-600">{error}</div>
       </div>
@@ -101,17 +103,17 @@ function ListOfWorkouts() {
 
   if (workouts.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-serif">
+      <div className={`min-h-screen ${theme.pageBg} font-serif`}>
         <Navbar />
-        <h1 className="flex justify-center">No saved workouts found.</h1>
+        <h1 className={`flex justify-center ${theme.headerText}`}>No saved workouts found.</h1>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-serif pb-32">
+    <div className={`min-h-screen ${theme.pageBg} font-serif pb-32`}>
       <Navbar />
-      <div className="text-5xl mb-6 pl-20">Saved Workouts</div>
+      <div className={`text-5xl mb-6 pl-20 ${theme.headerText}`}>Saved Workouts</div>
       <ul className="space-y-4 px-4 sm:px-20">
         {workouts.map((workout) => {
           const dateFormat = workout.date
@@ -121,13 +123,13 @@ function ListOfWorkouts() {
           return (
             <li
               key={workout.id}
-              className="bg-sky-50 p-4 rounded shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl"
+              className={`${theme.cardBg} p-4 rounded shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl`}
             >
               <div>
-                <div className="text-xl font-semibold">
+                <div className={`text-xl font-semibold ${theme.cardText}`}>
                   {getLabel((workout.muscleGroup || workout.target)?.label ?? (workout.muscleGroup || workout.target))}
                 </div>
-                <div className="text-gray-600">Date: {dateFormat}</div>
+                <div className={theme.cardTextSecondary}>Date: {dateFormat}</div>
                 <button>
                   <Link
                     to={`/SavedWorkout/${workout.id}`}

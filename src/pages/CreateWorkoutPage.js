@@ -9,10 +9,12 @@ import MuscleGroupAutocomplete from '../components/MuscleGroupAutocomplete';
 import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS } from '../config/constants';
 import { templateToExerciseData } from '../utils/templateHelpers';
 import { getWorkoutRepCount, getWorkoutSetCount } from '../utils/workoutDisplay';
+import { useTheme } from '../contexts/ThemeContext';
 
 function CreateWorkoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { theme } = useTheme();
 
   // Auth state
   const [user, setUser] = useState(null);
@@ -391,10 +393,10 @@ function CreateWorkoutPage() {
 
   if (authLoading) {
     return (
-      <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
+      <div className={`${theme.pageBg} min-h-screen pb-20 font-serif`}>
         <Navbar />
         <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 text-center">
-          <p className="text-xl text-gray-700">Loading...</p>
+          <p className={`text-xl ${theme.cardText}`}>Loading...</p>
         </div>
       </div>
     );
@@ -402,20 +404,20 @@ function CreateWorkoutPage() {
 
   if (!user) {
     return (
-      <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
+      <div className={`${theme.pageBg} min-h-screen pb-20 font-serif`}>
         <Navbar />
         <div className="max-w-4xl mx-auto px-6 pt-14 pb-20">
-          <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-12 text-center">
+          <div className={`${theme.cardBg} rounded-3xl shadow-2xl p-8 sm:p-12 text-center`}>
             <div className="mb-6">
               <div className="text-6xl mb-4">🔒</div>
-              <h1 className="text-4xl font-extrabold mb-4 text-gray-800">Sign In Required</h1>
-              <p className="text-xl text-gray-700 mb-8">
+              <h1 className={`text-4xl font-extrabold mb-4 ${theme.headerText}`}>Sign In Required</h1>
+              <p className={`text-xl ${theme.cardText} mb-8`}>
                 Please sign in with Google to create and track your workouts.
               </p>
             </div>
-            <div className="bg-blue-50 rounded-xl p-6 mb-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-3">What you'll get:</h2>
-              <ul className="text-left space-y-2 text-gray-700">
+            <div className={`${theme.cardBgSecondary} rounded-xl p-6 mb-6`}>
+              <h2 className={`text-lg font-semibold ${theme.cardText} mb-3`}>What you'll get:</h2>
+              <ul className={`text-left space-y-2 ${theme.cardText}`}>
                 <li className="flex items-start gap-3">
                   <span className="text-green-600 font-bold">✓</span>
                   <span>Create unlimited custom workouts</span>
@@ -434,7 +436,7 @@ function CreateWorkoutPage() {
                 </li>
               </ul>
             </div>
-            <p className="text-gray-600 text-sm">
+            <p className={`${theme.cardTextSecondary} text-sm`}>
               Use the "Sign In with Google" button in the navigation bar above to get started.
             </p>
           </div>
@@ -444,20 +446,20 @@ function CreateWorkoutPage() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-32 font-serif">
+    <div className={`${theme.pageBg} min-h-screen pb-32 font-serif`}>
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-14 pb-16 sm:pb-20">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 sm:mb-4 text-gray-800">Create Workout</h1>
-        <p className="text-base sm:text-lg text-gray-700 italic mb-8 sm:mb-10">
+        <h1 className={`text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 sm:mb-4 ${theme.headerText}`}>Create Workout</h1>
+        <p className={`text-base sm:text-lg ${theme.cardText} italic mb-8 sm:mb-10`}>
           Set up your workout and start training.
         </p>
 
         {/* Quick Start - Template Dropdown */}
         <div className="mb-8 sm:mb-10">
-          <div className="bg-sky-50 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg max-w-2xl mx-auto">
+          <div className={`${theme.cardBg} rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg max-w-2xl mx-auto`}>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
-              <h2 className="text-lg sm:text-xl font-semibold text-gray-800">💡 Quick Start - Load Template</h2>
+              <h2 className={`text-lg sm:text-xl font-semibold ${theme.cardText}`}>💡 Quick Start - Load Template</h2>
               <Link to="/Templates" className="text-blue-600 hover:text-blue-800 font-semibold text-sm whitespace-nowrap">
                 Manage Templates →
               </Link>
@@ -482,7 +484,7 @@ function CreateWorkoutPage() {
                   }
                 }
               }}
-              className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base sm:text-lg bg-white"
+              className={`w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-lg border-2 ${theme.inputBorder} focus:outline-none ${theme.inputFocus} text-base sm:text-lg ${theme.inputBg}`}
               disabled={todayScheduledWorkouts.length === 0 && recentTemplates.length === 0}
             >
               <option value="">
@@ -514,7 +516,7 @@ function CreateWorkoutPage() {
                 </optgroup>
               )}
             </select>
-            <p className="text-xs text-gray-500 mt-2 italic">
+            <p className={`text-xs ${theme.cardTextSecondary} mt-2 italic`}>
               {todayScheduledWorkouts.length > 0
                 ? `${todayScheduledWorkouts.length} workout${todayScheduledWorkouts.length > 1 ? 's' : ''} scheduled for today`
                 : recentTemplates.length === 0
@@ -541,12 +543,12 @@ function CreateWorkoutPage() {
 
         {/* Wizard Card - Shows one step at a time */}
         <div className="max-w-2xl mx-auto mb-8 sm:mb-10 pb-8">
-          <div className="bg-sky-50 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl">
+          <div className={`${theme.cardBg} rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl`}>
             {/* Step 1: Select Workout */}
             {currentStep === 1 && (
               <div>
-                <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-gray-800">Step 1: Select Workout</h2>
-                <p className="text-sm sm:text-base text-gray-600 mb-6">Choose your muscle group or workout type</p>
+                <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${theme.cardText}`}>Step 1: Select Workout</h2>
+                <p className={`text-sm sm:text-base ${theme.cardTextSecondary} mb-6`}>Choose your muscle group or workout type</p>
                 <DropDown
                   options={MUSCLE_GROUP_OPTIONS}
                   value={selectedMuscleGroup}
@@ -555,7 +557,7 @@ function CreateWorkoutPage() {
 
                 {selectedMuscleGroup === 'custom' && (
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className={`block text-sm font-medium ${theme.cardText} mb-2`}>
                       Name your workout (e.g., "Push Day", "Upper Body")
                     </label>
                     <MuscleGroupAutocomplete
@@ -591,8 +593,8 @@ function CreateWorkoutPage() {
             {/* Step 2: Set Range */}
             {currentStep === 2 && (
               <div>
-                <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-gray-800">Step 2: Set × Rep Range</h2>
-                <p className="text-sm sm:text-base text-gray-600 mb-6">Choose your training volume</p>
+                <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${theme.cardText}`}>Step 2: Set × Rep Range</h2>
+                <p className={`text-sm sm:text-base ${theme.cardTextSecondary} mb-6`}>Choose your training volume</p>
                 <DropDown
                   options={SET_RANGE_OPTIONS}
                   value={numberOfSets}
@@ -602,7 +604,7 @@ function CreateWorkoutPage() {
                 {numberOfSets === 'custom' && (
                   <div className="mt-4 space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={`block text-sm font-medium ${theme.cardText} mb-2`}>
                         Number of sets per exercise <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -612,11 +614,11 @@ function CreateWorkoutPage() {
                         value={customSetCount}
                         onChange={(e) => setCustomSetCount(e.target.value)}
                         placeholder="e.g., 4"
-                        className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full px-4 py-2 rounded-md border ${theme.inputBorder} ${theme.inputBg} focus:outline-none ${theme.inputFocus}`}
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={`block text-sm font-medium ${theme.cardText} mb-2`}>
                         Target reps per set (optional)
                       </label>
                       <input
@@ -626,7 +628,7 @@ function CreateWorkoutPage() {
                         value={customRepCount}
                         onChange={(e) => setCustomRepCount(e.target.value)}
                         placeholder="e.g., 10"
-                        className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full px-4 py-2 rounded-md border ${theme.inputBorder} ${theme.inputBg} focus:outline-none ${theme.inputFocus}`}
                       />
                     </div>
                     <div className="mt-6 flex justify-between">
@@ -669,9 +671,9 @@ function CreateWorkoutPage() {
             {/* Step 3: Date */}
             {currentStep === 3 && (
               <div>
-                <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-gray-800">Step 3: Workout Date</h2>
-                <p className="text-sm sm:text-base text-gray-600 mb-6">When did you do this workout?</p>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${theme.cardText}`}>Step 3: Workout Date</h2>
+                <p className={`text-sm sm:text-base ${theme.cardTextSecondary} mb-6`}>When did you do this workout?</p>
+                <label className={`block text-sm font-medium ${theme.cardText} mb-2`}>
                   Select date for this workout
                 </label>
                 <input
@@ -685,9 +687,9 @@ function CreateWorkoutPage() {
                     const day = String(today.getDate()).padStart(2, '0');
                     return `${year}-${month}-${day}`;
                   })()}
-                  className="w-full px-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                  className={`w-full px-4 py-2 rounded-md border ${theme.inputBorder} ${theme.inputBg} focus:outline-none ${theme.inputFocus} text-lg`}
                 />
-                <p className="mt-2 text-xs text-gray-500 italic">
+                <p className={`mt-2 text-xs ${theme.cardTextSecondary} italic`}>
                   Change this if you're adding a past workout
                 </p>
 
@@ -724,21 +726,21 @@ function CreateWorkoutPage() {
       {/* Draft Workout Modal */}
       {showDraftModal && draftWorkout && (
         <div className="fixed inset-0 backdrop-blur-md bg-white/10 z-[9999] flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+          <div className={`${theme.cardBg} rounded-2xl shadow-2xl max-w-md w-full p-6`}>
             <div className="text-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              <h2 className={`text-2xl font-bold ${theme.cardText} mb-2`}>
                 Resume Draft Workout?
               </h2>
-              <p className="text-gray-600">
+              <p className={theme.cardTextSecondary}>
                 You have an unfinished workout
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 mb-6">
-              <h3 className="font-semibold text-lg text-gray-800 mb-2">
+            <div className={`${theme.cardBgSecondary} rounded-xl p-4 mb-6`}>
+              <h3 className={`font-semibold text-lg ${theme.cardText} mb-2`}>
                 {draftWorkout.muscleGroup || 'Workout'}
               </h3>
-              <div className="text-sm text-gray-600">
+              <div className={`text-sm ${theme.cardTextSecondary}`}>
                 <p>Created: {draftWorkout.createdAt ? new Date(draftWorkout.createdAt.toDate()).toLocaleDateString() : 'Recently'}</p>
                 <p>Sets: {draftWorkout.numberOfSets || 'N/A'}</p>
               </div>
@@ -747,7 +749,7 @@ function CreateWorkoutPage() {
             <div className="flex flex-col gap-3">
               <button
                 onClick={handleResumeDraft}
-                className="w-full py-3 rounded-lg bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold transition-colors shadow-lg"
+                className={`w-full py-3 rounded-lg ${theme.btnPrimary} ${theme.btnPrimaryText} font-semibold transition-colors shadow-lg`}
               >
                 ▶️ Resume Draft
               </button>
@@ -759,7 +761,7 @@ function CreateWorkoutPage() {
               </button>
               <button
                 onClick={() => setShowDraftModal(false)}
-                className="w-full py-3 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium transition-colors"
+                className={`w-full py-3 rounded-lg ${theme.btnSecondary} ${theme.btnSecondaryText} font-medium transition-colors`}
               >
                 Cancel
               </button>

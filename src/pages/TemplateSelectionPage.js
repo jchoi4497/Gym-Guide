@@ -8,6 +8,7 @@ import TemplateCard from '../components/TemplateCard';
 import TemplateEditor from '../components/TemplateEditor';
 import { MUSCLE_GROUPS } from '../config/constants';
 import { DEFAULT_EXERCISES, getExerciseName } from '../config/exerciseConfig';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Helper function to convert DEFAULT_EXERCISES to template format
 function createBuiltInTemplate(muscleGroup, name, description) {
@@ -70,6 +71,7 @@ function TemplateSelectionPage() {
   const [activeTab, setActiveTab] = useState('custom'); // 'builtin' or 'custom'
   const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'list'
   const [openMenuId, setOpenMenuId] = useState(null); // Track which template menu is open
+  const { theme } = useTheme();
 
   // Check if we're editing an existing template (from URL params)
   const editId = searchParams.get('edit');
@@ -270,11 +272,11 @@ function TemplateSelectionPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-32 font-serif">
+      <div className={`${theme.pageBg} min-h-screen pb-32 font-serif`}>
         <Navbar />
         <div className="max-w-7xl mx-auto px-6 pt-14 text-center">
           <div className="text-4xl mb-4">⏳</div>
-          <p className="text-xl text-gray-700">Loading templates...</p>
+          <p className={`text-xl ${theme.cardText}`}>Loading templates...</p>
         </div>
       </div>
     );
@@ -283,13 +285,13 @@ function TemplateSelectionPage() {
   // Editor view
   if (showEditor) {
     return (
-      <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-32 font-serif">
+      <div className={`${theme.pageBg} min-h-screen pb-32 font-serif`}>
         <Navbar />
         <div className="max-w-6xl mx-auto px-6 pt-14">
-          <h1 className="text-5xl font-extrabold mb-4 text-gray-800">
+          <h1 className={`text-5xl font-extrabold mb-4 ${theme.headerText}`}>
             {editingTemplate ? 'Edit Template' : 'Create New Template'}
           </h1>
-          <p className="text-lg text-gray-700 italic mb-10">
+          <p className={`text-lg ${theme.cardText} italic mb-10`}>
             {editingTemplate
               ? 'Update your custom workout template'
               : 'Build your own workout template with custom exercises and structure'}
@@ -305,14 +307,14 @@ function TemplateSelectionPage() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-32 font-serif">
+    <div className={`${theme.pageBg} min-h-screen pb-32 font-serif`}>
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-6 pt-14">
         <div className="mb-10">
           <div className="text-center mb-6">
-            <h1 className="text-5xl font-extrabold mb-4 text-gray-800">Templates</h1>
-            <p className="text-lg text-gray-700 italic">
+            <h1 className={`text-5xl font-extrabold mb-4 ${theme.headerText}`}>Templates</h1>
+            <p className={`text-lg ${theme.cardText} italic`}>
               Start from a template or create your own custom workout plan
             </p>
           </div>
@@ -326,7 +328,7 @@ function TemplateSelectionPage() {
               placeholder="Search templates..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className={`w-full px-4 py-3 rounded-lg border-2 ${theme.inputBorder} ${theme.inputBg} focus:outline-none ${theme.inputFocus}`}
             />
           </div>
         )}
@@ -336,7 +338,7 @@ function TemplateSelectionPage() {
           <div className="flex justify-center mb-6">
             <button
               onClick={handleCreateNew}
-              className="px-6 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-all shadow-md hover:shadow-lg hover:scale-105"
+              className={`px-6 py-3 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-full font-semibold transition-all shadow-md hover:shadow-lg hover:scale-105`}
             >
               + Create New Template
             </button>
@@ -410,10 +412,10 @@ function TemplateSelectionPage() {
               </div>
             </div>
             {filteredBuiltInTemplates.length === 0 ? (
-              <div className="bg-sky-50 rounded-3xl p-12 text-center shadow-lg">
+              <div className={`${theme.cardBg} rounded-3xl p-12 text-center shadow-lg`}>
                 <div className="text-6xl mb-4">🔍</div>
-                <h3 className="text-2xl font-bold mb-4 text-gray-800">No templates found</h3>
-                <p className="text-gray-600">
+                <h3 className={`text-2xl font-bold mb-4 ${theme.cardText}`}>No templates found</h3>
+                <p className={theme.cardTextSecondary}>
                   Try adjusting your search terms
                 </p>
               </div>

@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 import CalendarHeader from '../components/calendar/CalendarHeader';
 import CalendarGrid from '../components/calendar/CalendarGrid';
 import TodaysWorkouts from '../components/calendar/TodaysWorkouts';
+import { useTheme } from '../contexts/ThemeContext';
 
 function CalendarPage() {
   const [user, setUser] = useState(null);
@@ -15,6 +16,7 @@ function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState(null);
   const [templates, setTemplates] = useState([]);
   const calendarRef = useRef();
+  const { theme } = useTheme();
 
   // Listen to auth state
   useEffect(() => {
@@ -221,10 +223,10 @@ function CalendarPage() {
 
   if (authLoading) {
     return (
-      <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
+      <div className={`${theme.pageBg} min-h-screen pb-20 font-serif`}>
         <Navbar />
         <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 text-center">
-          <p className="text-xl text-gray-700">Loading...</p>
+          <p className={`text-xl ${theme.cardText}`}>Loading...</p>
         </div>
       </div>
     );
@@ -232,13 +234,13 @@ function CalendarPage() {
 
   if (!user) {
     return (
-      <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
+      <div className={`${theme.pageBg} min-h-screen pb-20 font-serif`}>
         <Navbar />
         <div className="max-w-4xl mx-auto px-6 pt-14 pb-20">
-          <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-12 text-center">
+          <div className={`${theme.cardBg} rounded-3xl shadow-2xl p-8 sm:p-12 text-center`}>
             <div className="text-6xl mb-4">📅</div>
-            <h1 className="text-4xl font-extrabold mb-4 text-gray-800">Sign In Required</h1>
-            <p className="text-xl text-gray-700 mb-8">
+            <h1 className={`text-4xl font-extrabold mb-4 ${theme.headerText}`}>Sign In Required</h1>
+            <p className={`text-xl ${theme.cardText} mb-8`}>
               Please sign in to view and manage your workout schedule.
             </p>
           </div>
@@ -251,21 +253,21 @@ function CalendarPage() {
   const todayWorkouts = getWorkoutsForDate(new Date());
 
   return (
-    <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
+    <div className={`${theme.pageBg} min-h-screen pb-20 font-serif`}>
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-14 pb-16 sm:pb-20">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 sm:mb-4 text-gray-800">
+        <h1 className={`text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 sm:mb-4 ${theme.headerText}`}>
           Workout Calendar
         </h1>
-        <p className="text-base sm:text-lg text-gray-700 italic mb-8 sm:mb-10">
+        <p className={`text-base sm:text-lg ${theme.cardText} italic mb-8 sm:mb-10`}>
           Plan and schedule your workouts
         </p>
 
         {/* Calendar */}
         <div
           ref={calendarRef}
-          className="bg-white rounded-3xl shadow-xl p-4 sm:p-6 mb-6"
+          className={`${theme.cardBg} rounded-3xl shadow-xl p-4 sm:p-6 mb-6`}
           onClick={() => setSelectedDate(null)}
         >
           <CalendarHeader

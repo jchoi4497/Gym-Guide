@@ -4,6 +4,7 @@ import db from '../../../config/firebase';
 import { FIREBASE_FIELDS } from '../../../config/constants';
 import { useSettings } from '../../../contexts/SettingsContext';
 import AccountInfo from './AccountInfo';
+import ThemeSelector from './ThemeSelector';
 import WorkoutPreferences from './WorkoutPreferences';
 import UnitPreference from './UnitPreference';
 import DataManagement from './DataManagement';
@@ -52,6 +53,7 @@ function SettingsTab({ user }) {
   return (
     <div className="space-y-6">
       <AccountInfo user={user} memberSince={memberSince} />
+      <ThemeSelector />
       <WorkoutPreferences settings={settings} onUpdate={updateSettings} />
       <UnitPreference settings={settings} onUpdate={updateSettings} />
       <DataManagement user={user} />

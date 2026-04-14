@@ -4,6 +4,7 @@ import { auth } from '../config/firebase';
 import db from '../config/firebase';
 import Navbar from '../components/Navbar';
 import { EXERCISE_CATEGORIES } from '../config/exerciseConfig';
+import { useTheme } from '../contexts/ThemeContext';
 
 function MyExercisesPage() {
   const [customExercises, setCustomExercises] = useState([]);
@@ -12,6 +13,7 @@ function MyExercisesPage() {
   const [editingId, setEditingId] = useState(null);
   const [sortBy, setSortBy] = useState('date'); // 'date' or 'name'
   const formRef = useRef(null);
+  const { theme } = useTheme();
 
   // Form state
   const [exerciseName, setExerciseName] = useState('');
@@ -237,15 +239,15 @@ function MyExercisesPage() {
     }
   });
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <div className={`${theme.pageBg} min-h-screen flex items-center justify-center ${theme.cardText}`}>Loading...</div>;
 
   return (
-    <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-32 font-serif">
+    <div className={`${theme.pageBg} min-h-screen pb-32 font-serif`}>
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-6 pt-14">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-5xl font-extrabold text-gray-800">My Custom Exercises</h1>
+          <h1 className={`text-5xl font-extrabold ${theme.headerText}`}>My Custom Exercises</h1>
           {!isAdding && !editingId && (
             <button
               onClick={() => {
@@ -254,7 +256,7 @@ function MyExercisesPage() {
                   formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 100);
               }}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow-lg transition-all active:scale-95"
+              className={`px-6 py-3 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg font-semibold shadow-lg transition-all active:scale-95`}
             >
               + Add Exercise
             </button>
