@@ -61,7 +61,7 @@ function ProfilePage() {
             <h1 className={`text-4xl sm:text-5xl font-bold ${theme.headerText} mb-2`}>
               {user.displayName}
             </h1>
-            <p className={`text-lg ${theme.cardTextSecondary}`}>{user.email}</p>
+            <p className={`text-lg ${theme.cardTextSecondary} opacity-90`}>{user.email}</p>
           </div>
         </div>
 

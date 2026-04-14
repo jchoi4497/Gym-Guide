@@ -3,6 +3,7 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import db from '../../../config/firebase';
 import { FIREBASE_FIELDS } from '../../../config/constants';
 import { useSettings } from '../../../contexts/SettingsContext';
+import { useTheme } from '../../../contexts/ThemeContext';
 import AccountInfo from './AccountInfo';
 import ThemeSelector from './ThemeSelector';
 import WorkoutPreferences from './WorkoutPreferences';
@@ -10,6 +11,7 @@ import UnitPreference from './UnitPreference';
 import DataManagement from './DataManagement';
 
 function SettingsTab({ user }) {
+  const { theme } = useTheme();
   const { settings, loading, updateSettings } = useSettings();
   const [memberSince, setMemberSince] = useState(null);
 
@@ -45,7 +47,7 @@ function SettingsTab({ user }) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="text-xl text-gray-600">Loading settings...</div>
+        <div className={`text-xl ${theme.cardTextSecondary}`}>Loading settings...</div>
       </div>
     );
   }

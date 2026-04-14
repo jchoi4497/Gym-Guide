@@ -62,50 +62,50 @@ export const THEMES = {
     description: 'Modern chrome and steel aesthetic',
 
     // Page backgrounds
-    pageBg: 'bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900',
+    pageBg: 'bg-slate-800',
 
     // Navbar
-    navBg: 'bg-gradient-to-r from-gray-600 via-gray-500 to-gray-700 border-b-2 border-gray-400/50',
-    navText: 'text-gray-100',
-    navBorder: 'border-gray-200',
-    navActive: 'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-900 shadow-md border border-gray-400',
-    navHover: 'hover:bg-white/10',
+    navBg: 'bg-slate-700 border-b-2 border-slate-500 shadow-[0_4px_12px_rgba(0,0,0,0.3)]',
+    navText: 'text-slate-100',
+    navBorder: 'border-slate-300',
+    navActive: 'bg-slate-200 text-slate-900 shadow-[0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)] border-t border-l border-slate-100 border-b border-r border-b-slate-400 border-r-slate-400',
+    navHover: 'hover:bg-slate-600',
 
-    // Cards
-    cardBg: 'bg-gradient-to-br from-gray-300 via-gray-200 to-gray-400 border border-gray-400/50',
-    cardBgSecondary: 'bg-gradient-to-br from-gray-400 to-gray-500',
-    cardBorder: 'border border-gray-400/50',
-    cardText: 'text-gray-900',
-    cardTextSecondary: 'text-gray-700',
+    // Cards - Beveled metal plate effect
+    cardBg: 'bg-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(0,0,0,0.2)] border-t border-l border-slate-300 border-b-2 border-r-2 border-b-slate-500 border-r-slate-500',
+    cardBgSecondary: 'bg-slate-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2),inset_0_-1px_0_rgba(255,255,255,0.3)] border-t border-l border-slate-200 border-b border-r border-b-slate-400 border-r-slate-400',
+    cardBorder: 'border-slate-400',
+    cardText: 'text-slate-900',
+    cardTextSecondary: 'text-slate-700',
 
-    // Buttons - Primary
-    btnPrimary: 'bg-gradient-to-b from-gray-600 via-gray-700 to-gray-800 hover:from-gray-500 hover:via-gray-600 hover:to-gray-700 border border-gray-500',
-    btnPrimaryText: 'text-white',
-    btnPrimaryBorder: 'border border-gray-500',
+    // Buttons - Primary (pressed metal button)
+    btnPrimary: 'bg-slate-700 shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-slate-600 border-b-2 border-r-2 border-b-slate-800 border-r-slate-800 hover:shadow-[0_6px_16px_rgba(0,0,0,0.4)] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5',
+    btnPrimaryText: 'text-slate-100',
+    btnPrimaryBorder: 'border-slate-500',
 
-    // Buttons - Secondary
-    btnSecondary: 'bg-gradient-to-br from-gray-400 to-gray-500 hover:from-gray-300 hover:to-gray-400 border border-gray-600',
-    btnSecondaryText: 'text-gray-100',
+    // Buttons - Secondary (light metal button)
+    btnSecondary: 'bg-slate-300 shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] border-t border-l border-slate-200 border-b-2 border-r-2 border-b-slate-500 border-r-slate-500 hover:shadow-[0_6px_16px_rgba(0,0,0,0.4)] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] active:translate-y-0.5',
+    btnSecondaryText: 'text-slate-800',
 
     // Headers
-    headerText: 'text-gray-100',
-    subheaderText: 'text-gray-200',
+    headerText: 'text-slate-100 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]',
+    subheaderText: 'text-slate-200',
 
-    // Inputs
-    inputBg: 'bg-gray-50',
-    inputBorder: 'border-gray-400',
-    inputFocus: 'focus:ring-gray-500 focus:border-gray-500',
+    // Inputs - Inset effect
+    inputBg: 'bg-white shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]',
+    inputBorder: 'border-slate-400',
+    inputFocus: 'focus:ring-2 focus:ring-slate-500 focus:border-slate-600',
 
     // Stats cards
-    statCardBg: 'bg-gradient-to-br from-gray-300 via-gray-200 to-gray-400 border border-gray-400/50',
-    statCardHighlight: 'bg-gradient-to-br from-gray-600 via-gray-700 to-gray-800 text-white border border-gray-500',
+    statCardBg: 'bg-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(0,0,0,0.2)] border-t border-l border-slate-300 border-b-2 border-r-2 border-b-slate-500 border-r-slate-500',
+    statCardHighlight: 'bg-slate-700 text-slate-100 shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-slate-600 border-b-2 border-r-2 border-b-slate-800 border-r-slate-800',
 
     // Mobile menu
-    mobileMenuBg: 'bg-gradient-to-br from-gray-200 via-gray-100 to-gray-300 border border-gray-400',
-    mobileMenuText: 'text-gray-800',
-    mobileMenuBorder: 'border-gray-400',
-    mobileMenuActive: 'bg-gradient-to-br from-gray-300 to-gray-400 text-gray-900 border border-gray-500',
-    mobileMenuHover: 'hover:bg-gray-300/50',
+    mobileMenuBg: 'bg-slate-100 shadow-[0_8px_24px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.5)] border-t border-l border-slate-200 border-b-2 border-r-2 border-b-slate-400 border-r-slate-400',
+    mobileMenuText: 'text-slate-800',
+    mobileMenuBorder: 'border-slate-400',
+    mobileMenuActive: 'bg-slate-300 text-slate-900 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] border-t border-l border-slate-200 border-b border-r border-b-slate-500 border-r-slate-500',
+    mobileMenuHover: 'hover:bg-slate-200',
   },
 };
 

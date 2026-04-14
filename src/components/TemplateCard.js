@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth } from '../config/firebase';
 import db from '../config/firebase';
+import { useTheme } from '../contexts/ThemeContext';
 
 function TemplateCard({ template, onUpdate, onEdit, onDelete, onDuplicate, isBuiltIn = false }) {
   const navigate = useNavigate();
   const [isDeleting, setIsDeleting] = useState(false);
+  const { theme } = useTheme();
 
   // Toggle favorite status
   const handleToggleFavorite = async (e) => {
@@ -98,9 +100,9 @@ function TemplateCard({ template, onUpdate, onEdit, onDelete, onDuplicate, isBui
 
   return (
     <div className="block">
-      <div className={`bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}>
+      <div className={`${theme.cardBg} rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
+        <div className={`${theme.btnPrimary} p-6 ${theme.btnPrimaryText}`}>
           <div className="flex justify-between items-start mb-2">
             <h3 className="text-2xl font-bold flex-1">{template.name}</h3>
             {!isBuiltIn && (
@@ -121,23 +123,23 @@ function TemplateCard({ template, onUpdate, onEdit, onDelete, onDuplicate, isBui
 
         {/* Content */}
         <div className="p-6">
-          <p className="text-gray-600 mb-4 min-h-[3rem]">
+          <p className={`${theme.cardTextSecondary} mb-4 min-h-[3rem]`}>
             {template.description || 'No description provided'}
           </p>
 
           {/* Template Details */}
           <div className="space-y-2 mb-4">
-            <div className="flex items-center gap-2 text-sm text-gray-700">
+            <div className={`flex items-center gap-2 text-sm ${theme.cardText}`}>
               <span className="font-semibold">🎯 Target:</span>
               <span>{getMuscleGroupDisplay()}</span>
             </div>
             {!isBuiltIn && (
               <>
-                <div className="flex items-center gap-2 text-sm text-gray-700">
+                <div className={`flex items-center gap-2 text-sm ${theme.cardText}`}>
                   <span className="font-semibold">📊 Volume:</span>
                   <span>{getSetRepDisplay()}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-700">
+                <div className={`flex items-center gap-2 text-sm ${theme.cardText}`}>
                   <span className="font-semibold">🏋️ Exercises:</span>
                   <span>{getExerciseCount()}</span>
                 </div>
@@ -151,7 +153,7 @@ function TemplateCard({ template, onUpdate, onEdit, onDelete, onDuplicate, isBui
               {template.tags.map((tag, index) => (
                 <span
                   key={index}
-                  className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium"
+                  className={`px-3 py-1 ${theme.cardBgSecondary} ${theme.cardText} rounded-full text-xs font-medium`}
                 >
                   {tag}
                 </span>
@@ -163,7 +165,7 @@ function TemplateCard({ template, onUpdate, onEdit, onDelete, onDuplicate, isBui
           <div className="mt-4">
             <button
               onClick={handleCardClick}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors mb-2"
+              className={`w-full ${theme.btnPrimary} ${theme.btnPrimaryText} py-2 px-4 rounded-lg font-semibold transition-colors mb-2`}
             >
               Start Workout
             </button>
@@ -172,7 +174,7 @@ function TemplateCard({ template, onUpdate, onEdit, onDelete, onDuplicate, isBui
                 {onEdit && (
                   <button
                     onClick={handleEditClick}
-                    className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-semibold"
+                    className={`px-3 py-2 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg transition-colors text-sm font-semibold`}
                   >
                     Edit
                   </button>
@@ -180,7 +182,7 @@ function TemplateCard({ template, onUpdate, onEdit, onDelete, onDuplicate, isBui
                 {onDuplicate && (
                   <button
                     onClick={handleDuplicateClick}
-                    className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm font-semibold"
+                    className={`px-3 py-2 ${theme.btnSecondary} ${theme.btnSecondaryText} rounded-lg transition-colors text-sm font-semibold`}
                   >
                     Copy
                   </button>
@@ -199,7 +201,7 @@ function TemplateCard({ template, onUpdate, onEdit, onDelete, onDuplicate, isBui
 
           {/* Last Used */}
           {template.lastUsed && (
-            <div className="mt-3 text-xs text-gray-500 text-center">
+            <div className={`mt-3 text-xs ${theme.cardTextSecondary} text-center`}>
               Last used: {new Date(template.lastUsed).toLocaleDateString()}
             </div>
           )}

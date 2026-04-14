@@ -412,7 +412,7 @@ function TemplateSelectionPage() {
               </div>
             </div>
             {filteredBuiltInTemplates.length === 0 ? (
-              <div className={`${theme.cardBg} rounded-3xl p-12 text-center shadow-lg`}>
+              <div className={`${theme.cardBg} rounded-xl p-12 text-center shadow-lg`}>
                 <div className="text-6xl mb-4">🔍</div>
                 <h3 className={`text-2xl font-bold mb-4 ${theme.cardText}`}>No templates found</h3>
                 <p className={theme.cardTextSecondary}>
@@ -483,7 +483,7 @@ function TemplateSelectionPage() {
               <>
                 {/* No results from search */}
                 {searchTerm && favoriteTemplates.length === 0 && regularTemplates.length === 0 && userTemplates.length > 0 && (
-                  <div className={`${theme.cardBg} rounded-3xl p-12 text-center shadow-lg mb-16`}>
+                  <div className={`${theme.cardBg} rounded-xl p-12 text-center shadow-lg mb-16`}>
                     <div className="text-6xl mb-4">🔍</div>
                     <h3 className={`text-2xl font-bold mb-4 ${theme.cardText}`}>No templates found</h3>
                     <p className={theme.cardTextSecondary}>
@@ -773,7 +773,7 @@ function TemplateSelectionPage() {
 
                 {/* Empty State */}
                 {userTemplates.length === 0 && (
-                  <div className={`${theme.cardBg} rounded-3xl p-12 text-center shadow-lg mb-16`}>
+                  <div className={`${theme.cardBg} rounded-xl p-12 text-center shadow-lg mb-16`}>
                     <div className="text-6xl mb-4">📝</div>
                     <h3 className={`text-2xl font-bold mb-4 ${theme.cardText}`}>No Custom Templates Yet</h3>
                     <p className={`${theme.cardTextSecondary} mb-6`}>
@@ -792,7 +792,7 @@ function TemplateSelectionPage() {
 
             {/* Not Logged In State - show in custom tab only */}
             {!user && !isLoading && (
-              <div className={`${theme.cardBg} rounded-3xl p-12 text-center shadow-lg mb-12`}>
+              <div className={`${theme.cardBg} rounded-xl p-12 text-center shadow-lg mb-12`}>
                 <div className="text-6xl mb-4">🔒</div>
                 <h3 className={`text-2xl font-bold mb-4 ${theme.cardText}`}>Sign In to Access Custom Templates</h3>
                 <p className={theme.cardTextSecondary}>

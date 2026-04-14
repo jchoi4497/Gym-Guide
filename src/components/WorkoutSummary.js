@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { formatDuration } from '../config/workoutSettings';
 import { useSettings } from '../contexts/SettingsContext';
 import { displayWeight } from '../utils/weightConversion';
+import { useTheme } from '../contexts/ThemeContext';
 
 function WorkoutSummary({
   workoutName,
@@ -11,6 +12,7 @@ function WorkoutSummary({
   onSave,
   onDiscard,
 }) {
+  const { theme } = useTheme();
   const { settings } = useSettings();
   // Total duration in seconds (editable)
   const calculatedDuration = Math.floor((endTime - startTime) / 1000);
@@ -65,32 +67,32 @@ function WorkoutSummary({
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-slate-900 bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className={`${theme.cardBg} rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto`}>
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-2xl">
-          <h2 className="text-3xl font-bold mb-2">🎉 Workout Complete!</h2>
-          <p className="text-blue-100">{workoutName}</p>
+        <div className={`${theme.cardBg} text-white p-6 rounded-t-xl border-b-2 border-slate-400`}>
+          <h2 className={`text-3xl font-bold mb-2 ${theme.headerText} drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>🎉 Workout Complete!</h2>
+          <p className={theme.cardTextSecondary}>{workoutName}</p>
         </div>
 
         {/* Stats Cards */}
         <div className="p-6">
           <div className="grid grid-cols-3 gap-4 mb-6">
             {/* Duration */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 text-center">
-              <p className="text-xs text-blue-600 font-medium mb-1">Duration</p>
+            <div className={`${theme.cardBgSecondary} rounded-lg p-4 text-center`}>
+              <p className={`text-xs ${theme.cardTextSecondary} font-medium mb-1`}>Duration</p>
               {isEditingDuration ? (
                 <div className="flex flex-col items-center gap-1">
                   <input
                     type="number"
                     value={editDurationMinutes}
                     onChange={(e) => setEditDurationMinutes(Number(e.target.value))}
-                    className="w-16 px-2 py-1 text-center text-xl font-bold text-blue-600 border-2 border-blue-300 rounded"
+                    className={`w-16 px-2 py-1 text-center text-xl font-bold ${theme.cardText} border-2 ${theme.inputBorder} rounded ${theme.inputBg}`}
                     autoFocus
                   />
                   <button
                     onClick={handleSaveDuration}
-                    className="text-xs text-blue-600 hover:text-blue-800"
+                    className={`text-xs ${theme.cardText} hover:opacity-100`}
                   >
                     Save
                   </button>
@@ -101,7 +103,7 @@ function WorkoutSummary({
                     setEditDurationMinutes(Math.floor(duration / 60));
                     setIsEditingDuration(true);
                   }}
-                  className="text-2xl font-bold text-blue-600 hover:text-blue-800 transition-colors"
+                  className={`text-2xl font-bold ${theme.cardText} hover:opacity-100 transition-colors`}
                   title="Click to edit"
                 >
                   {formatDuration(duration)}
@@ -110,17 +112,17 @@ function WorkoutSummary({
             </div>
 
             {/* Sets Completed */}
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 text-center">
-              <p className="text-xs text-green-600 font-medium mb-1">Sets</p>
-              <p className="text-2xl font-bold text-green-600">
+            <div className={`${theme.cardBgSecondary} rounded-lg p-4 text-center`}>
+              <p className={`text-xs ${theme.cardTextSecondary} font-medium mb-1`}>Sets</p>
+              <p className={`text-2xl font-bold ${theme.cardText}`}>
                 {stats.completedSets}/{stats.totalSets}
               </p>
             </div>
 
             {/* Average Rest */}
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 text-center">
-              <p className="text-xs text-purple-600 font-medium mb-1">Avg Rest</p>
-              <p className="text-2xl font-bold text-purple-600">
+            <div className={`${theme.cardBgSecondary} rounded-lg p-4 text-center`}>
+              <p className={`text-xs ${theme.cardTextSecondary} font-medium mb-1`}>Avg Rest</p>
+              <p className={`text-2xl font-bold ${theme.cardText}`}>
                 {stats.averageRest > 0 ? formatDuration(stats.averageRest) : 'N/A'}
               </p>
             </div>
@@ -128,13 +130,13 @@ function WorkoutSummary({
 
           {/* Exercise Breakdown */}
           <div className="mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">Exercise Breakdown</h3>
+            <h3 className={`text-lg font-semibold ${theme.cardText} mb-3`}>Exercise Breakdown</h3>
             <div className="space-y-3">
               {exercises.map((exercise, idx) => (
-                <div key={idx} className="border border-gray-200 rounded-lg p-4">
+                <div key={idx} className={`border ${theme.inputBorder} ${theme.cardBgSecondary} rounded-lg p-4`}>
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-gray-800">{exercise.exerciseName}</h4>
-                    <span className="text-sm font-medium text-gray-600">
+                    <h4 className={`font-semibold ${theme.cardText}`}>{exercise.exerciseName}</h4>
+                    <span className={`text-sm font-medium ${theme.cardTextSecondary}`}>
                       {exercise.completedSets.length}/{exercise.totalSets} sets
                     </span>
                   </div>
@@ -143,8 +145,8 @@ function WorkoutSummary({
                   <div className="space-y-1">
                     {exercise.completedSets.map((set, setIdx) => (
                       <div key={setIdx} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Set {set.setNumber}</span>
-                        <span className="font-medium text-gray-800">
+                        <span className={theme.cardTextSecondary}>Set {set.setNumber}</span>
+                        <span className={`font-medium ${theme.cardText}`}>
                           {set.weight && `${displayWeight(set.weight, settings.weightUnit)} ${settings.weightUnit} × `}{set.reps} reps
                         </span>
                       </div>
@@ -159,13 +161,13 @@ function WorkoutSummary({
           <div className="flex gap-3">
             <button
               onClick={onDiscard}
-              className="flex-1 py-3 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold transition-colors"
+              className={`flex-1 py-3 rounded-lg ${theme.btnSecondary} ${theme.btnSecondaryText} font-semibold transition-all`}
             >
               Discard
             </button>
             <button
               onClick={handleSave}
-              className="flex-1 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold transition-colors shadow-lg"
+              className={`flex-1 py-3 rounded-lg ${theme.btnPrimary} ${theme.btnPrimaryText} font-semibold transition-all`}
             >
               Save Workout
             </button>

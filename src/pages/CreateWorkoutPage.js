@@ -407,7 +407,7 @@ function CreateWorkoutPage() {
       <div className={`${theme.pageBg} min-h-screen pb-20 font-serif`}>
         <Navbar />
         <div className="max-w-4xl mx-auto px-6 pt-14 pb-20">
-          <div className={`${theme.cardBg} rounded-3xl shadow-2xl p-8 sm:p-12 text-center`}>
+          <div className={`${theme.cardBg} rounded-xl shadow-2xl p-8 sm:p-12 text-center`}>
             <div className="mb-6">
               <div className="text-6xl mb-4">🔒</div>
               <h1 className={`text-4xl font-extrabold mb-4 ${theme.headerText}`}>Sign In Required</h1>
@@ -450,17 +450,17 @@ function CreateWorkoutPage() {
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-14 pb-16 sm:pb-20">
-        <h1 className={`text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 sm:mb-4 ${theme.headerText}`}>Create Workout</h1>
+        <h1 className={`text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 sm:mb-4 ${theme.headerText} drop-shadow-[0_3px_5px_rgba(0,0,0,0.4)]`}>Create Workout</h1>
         <p className={`text-base sm:text-lg ${theme.cardText} italic mb-8 sm:mb-10`}>
           Set up your workout and start training.
         </p>
 
         {/* Quick Start - Template Dropdown */}
         <div className="mb-8 sm:mb-10">
-          <div className={`${theme.cardBg} rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-lg max-w-2xl mx-auto`}>
+          <div className={`${theme.cardBg} rounded-xl p-4 sm:p-6 max-w-2xl mx-auto`}>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
-              <h2 className={`text-lg sm:text-xl font-semibold ${theme.cardText}`}>💡 Quick Start - Load Template</h2>
-              <Link to="/Templates" className="text-blue-600 hover:text-blue-800 font-semibold text-sm whitespace-nowrap">
+              <h2 className={`text-lg sm:text-xl font-semibold ${theme.headerText} drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>💡 Quick Start - Load Template</h2>
+              <Link to="/Templates" className={`${theme.cardText} hover:opacity-100 font-semibold text-sm whitespace-nowrap`}>
                 Manage Templates →
               </Link>
             </div>
@@ -528,26 +528,46 @@ function CreateWorkoutPage() {
 
         {/* Wizard Progress Indicator */}
         <div className="mb-6 flex items-center justify-center gap-2">
-          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm sm:text-base ${currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm sm:text-base transition-all ${
+            currentStep >= 1
+              ? 'bg-slate-700 text-white shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-slate-600 border-b-2 border-r-2 border-b-slate-900 border-r-slate-900'
+              : `${theme.cardBgSecondary} ${theme.cardTextSecondary}`
+          }`}>
             1
           </div>
-          <div className={`w-12 sm:w-16 h-1 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm sm:text-base ${currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+          <div className={`w-12 sm:w-16 h-1 rounded transition-all ${
+            currentStep >= 2
+              ? 'bg-slate-700 shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)]'
+              : theme.cardBgSecondary
+          }`}></div>
+          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm sm:text-base transition-all ${
+            currentStep >= 2
+              ? 'bg-slate-700 text-white shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-slate-600 border-b-2 border-r-2 border-b-slate-900 border-r-slate-900'
+              : `${theme.cardBgSecondary} ${theme.cardTextSecondary}`
+          }`}>
             2
           </div>
-          <div className={`w-12 sm:w-16 h-1 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm sm:text-base ${currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'}`}>
+          <div className={`w-12 sm:w-16 h-1 rounded transition-all ${
+            currentStep >= 3
+              ? 'bg-slate-700 shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)]'
+              : theme.cardBgSecondary
+          }`}></div>
+          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm sm:text-base transition-all ${
+            currentStep >= 3
+              ? 'bg-slate-700 text-white shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-slate-600 border-b-2 border-r-2 border-b-slate-900 border-r-slate-900'
+              : `${theme.cardBgSecondary} ${theme.cardTextSecondary}`
+          }`}>
             3
           </div>
         </div>
 
         {/* Wizard Card - Shows one step at a time */}
         <div className="max-w-2xl mx-auto mb-8 sm:mb-10 pb-8">
-          <div className={`${theme.cardBg} rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-xl`}>
+          <div className={`${theme.cardBg} rounded-xl p-6 sm:p-8`}>
             {/* Step 1: Select Workout */}
             {currentStep === 1 && (
               <div>
-                <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${theme.cardText}`}>Step 1: Select Workout</h2>
+                <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${theme.headerText} drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>Step 1: Select Workout</h2>
                 <p className={`text-sm sm:text-base ${theme.cardTextSecondary} mb-6`}>Choose your muscle group or workout type</p>
                 <DropDown
                   options={MUSCLE_GROUP_OPTIONS}
@@ -569,7 +589,7 @@ function CreateWorkoutPage() {
                       <button
                         onClick={() => setCurrentStep(2)}
                         disabled={!customMuscleGroupName.trim()}
-                        className="text-blue-600 hover:text-blue-800 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                        className={`px-6 py-2.5 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${theme.btnPrimary} ${theme.btnPrimaryText}`}
                       >
                         Next →
                       </button>
@@ -581,7 +601,7 @@ function CreateWorkoutPage() {
                   <div className="mt-6 flex justify-end">
                     <button
                       onClick={() => setCurrentStep(2)}
-                      className="text-blue-600 hover:text-blue-800 font-semibold"
+                      className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${theme.btnPrimary} ${theme.btnPrimaryText}`}
                     >
                       Next →
                     </button>
@@ -593,7 +613,7 @@ function CreateWorkoutPage() {
             {/* Step 2: Set Range */}
             {currentStep === 2 && (
               <div>
-                <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${theme.cardText}`}>Step 2: Set × Rep Range</h2>
+                <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${theme.headerText} drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>Step 2: Set × Rep Range</h2>
                 <p className={`text-sm sm:text-base ${theme.cardTextSecondary} mb-6`}>Choose your training volume</p>
                 <DropDown
                   options={SET_RANGE_OPTIONS}
@@ -634,14 +654,14 @@ function CreateWorkoutPage() {
                     <div className="mt-6 flex justify-between">
                       <button
                         onClick={() => setCurrentStep(1)}
-                        className="text-blue-600 hover:text-blue-800 font-semibold"
+                        className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${theme.btnSecondary} ${theme.btnSecondaryText}`}
                       >
                         ← Back
                       </button>
                       <button
                         onClick={() => setCurrentStep(3)}
                         disabled={!customSetCount || parseInt(customSetCount) <= 0}
-                        className="text-blue-600 hover:text-blue-800 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                        className={`px-6 py-2.5 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed ${theme.btnPrimary} ${theme.btnPrimaryText}`}
                       >
                         Next →
                       </button>
@@ -653,13 +673,13 @@ function CreateWorkoutPage() {
                   <div className="mt-6 flex justify-between">
                     <button
                       onClick={() => setCurrentStep(1)}
-                      className="text-blue-600 hover:text-blue-800 font-semibold"
+                      className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${theme.btnSecondary} ${theme.btnSecondaryText}`}
                     >
                       ← Back
                     </button>
                     <button
                       onClick={() => setCurrentStep(3)}
-                      className="text-blue-600 hover:text-blue-800 font-semibold"
+                      className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${theme.btnPrimary} ${theme.btnPrimaryText}`}
                     >
                       Next →
                     </button>
@@ -671,7 +691,7 @@ function CreateWorkoutPage() {
             {/* Step 3: Date */}
             {currentStep === 3 && (
               <div>
-                <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${theme.cardText}`}>Step 3: Workout Date</h2>
+                <h2 className={`text-2xl sm:text-3xl font-bold mb-2 ${theme.headerText} drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>Step 3: Workout Date</h2>
                 <p className={`text-sm sm:text-base ${theme.cardTextSecondary} mb-6`}>When did you do this workout?</p>
                 <label className={`block text-sm font-medium ${theme.cardText} mb-2`}>
                   Select date for this workout
@@ -695,7 +715,7 @@ function CreateWorkoutPage() {
 
                 <button
                   onClick={() => setCurrentStep(2)}
-                  className="mt-6 text-blue-600 hover:text-blue-800 font-semibold"
+                  className={`mt-6 px-6 py-2.5 rounded-lg font-semibold transition-all ${theme.btnSecondary} ${theme.btnSecondaryText}`}
                 >
                   ← Back
                 </button>
@@ -710,12 +730,12 @@ function CreateWorkoutPage() {
             <button
               onClick={handleCreateWorkout}
               disabled={!canCreateWorkout || isCreating}
-              className="w-full sm:w-auto px-8 sm:px-12 py-3 sm:py-4 bg-green-600 text-white text-lg sm:text-xl font-bold rounded-full shadow-2xl hover:bg-green-700 hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="w-full sm:w-auto px-8 sm:px-12 py-3 sm:py-4 bg-green-700 hover:bg-green-800 text-white text-lg sm:text-xl font-bold rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.4),inset_0_2px_0_rgba(255,255,255,0.25)] border-t-2 border-l-2 border-green-600 border-b-4 border-r-4 border-b-green-900 border-r-green-900 active:shadow-[inset_0_4px_8px_rgba(0,0,0,0.4)] active:translate-y-1 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:translate-y-0 disabled:active:shadow-[0_8px_24px_rgba(0,0,0,0.4),inset_0_2px_0_rgba(255,255,255,0.25)]"
             >
               {isCreating ? 'Creating Workout...' : 'Create Workout →'}
             </button>
             {!canCreateWorkout && (
-              <p className="text-sm text-red-600 italic">
+              <p className="text-sm text-red-600 italic font-semibold">
                 Please complete all required fields
               </p>
             )}
@@ -726,7 +746,7 @@ function CreateWorkoutPage() {
       {/* Draft Workout Modal */}
       {showDraftModal && draftWorkout && (
         <div className="fixed inset-0 backdrop-blur-md bg-white/10 z-[9999] flex items-center justify-center p-4">
-          <div className={`${theme.cardBg} rounded-2xl shadow-2xl max-w-md w-full p-6`}>
+          <div className={`${theme.cardBg} rounded-lg shadow-2xl max-w-md w-full p-6`}>
             <div className="text-center mb-6">
               <h2 className={`text-2xl font-bold ${theme.cardText} mb-2`}>
                 Resume Draft Workout?
@@ -736,7 +756,7 @@ function CreateWorkoutPage() {
               </p>
             </div>
 
-            <div className={`${theme.cardBgSecondary} rounded-xl p-4 mb-6`}>
+            <div className={`${theme.cardBgSecondary} rounded-lg p-4 mb-6`}>
               <h3 className={`font-semibold text-lg ${theme.cardText} mb-2`}>
                 {draftWorkout.muscleGroup || 'Workout'}
               </h3>
@@ -749,19 +769,19 @@ function CreateWorkoutPage() {
             <div className="flex flex-col gap-3">
               <button
                 onClick={handleResumeDraft}
-                className={`w-full py-3 rounded-lg ${theme.btnPrimary} ${theme.btnPrimaryText} font-semibold transition-colors shadow-lg`}
+                className={`w-full py-3 rounded-lg ${theme.btnPrimary} ${theme.btnPrimaryText} font-semibold transition-all`}
               >
                 ▶️ Resume Draft
               </button>
               <button
                 onClick={handleDeleteDraft}
-                className="w-full py-3 rounded-lg bg-red-100 hover:bg-red-200 text-red-600 font-semibold transition-colors"
+                className="w-full py-3 rounded-lg bg-red-700 hover:bg-red-800 text-white font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-red-600 border-b-2 border-r-2 border-b-red-900 border-r-red-900 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all"
               >
                 Delete Draft
               </button>
               <button
                 onClick={() => setShowDraftModal(false)}
-                className={`w-full py-3 rounded-lg ${theme.btnSecondary} ${theme.btnSecondaryText} font-medium transition-colors`}
+                className={`w-full py-3 rounded-lg ${theme.btnSecondary} ${theme.btnSecondaryText} font-medium transition-all`}
               >
                 Cancel
               </button>

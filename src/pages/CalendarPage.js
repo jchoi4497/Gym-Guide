@@ -237,7 +237,7 @@ function CalendarPage() {
       <div className={`${theme.pageBg} min-h-screen pb-20 font-serif`}>
         <Navbar />
         <div className="max-w-4xl mx-auto px-6 pt-14 pb-20">
-          <div className={`${theme.cardBg} rounded-3xl shadow-2xl p-8 sm:p-12 text-center`}>
+          <div className={`${theme.cardBg} rounded-xl shadow-2xl p-8 sm:p-12 text-center`}>
             <div className="text-6xl mb-4">📅</div>
             <h1 className={`text-4xl font-extrabold mb-4 ${theme.headerText}`}>Sign In Required</h1>
             <p className={`text-xl ${theme.cardText} mb-8`}>
@@ -267,7 +267,7 @@ function CalendarPage() {
         {/* Calendar */}
         <div
           ref={calendarRef}
-          className={`${theme.cardBg} rounded-3xl shadow-xl p-4 sm:p-6 mb-6`}
+          className={`${theme.cardBg} rounded-xl shadow-xl p-4 sm:p-6 mb-6`}
           onClick={() => setSelectedDate(null)}
         >
           <CalendarHeader

@@ -36,18 +36,18 @@ function LandingPage() {
 
   return (
     <div className={`h-screen ${theme.pageBg} flex items-center justify-center`}>
-      <div className={`${theme.cardBg} rounded-3xl shadow-2xl p-12 max-w-xl mx-6 text-center animate-fadeIn`}>
-        <h1 className={`text-5xl font-extrabold ${theme.headerText} mb-6`}>Jonathan's Gym Guide</h1>
+      <div className={`${theme.cardBg} rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.5),inset_0_-1px_0_rgba(0,0,0,0.2)] border-t border-l border-slate-300 border-b-2 border-r-2 border-b-slate-500 border-r-slate-500 p-12 max-w-xl mx-6 text-center animate-fadeIn`}>
+        <h1 className={`text-5xl font-extrabold ${theme.headerText} mb-6 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>Jonathan's Gym Guide</h1>
         <p className={`text-lg ${theme.cardTextSecondary} mb-8 italic`}>
           An in-depth fitness guide built from real-world experience & research.
         </p>
 
         {user && (
-          <div className={`mb-8 flex items-center justify-center gap-4 ${theme.cardBgSecondary} rounded-2xl p-4 border-2 ${theme.cardBorder}`}>
+          <div className={`mb-8 flex items-center justify-center gap-4 ${theme.cardBgSecondary} rounded-lg p-4 shadow-[inset_0_2px_4px_rgba(0,0,0,0.2),inset_0_-1px_0_rgba(255,255,255,0.3)] border-t border-l border-slate-200 border-b border-r border-b-slate-400 border-r-slate-400`}>
             <img
               src={user.photoURL}
               alt="Profile"
-              className={`w-12 h-12 rounded-full border-2 ${theme.cardBorder}`}
+              className={`w-12 h-12 rounded-full border-2 shadow-md ${theme.cardBorder}`}
             />
             <div className="text-left">
               <p className={`font-bold ${theme.cardText}`}>Welcome back, {user.displayName?.split(' ')[0]}!</p>
@@ -58,21 +58,21 @@ function LandingPage() {
 
         <div className="flex items-center justify-center gap-8">
           <Link to="/Create">
-            <button className={`px-8 py-3 rounded-full ${theme.btnPrimary} ${theme.btnPrimaryText} text-lg font-semibold shadow-lg transition-all duration-300 active:scale-95`}>
+            <button className={`px-8 py-3 rounded-lg ${theme.btnPrimary} ${theme.btnPrimaryText} text-lg font-semibold shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-slate-600 border-b-2 border-r-2 border-b-slate-800 border-r-slate-800 transition-all duration-200 hover:shadow-[0_6px_16px_rgba(0,0,0,0.4)] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5`}>
               Get Started
             </button>
           </Link>
           {user ? (
             <button
               onClick={handleLogout}
-              className="px-8 py-3 rounded-full bg-red-600 text-white text-lg font-semibold shadow-lg transition-all duration-300 hover:bg-red-700 active:bg-red-600 active:scale-95"
+              className="px-8 py-3 rounded-lg bg-red-700 text-white text-lg font-semibold shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-red-600 border-b-2 border-r-2 border-b-red-900 border-r-red-900 transition-all duration-200 hover:bg-red-600 hover:shadow-[0_6px_16px_rgba(0,0,0,0.4)] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5"
             >
               Sign Out
             </button>
           ) : (
             <button
               onClick={handleLogin}
-              className={`px-8 py-3 rounded-full ${theme.btnSecondary} ${theme.btnSecondaryText} text-lg font-semibold shadow-lg transition-all duration-300 hover:shadow-xl active:scale-95 inline-flex items-center gap-2 border ${theme.cardBorder}`}
+              className={`px-8 py-3 rounded-lg ${theme.btnSecondary} ${theme.btnSecondaryText} text-lg font-semibold shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.3)] border-t border-l border-slate-200 border-b-2 border-r-2 border-b-slate-500 border-r-slate-500 transition-all duration-200 hover:shadow-[0_6px_16px_rgba(0,0,0,0.4)] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.2)] active:translate-y-0.5 inline-flex items-center gap-2`}
             >
               <svg width="24" height="24" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

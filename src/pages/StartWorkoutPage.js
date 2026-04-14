@@ -11,8 +11,10 @@ import { auth } from '../config/firebase';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useSettings } from '../contexts/SettingsContext';
 import { displayWeight, saveWeight } from '../utils/weightConversion';
+import { useTheme } from '../contexts/ThemeContext';
 
 function StartWorkoutPage() {
+  const { theme } = useTheme();
   const { settings } = useSettings();
   const navigate = useNavigate();
   const location = useLocation();
@@ -619,8 +621,8 @@ function StartWorkoutPage() {
   // Show loading state while fetching workout data
   if (!latestWorkoutData || exercises.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
-        <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-blue-600"></div>
+      <div className={`min-h-screen ${theme.pageBg} flex items-center justify-center p-4`}>
+        <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-slate-600"></div>
       </div>
     );
   }
@@ -628,21 +630,21 @@ function StartWorkoutPage() {
   // Show error state if no current exercise after loading
   if (!currentExercise) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">⚠️ No Workout Data</h2>
-          <p className="text-gray-600 mb-6">
+      <div className={`min-h-screen ${theme.pageBg} flex items-center justify-center p-4`}>
+        <div className={`${theme.cardBg} rounded-xl p-8 max-w-md`}>
+          <h2 className={`text-2xl font-bold ${theme.headerText} mb-4 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>⚠️ No Workout Data</h2>
+          <p className={`${theme.cardTextSecondary} mb-6`}>
             No exercises found in this workout. Please create a workout with exercises first.
           </p>
-          <div className="bg-gray-100 rounded p-3 mb-6 text-xs text-left">
-            <p className="font-semibold mb-1">Debug Info:</p>
-            <p>Workout Name: {workoutName || 'N/A'}</p>
-            <p>Total Exercises: {exercises.length}</p>
-            <p>Exercise Data Keys: {workoutData ? Object.keys(workoutData.exerciseData || {}).length : 0}</p>
+          <div className={`${theme.cardBgSecondary} rounded p-3 mb-6 text-xs text-left`}>
+            <p className={`font-semibold mb-1 ${theme.cardText}`}>Debug Info:</p>
+            <p className={theme.cardTextSecondary}>Workout Name: {workoutName || 'N/A'}</p>
+            <p className={theme.cardTextSecondary}>Total Exercises: {exercises.length}</p>
+            <p className={theme.cardTextSecondary}>Exercise Data Keys: {workoutData ? Object.keys(workoutData.exerciseData || {}).length : 0}</p>
           </div>
           <button
             onClick={() => navigate('/')}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 w-full"
+            className={`px-6 py-3 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg font-semibold w-full`}
           >
             Go Home
           </button>
@@ -654,8 +656,8 @@ function StartWorkoutPage() {
   // Show loading while checking auth
   if (!authChecked) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 pb-20 flex items-center justify-center">
-        <p className="text-xl text-gray-700">Loading...</p>
+      <div className={`min-h-screen ${theme.pageBg} pb-20 flex items-center justify-center`}>
+        <p className={`text-xl ${theme.cardText}`}>Loading...</p>
       </div>
     );
   }
@@ -663,50 +665,50 @@ function StartWorkoutPage() {
   // Show auth required message if not logged in
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-sky-300 to-stone-300 font-serif">
+      <div className={`min-h-screen ${theme.pageBg} font-serif`}>
         <Navbar />
         <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Session Expired</h1>
-          <p className="text-xl text-gray-700 mb-6">Please sign in to start your workout.</p>
-          <p className="text-gray-600">Use the navigation bar above to sign in with Google.</p>
+          <h1 className={`text-3xl font-bold ${theme.headerText} mb-4 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>Session Expired</h1>
+          <p className={`text-xl ${theme.cardText} mb-6`}>Please sign in to start your workout.</p>
+          <p className={theme.cardTextSecondary}>Use the navigation bar above to sign in with Google.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 pb-20">
+    <div className={`min-h-screen ${theme.pageBg} pb-20`}>
       {/* Header with timer */}
-      <div className="bg-white shadow-md sticky top-0 z-40">
+      <div className={`${theme.cardBg} shadow-md sticky top-0 z-40`}>
         <div className="max-w-2xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-gray-800">
+              <h1 className={`text-xl font-bold ${theme.headerText} drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>
                 {workoutName}
                 {isPaused && <span className="ml-2 text-yellow-600">⏸️ PAUSED</span>}
               </h1>
-              <p className="text-sm text-gray-600">⏱️ {formatDuration(elapsedSeconds)}</p>
+              <p className={`text-sm ${theme.cardTextSecondary}`}>⏱️ {formatDuration(elapsedSeconds)}</p>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => navigate(`/workout/${workoutData?.workoutId}`)}
-                className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium transition-colors text-sm"
+                className={`px-4 py-2 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg font-medium text-sm`}
               >
                 ← Overview
               </button>
               <button
                 onClick={handlePauseWorkout}
-                className={`px-4 py-2 text-white rounded-lg font-medium transition-colors text-sm ${
+                className={`px-4 py-2 text-white rounded-lg font-medium text-sm shadow-[0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-b-2 border-r-2 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all ${
                   isPaused
-                    ? 'bg-green-500 hover:bg-green-600'
-                    : 'bg-yellow-500 hover:bg-yellow-600'
+                    ? 'bg-green-600 hover:bg-green-700 border-green-500 border-b-green-800 border-r-green-800'
+                    : 'bg-yellow-600 hover:bg-yellow-700 border-yellow-500 border-b-yellow-800 border-r-yellow-800'
                 }`}
               >
                 {isPaused ? '▶️ Resume' : '⏸️ Pause'}
               </button>
               <button
                 onClick={handleEndWorkout}
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors text-sm"
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium text-sm shadow-[0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-red-500 border-b-2 border-r-2 border-b-red-800 border-r-red-800 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all"
               >
                 🛑 End
               </button>
@@ -718,20 +720,20 @@ function StartWorkoutPage() {
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Progress Bar at Top */}
-        <div className="mb-6 bg-white rounded-xl shadow-md p-4">
-          <p className="text-lg font-semibold text-gray-700 mb-2 text-center">
+        <div className={`mb-6 ${theme.cardBg} rounded-xl p-4`}>
+          <p className={`text-lg font-semibold ${theme.cardText} mb-2 text-center`}>
             Progress: {completedSetsCount}/{totalSets} sets completed
           </p>
-          <div className="w-full bg-gray-300 rounded-full h-3">
+          <div className={`w-full ${theme.cardBgSecondary} rounded-full h-3`}>
             <div
-              className="bg-green-500 h-3 rounded-full transition-all duration-500"
+              className="bg-green-600 h-3 rounded-full transition-all duration-500 shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)]"
               style={{ width: `${(completedSetsCount / totalSets) * 100}%` }}
             />
           </div>
         </div>
 
         {/* Flash Card */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8 mb-6 relative">
+        <div className={`${theme.cardBg} rounded-xl p-8 mb-6 relative`}>
           {/* Rest Timer - Top Right */}
           {lastSetCompletedTime && (
             <div className="absolute top-4 right-4 flex items-center gap-2">
@@ -744,7 +746,7 @@ function StartWorkoutPage() {
                 }`}
               />
               {/* Timer */}
-              <div className="text-sm font-semibold text-gray-600">
+              <div className={`text-sm font-semibold ${theme.cardTextSecondary}`}>
                 {restTimeElapsed >= WORKOUT_SETTINGS.DEFAULT_REST_DURATION ? (
                   <span className="text-green-600">Ready!</span>
                 ) : (
@@ -756,11 +758,11 @@ function StartWorkoutPage() {
 
           {/* Exercise Name */}
           <div className="text-center mb-6">
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">
+            <h2 className={`text-3xl font-bold ${theme.headerText} mb-2 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>
               {currentExercise.exerciseName}
             </h2>
             {!isCardioExercise && (
-              <p className="text-lg text-gray-600">
+              <p className={`text-lg ${theme.cardTextSecondary}`}>
                 Set {currentSetNumber} of {currentExercise.totalSets}
               </p>
             )}
@@ -769,7 +771,7 @@ function StartWorkoutPage() {
           {/* Input Fields */}
           <div className="flex items-center justify-center gap-4 mb-8">
             <div className="flex-1 max-w-[150px]">
-              <label className="text-sm text-gray-600 font-medium mb-2 block text-center">
+              <label className={`text-sm ${theme.cardTextSecondary} font-medium mb-2 block text-center`}>
                 {isCardio ? 'Distance (mi)' : `Weight (${settings.weightUnit})`}
               </label>
               {isMobile ? (
@@ -777,8 +779,8 @@ function StartWorkoutPage() {
                   onClick={() => handleOpenPicker('weight')}
                   className={`w-full px-4 py-4 rounded-xl text-2xl font-bold text-center transition-all border-2 ${
                     currentSetData.weight
-                      ? 'bg-blue-100 text-blue-700 border-blue-500'
-                      : 'bg-gray-100 text-gray-400 border-gray-300'
+                      ? `${theme.cardBgSecondary} ${theme.cardText} border-slate-400`
+                      : `${theme.inputBg} ${theme.cardTextSecondary} ${theme.inputBorder}`
                   }`}
                 >
                   {displayWeight(currentSetData.weight, settings.weightUnit) || '---'}
@@ -790,13 +792,13 @@ function StartWorkoutPage() {
                   value={displayWeight(currentSetData.weight, settings.weightUnit)}
                   onChange={(e) => setCurrentSetData({ ...currentSetData, weight: saveWeight(e.target.value, settings.weightUnit) })}
                   placeholder={isCardio ? 'mi' : settings.weightUnit}
-                  className="w-full px-4 py-4 rounded-xl text-2xl font-bold text-center border-2 border-gray-300 focus:border-blue-500 focus:outline-none transition-all"
+                  className={`w-full px-4 py-4 rounded-xl text-2xl font-bold text-center border-2 ${theme.inputBorder} focus:border-slate-500 focus:outline-none transition-all ${theme.inputBg}`}
                 />
               )}
             </div>
 
             <div className="flex-1 max-w-[150px]">
-              <label className="text-sm text-gray-600 font-medium mb-2 block text-center">
+              <label className={`text-sm ${theme.cardTextSecondary} font-medium mb-2 block text-center`}>
                 {isCardio ? 'Time (min)' : isTimed ? 'Seconds' : 'Reps'}
               </label>
               {isMobile ? (
@@ -804,8 +806,8 @@ function StartWorkoutPage() {
                   onClick={() => handleOpenPicker('reps')}
                   className={`w-full px-4 py-4 rounded-xl text-2xl font-bold text-center transition-all border-2 ${
                     currentSetData.reps
-                      ? 'bg-blue-100 text-blue-700 border-blue-500'
-                      : 'bg-gray-100 text-gray-400 border-gray-300'
+                      ? `${theme.cardBgSecondary} ${theme.cardText} border-slate-400`
+                      : `${theme.inputBg} ${theme.cardTextSecondary} ${theme.inputBorder}`
                   }`}
                 >
                   {currentSetData.reps || '---'}
@@ -817,7 +819,7 @@ function StartWorkoutPage() {
                   value={currentSetData.reps}
                   onChange={(e) => setCurrentSetData({ ...currentSetData, reps: e.target.value })}
                   placeholder={isCardio ? 'min' : isTimed ? 'sec' : 'reps'}
-                  className="w-full px-4 py-4 rounded-xl text-2xl font-bold text-center border-2 border-gray-300 focus:border-blue-500 focus:outline-none transition-all"
+                  className={`w-full px-4 py-4 rounded-xl text-2xl font-bold text-center border-2 ${theme.inputBorder} focus:border-slate-500 focus:outline-none transition-all ${theme.inputBg}`}
                 />
               )}
             </div>
@@ -832,7 +834,7 @@ function StartWorkoutPage() {
                 handleOpenPicker(isCardio ? 'reps' : 'weight');
               }
             }}
-            className="w-full py-4 rounded-xl font-bold text-lg transition-all bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white shadow-lg"
+            className="w-full py-4 rounded-xl font-bold text-lg bg-green-700 hover:bg-green-800 text-white shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-green-600 border-b-2 border-r-2 border-b-green-900 border-r-green-900 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all"
           >
             ✓ Complete Set
           </button>
@@ -842,10 +844,10 @@ function StartWorkoutPage() {
             <button
               onClick={handlePrevious}
               disabled={currentSetIndex === 0}
-              className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${
+              className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
                 currentSetIndex === 0
-                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  : 'bg-gray-300 hover:bg-gray-400 text-gray-800'
+                  ? `${theme.cardBgSecondary} ${theme.cardTextSecondary} cursor-not-allowed opacity-50`
+                  : `${theme.btnSecondary} ${theme.btnSecondaryText}`
               }`}
             >
               ← Previous Set

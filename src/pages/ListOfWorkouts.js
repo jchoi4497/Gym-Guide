@@ -123,7 +123,7 @@ function ListOfWorkouts() {
           return (
             <li
               key={workout.id}
-              className={`${theme.cardBg} p-4 rounded shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-2xl`}
+              className={`${theme.cardBg} p-4 rounded shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-lg`}
             >
               <div>
                 <div className={`text-xl font-semibold ${theme.cardText}`}>
@@ -163,7 +163,7 @@ function ListOfWorkouts() {
       {/* Custom Confirm Modal */}
       {confirmDeleteId && (
         <div className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm bg-transparent">
-          <div className="bg-sky-50 p-6 rounded-2xl shadow-2xl max-w-sm w-full border border-gray-200">
+          <div className="bg-sky-50 p-6 rounded-lg shadow-2xl max-w-sm w-full border border-gray-200">
             <h2 className="text-2xl font-bold mb-3 text-gray-800">Confirm Delete</h2>
             <p className="text-gray-600 mb-6 text-sm">
               Are you sure you want to delete this workout? This action can’t be undone.

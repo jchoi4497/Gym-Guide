@@ -17,13 +17,13 @@ function InfoPage() {
           <img
             src={HypertrophyImage}
             alt="Hypertrophy Training"
-            className="w-72 h-72 object-cover border-2 border-solid rounded-2xl shadow-lg mb-6 mt-4"
+            className="w-72 h-72 object-cover border-2 border-solid rounded-lg shadow-lg mb-6 mt-4"
           />
           <p className={`text-center w-72 h-12 font-serif ${theme.cardTextSecondary}`}>Program designed to increase muscle size and mass.</p>
         </div>
       </div>
 
-      <div className={`max-w-5xl mx-auto ${theme.cardBg} rounded-3xl shadow-2xl p-10 ${theme.cardText} space-y-6`}>
+      <div className={`max-w-5xl mx-auto ${theme.cardBg} rounded-xl shadow-2xl p-10 ${theme.cardText} space-y-6`}>
         <h3 className={`text-2xl font-bold underline mb-4 ${theme.cardText}`}>📌 Key Insights for Optimal Results</h3>
         <ul className={`space-y-3 text-lg leading-relaxed ${theme.cardText}`}>
           <li>

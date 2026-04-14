@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { MUSCLE_GROUP_OPTIONS, SET_RANGE_OPTIONS } from '../../config/constants';
+import { useTheme } from '../../contexts/ThemeContext';
 
 function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
+  const { theme } = useTheme();
   const [step, setStep] = useState(1);
   const [selectedTemplate, setSelectedTemplate] = useState(
     initialData?.templateId ? templates.find(t => t.id === initialData.templateId) : null
@@ -134,7 +136,7 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
       {/* Step 1: Select Template or Preset */}
       {step === 1 && (
         <div className="min-h-[200px]">
-          <h3 className="text-sm font-bold text-gray-800 mb-2">Step 1: Quick Start</h3>
+          <h3 className={`text-sm font-bold ${theme.cardText} mb-2`}>Step 1: Quick Start</h3>
           <select
             onChange={handleTemplateSelect}
             value={
@@ -146,7 +148,7 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
                     ? `preset-${selectedMuscleGroup}`
                     : ''
             }
-            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white mb-3"
+            className={`w-full px-3 py-2 text-sm rounded-lg border ${theme.inputBorder} focus:outline-none focus:ring-2 focus:ring-slate-500 ${theme.inputBg} mb-3`}
           >
             <option value="">Select option...</option>
 
@@ -184,7 +186,7 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
                 value={customWorkoutName}
                 onChange={(e) => setCustomWorkoutName(e.target.value)}
                 placeholder="Enter workout name (e.g., Push Day, Upper Body)"
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 text-sm rounded-lg border ${theme.inputBorder} focus:outline-none focus:ring-2 focus:ring-slate-500 ${theme.inputBg}`}
                 autoFocus
               />
             </div>
@@ -193,7 +195,7 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
           <div className="flex justify-between items-center">
             <button
               onClick={onCancel}
-              className="text-gray-600 hover:text-gray-800 text-sm font-semibold transition-colors"
+              className={`${theme.cardTextSecondary} hover:opacity-100 text-sm font-semibold transition-colors`}
             >
               Cancel
             </button>
@@ -205,7 +207,7 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
                   }
                 }}
                 disabled={!customWorkoutName.trim()}
-                className="text-blue-600 hover:text-blue-800 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`${theme.cardText} hover:opacity-100 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 Next →
               </button>
@@ -213,7 +215,7 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
             {(initialData && (selectedTemplate || (selectedMuscleGroup && selectedMuscleGroup !== 'custom'))) && (
               <button
                 onClick={() => setStep(2)}
-                className="text-blue-600 hover:text-blue-800 text-sm font-semibold transition-colors"
+                className={`${theme.cardText} hover:opacity-100 text-sm font-semibold transition-colors`}
               >
                 Next →
               </button>
@@ -225,11 +227,11 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
       {/* Step 2: Set Range */}
       {step === 2 && (
         <div className="min-h-[250px]">
-          <h3 className="text-sm font-bold text-gray-800 mb-2">Step 2: Set × Rep Range</h3>
+          <h3 className={`text-sm font-bold ${theme.cardText} mb-2`}>Step 2: Set × Rep Range</h3>
           <select
             value={numberOfSets || ''}
             onChange={handleSetRangeSelect}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white mb-3"
+            className={`w-full px-3 py-2 text-sm rounded-lg border ${theme.inputBorder} focus:outline-none focus:ring-2 focus:ring-slate-500 ${theme.inputBg} mb-3`}
           >
             <option value="">Select range...</option>
             {SET_RANGE_OPTIONS.map(opt => (
@@ -248,7 +250,7 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
                 value={customSetCount}
                 onChange={(e) => setCustomSetCount(e.target.value)}
                 placeholder="Sets (e.g., 4)"
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 text-sm rounded-lg border ${theme.inputBorder} focus:outline-none focus:ring-2 focus:ring-slate-500 ${theme.inputBg}`}
               />
               <input
                 type="number"
@@ -257,7 +259,7 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
                 value={customRepCount}
                 onChange={(e) => setCustomRepCount(e.target.value)}
                 placeholder="Reps (e.g., 10)"
-                className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-3 py-2 text-sm rounded-lg border ${theme.inputBorder} focus:outline-none focus:ring-2 focus:ring-slate-500 ${theme.inputBg}`}
               />
             </div>
           )}
@@ -265,14 +267,14 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
           <div className="flex justify-between items-center">
             <button
               onClick={() => setStep(1)}
-              className="text-blue-600 hover:text-blue-800 text-sm font-semibold transition-colors"
+              className={`${theme.cardText} hover:opacity-100 text-sm font-semibold transition-colors`}
             >
               ← Back
             </button>
             <button
               onClick={() => setStep(3)}
               disabled={!numberOfSets || (numberOfSets === 'custom' && (!customSetCount || parseInt(customSetCount) <= 0))}
-              className="text-blue-600 hover:text-blue-800 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`${theme.cardText} hover:opacity-100 text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
             >
               Next →
             </button>
@@ -283,18 +285,18 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
       {/* Step 3: Label & Confirm */}
       {step === 3 && (
         <div className="min-h-[250px]">
-          <h3 className="text-sm font-bold text-gray-800 mb-3">Review & Confirm</h3>
+          <h3 className={`text-sm font-bold ${theme.cardText} mb-3`}>Review & Confirm</h3>
 
           {/* Workout Summary */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 mb-3 border border-blue-200">
+          <div className={`${theme.cardBgSecondary} rounded-lg p-4 mb-3`}>
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="font-bold text-base text-gray-800 mb-1">
+                <p className={`font-bold text-base ${theme.cardText} mb-1`}>
                   {selectedMuscleGroup === 'custom'
                     ? (customWorkoutName.trim() || 'Custom Workout')
                     : (MUSCLE_GROUP_OPTIONS.find(opt => opt.value === selectedMuscleGroup)?.label || selectedMuscleGroup || 'Workout')}
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className={`text-sm ${theme.cardTextSecondary}`}>
                   {numberOfSets && numberOfSets !== 'custom'
                     ? `${numberOfSets} sets × ${SET_RANGE_OPTIONS.find(opt => opt.value === numberOfSets)?.reps || '8-12'} reps`
                     : (customSetCount && parseInt(customSetCount) > 0)
@@ -302,7 +304,7 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
                       : 'Sets/reps not configured'}
                 </p>
                 {selectedTemplate && (
-                  <p className="text-xs text-blue-600 font-semibold mt-2">
+                  <p className={`text-xs ${theme.cardText} font-semibold mt-2 opacity-80`}>
                     📋 From: {selectedTemplate.name}
                   </p>
                 )}
@@ -312,7 +314,7 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
 
           {/* Optional Label Input */}
           <div className="mb-4">
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className={`block text-xs font-medium ${theme.cardText} mb-1`}>
               Session Label (Optional)
             </label>
             <input
@@ -320,7 +322,7 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               placeholder="e.g., Morning Session, Heavy Day"
-              className="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className={`w-full px-3 py-2 text-sm rounded-lg border ${theme.inputBorder} focus:outline-none focus:ring-2 focus:ring-slate-500 ${theme.inputBg}`}
             />
           </div>
 
@@ -328,14 +330,14 @@ function AddWorkoutWizard({ templates, initialData, onComplete, onCancel }) {
           <div className="flex justify-between items-center gap-3">
             <button
               onClick={() => setStep(2)}
-              className="text-blue-600 hover:text-blue-800 text-sm font-semibold transition-colors"
+              className={`${theme.cardText} hover:opacity-100 text-sm font-semibold transition-colors`}
             >
               ← Back
             </button>
             <button
               onClick={handleComplete}
               disabled={!canComplete()}
-              className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+              className="px-6 py-2 bg-green-700 hover:bg-green-800 text-white text-sm font-bold rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-green-600 border-b-2 border-r-2 border-b-green-900 border-r-green-900 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             >
               {initialData ? 'Save' : 'Add Workout'}
             </button>

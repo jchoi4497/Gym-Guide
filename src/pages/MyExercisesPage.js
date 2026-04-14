@@ -302,7 +302,7 @@ function MyExercisesPage() {
 
         {/* Add Form Only */}
         {isAdding && (
-          <div ref={formRef} className={`${theme.cardBg} rounded-2xl shadow-lg p-6 mb-8 border-4 ${theme.cardBorder}`}>
+          <div ref={formRef} className={`${theme.cardBg} rounded-lg shadow-lg p-6 mb-8 border-4 ${theme.cardBorder}`}>
             <h2 className={`text-2xl font-bold mb-4 ${theme.cardText}`}>
               Add New Exercise
             </h2>
@@ -441,7 +441,7 @@ function MyExercisesPage() {
         {/* Exercise List */}
         <div className="space-y-4">
           {customExercises.length === 0 ? (
-            <div className={`${theme.cardBg} rounded-2xl shadow-lg p-8 text-center ${theme.cardTextSecondary}`}>
+            <div className={`${theme.cardBg} rounded-lg shadow-lg p-8 text-center ${theme.cardTextSecondary}`}>
               <p className="text-xl mb-2">No custom exercises yet</p>
               <p>Click "Add Exercise" to create your first custom exercise</p>
             </div>
@@ -449,7 +449,7 @@ function MyExercisesPage() {
             sortedExercises.map((exercise) => (
               <div
                 key={exercise.id}
-                className={`rounded-2xl shadow-lg p-6 transition-colors ${
+                className={`rounded-lg shadow-lg p-6 transition-colors ${
                   editingId === exercise.id
                     ? `${theme.cardBgSecondary} border-4 ${theme.cardBorder}`
                     : theme.cardBg

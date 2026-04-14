@@ -22,7 +22,7 @@ function SocialsTab({ user }) {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Add Friend & Friend Requests Combined */}
-      <div className={`${theme.cardBg} rounded-xl shadow-md p-6 ${theme.cardBorder}`}>
+      <div className={`${theme.cardBg} rounded-lg shadow-md p-6 ${theme.cardBorder}`}>
         {/* Tabs */}
         <div className={`flex gap-4 mb-6 border-b ${theme.cardBorder}`}>
           <button
@@ -66,13 +66,13 @@ function SocialsTab({ user }) {
       </div>
 
       {/* My Friends - Separate Card */}
-      <div className={`${theme.cardBg} rounded-xl shadow-md p-6 ${theme.cardBorder}`}>
+      <div className={`${theme.cardBg} rounded-lg shadow-md p-6 ${theme.cardBorder}`}>
         <h3 className={`text-xl font-bold ${theme.cardText} mb-4`}>My Friends</h3>
         <FriendsList key={refreshKey} userId={user.uid} />
       </div>
 
       {/* Coming Soon Features */}
-      <div className={`${theme.cardBg} rounded-xl shadow-md p-6 ${theme.cardBorder}`}>
+      <div className={`${theme.cardBg} rounded-lg shadow-md p-6 ${theme.cardBorder}`}>
         <h3 className={`text-lg font-semibold ${theme.cardText} mb-4`}>Coming Soon</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className={`border ${theme.cardBorder} rounded-lg p-4 ${theme.cardBgSecondary}`}>

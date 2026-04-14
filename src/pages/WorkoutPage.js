@@ -11,8 +11,10 @@ import { generateSummary } from '../utils/summaryUtil';
 import { FIREBASE_FIELDS } from '../config/constants';
 import { getMuscleGroupFromCategory } from '../utils/categoryDetection';
 import { EXERCISES } from '../config/exerciseConfig';
+import { useTheme } from '../contexts/ThemeContext';
 
 function WorkoutPage() {
+  const { theme } = useTheme();
   const { workoutId } = useParams();
   const navigate = useNavigate();
 
@@ -835,10 +837,10 @@ function WorkoutPage() {
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
+      <div className={`${theme.pageBg} min-h-screen pb-20 font-serif`}>
         <Navbar />
         <div className="max-w-6xl mx-auto px-6 pt-14 pb-20">
-          <p className="text-xl text-gray-700">Loading workout...</p>
+          <p className={`text-xl ${theme.cardText}`}>Loading workout...</p>
         </div>
       </div>
     );
@@ -846,12 +848,12 @@ function WorkoutPage() {
 
   if (!user) {
     return (
-      <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
+      <div className={`${theme.pageBg} min-h-screen pb-20 font-serif`}>
         <Navbar />
         <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">Session Expired</h1>
-          <p className="text-xl text-gray-700 mb-6">Please sign in to view your workout.</p>
-          <p className="text-gray-600">Use the navigation bar above to sign in with Google.</p>
+          <h1 className={`text-3xl font-bold ${theme.headerText} mb-4 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>Session Expired</h1>
+          <p className={`text-xl ${theme.cardText} mb-6`}>Please sign in to view your workout.</p>
+          <p className={theme.cardTextSecondary}>Use the navigation bar above to sign in with Google.</p>
         </div>
       </div>
     );
@@ -859,27 +861,27 @@ function WorkoutPage() {
 
   if (!workout) {
     return (
-      <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen pb-20 font-serif">
+      <div className={`${theme.pageBg} min-h-screen pb-20 font-serif`}>
         <Navbar />
         <div className="max-w-6xl mx-auto px-6 pt-14 pb-20">
-          <p className="text-xl text-gray-700">Workout not found</p>
+          <p className={`text-xl ${theme.cardText}`}>Workout not found</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-[150vh] pb-40 font-serif">
+    <div className={`${theme.pageBg} min-h-[150vh] pb-40 font-serif`}>
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-6 pt-14 pb-20 min-h-screen">
         {/* Header with Title */}
         <div className="mb-8 flex items-start justify-between" data-header-section>
           <div>
-            <h1 className="text-4xl font-extrabold mb-2 text-gray-800">
+            <h1 className={`text-4xl font-extrabold mb-2 ${theme.headerText} drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>
               {actualMuscleGroup ? `${actualMuscleGroup.charAt(0).toUpperCase() + actualMuscleGroup.slice(1)} Day Overview` : 'Workout Overview'}
             </h1>
-            <p className="text-sm text-gray-600 italic">
+            <p className={`text-sm ${theme.cardTextSecondary} italic`}>
               {workout.type === 'program' ? "Following Jonathan's Hypertrophy Program" : 'Custom Workout'}
             </p>
           </div>
@@ -888,7 +890,7 @@ function WorkoutPage() {
           {isMobile && workout?.status === 'draft' && (
             <button
               onClick={handleStartWorkout}
-              className={`bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 whitespace-nowrap ${
+              className={`bg-green-700 hover:bg-green-800 text-white font-bold rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-green-600 border-b-2 border-r-2 border-b-green-900 border-r-green-900 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all whitespace-nowrap ${
                 startButtonState === 'fixed'
                   ? 'fixed top-4 right-4 z-50 px-5 py-2.5 text-base'
                   : 'px-5 py-2.5 text-base'
@@ -900,7 +902,7 @@ function WorkoutPage() {
 
           {/* Completed workout indicator - MOBILE ONLY */}
           {isMobile && workout?.status === 'completed' && (
-            <div className={`bg-green-100 text-green-800 font-bold rounded-full border-2 border-green-300 whitespace-nowrap transition-all duration-300 ${
+            <div className={`bg-green-200 text-green-900 font-bold rounded-full border-2 border-green-400 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] whitespace-nowrap transition-all duration-300 ${
               startButtonState === 'fixed'
                 ? 'fixed top-4 right-4 z-50 px-5 py-2.5 text-base'
                 : 'px-5 py-2.5 text-base'
@@ -1010,7 +1012,7 @@ function WorkoutPage() {
           <div className="m-6 px-4 sm:px-20 flex justify-center">
             <button
               onClick={handleStartWorkout}
-              className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold rounded-3xl shadow-lg transition-all duration-300 active:scale-95"
+              className="w-full sm:w-auto px-8 py-4 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-green-600 border-b-2 border-r-2 border-b-green-900 border-r-green-900 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all"
             >
               {hasActiveSession ? '▶️ Resume Workout' : '▶️ Start Workout'}
             </button>
@@ -1020,7 +1022,7 @@ function WorkoutPage() {
         {/* Desktop Completed Indicator - centered */}
         {!isMobile && isWorkoutConfigured && workout?.status === 'completed' && (
           <div className="m-6 px-4 sm:px-20 flex justify-center">
-            <div className="w-full sm:w-auto px-8 py-4 bg-green-100 text-green-800 font-semibold rounded-3xl border-2 border-green-300 text-center">
+            <div className="w-full sm:w-auto px-8 py-4 bg-green-200 text-green-900 font-semibold rounded-xl border-2 border-green-400 shadow-[inset_0_1px_2px_rgba(0,0,0,0.1)] text-center">
               ✓ Workout Completed
             </div>
           </div>
@@ -1032,10 +1034,10 @@ function WorkoutPage() {
             <Link to="/SavedWorkouts">
               <button
                 disabled={isSaving}
-                className={`w-full sm:w-auto px-8 py-4 rounded-3xl shadow-lg text-sky-50 font-semibold transition-all duration-300 ${
+                className={`w-full sm:w-auto px-8 py-4 rounded-xl text-white font-semibold transition-all ${
                   isSaving
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gray-800 hover:bg-blue-600 active:bg-gray-600 active:scale-95'
+                    ? 'bg-slate-400 cursor-not-allowed opacity-50'
+                    : `${theme.btnPrimary}`
                 }`}
               >
                 View Workouts
@@ -1048,21 +1050,21 @@ function WorkoutPage() {
         {isWorkoutConfigured && (
           <div className={`flex flex-col space-y-4 ${
             isButtonSticky
-              ? 'fixed bottom-0 left-0 right-0 bg-gradient-to-t from-sky-300 via-sky-300 to-transparent pt-6 pb-4 px-4 m-0 z-50'
+              ? `fixed bottom-0 left-0 right-0 ${theme.pageBg} pt-6 pb-4 px-4 m-0 z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.2)]`
               : 'm-6 px-4 sm:px-20'
-          } sm:m-6 sm:px-20 sm:relative sm:bg-none sm:pt-0 sm:pb-0 sm:items-center`}>
+          } sm:m-6 sm:px-20 sm:relative sm:shadow-none sm:pt-0 sm:pb-0 sm:items-center`}>
             {isGeneratingSummary && (
-              <div className="text-blue-600 font-semibold animate-pulse text-center">
+              <div className={`${theme.cardText} font-semibold animate-pulse text-center`}>
                 🤖 Generating AI summary...
               </div>
             )}
             <button
               onClick={handleCompleteWorkout}
               disabled={isSaving}
-              className={`w-full sm:w-auto px-8 py-4 rounded-3xl shadow-lg text-white font-semibold transition-all duration-300 ${
+              className={`w-full sm:w-auto px-8 py-4 rounded-xl text-white font-semibold transition-all ${
                 isSaving
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-700 hover:bg-blue-800 active:bg-blue-600 active:scale-95'
+                  ? 'bg-slate-400 cursor-not-allowed opacity-50'
+                  : 'bg-slate-700 hover:bg-slate-800 shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-slate-600 border-b-2 border-r-2 border-b-slate-900 border-r-slate-900 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5'
               }`}
             >
               {isSaving ? (isGeneratingSummary ? 'Generating Summary...' : 'Saving...') : 'Complete Workout'}
