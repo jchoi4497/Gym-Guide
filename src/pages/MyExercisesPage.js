@@ -263,25 +263,25 @@ function MyExercisesPage() {
           )}
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <p className="text-gray-700">
+        <div className={`${theme.cardBgSecondary} border ${theme.cardBorder} rounded-lg p-4 mb-6`}>
+          <p className={theme.cardText}>
             <strong>What is this page for?</strong> Organize your custom exercises with proper categories. This enables the graph toggle feature and better exercise comparison.
           </p>
-          <ul className="text-gray-600 text-sm mt-2 space-y-1">
+          <ul className={`${theme.cardTextSecondary} text-sm mt-2 space-y-1`}>
             <li>✅ <strong>Auto-saved:</strong> Custom exercises are automatically added here when you complete workouts</li>
             <li>✏️ <strong>Manual:</strong> You can also add exercises here before creating workouts</li>
           </ul>
 
           {/* Sort Toggle */}
           {customExercises.length > 0 && !isAdding && !editingId && (
-            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-blue-200">
-              <span className="text-sm font-medium text-gray-700">Sort by:</span>
+            <div className={`flex items-center gap-2 mt-4 pt-4 border-t ${theme.cardBorder}`}>
+              <span className={`text-sm font-medium ${theme.cardText}`}>Sort by:</span>
               <button
                 onClick={() => setSortBy('date')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   sortBy === 'date'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? `${theme.btnPrimary} ${theme.btnPrimaryText}`
+                    : `${theme.btnSecondary} ${theme.btnSecondaryText}`
                 }`}
               >
                 📅 Date Added
@@ -290,8 +290,8 @@ function MyExercisesPage() {
                 onClick={() => setSortBy('name')}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   sortBy === 'name'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    ? `${theme.btnPrimary} ${theme.btnPrimaryText}`
+                    : `${theme.btnSecondary} ${theme.btnSecondaryText}`
                 }`}
               >
                 🔤 Name (A-Z)
@@ -302,14 +302,14 @@ function MyExercisesPage() {
 
         {/* Add Form Only */}
         {isAdding && (
-          <div ref={formRef} className="bg-white rounded-2xl shadow-lg p-6 mb-8 border-4 border-blue-400">
-            <h2 className="text-2xl font-bold mb-4">
+          <div ref={formRef} className={`${theme.cardBg} rounded-2xl shadow-lg p-6 mb-8 border-4 ${theme.cardBorder}`}>
+            <h2 className={`text-2xl font-bold mb-4 ${theme.cardText}`}>
               Add New Exercise
             </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium ${theme.cardText} mb-2`}>
                   Exercise Name *
                 </label>
                 <input
@@ -317,12 +317,12 @@ function MyExercisesPage() {
                   value={exerciseName}
                   onChange={(e) => setExerciseName(e.target.value)}
                   placeholder="e.g., Cable Shoulder Press"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-4 py-2 border ${theme.inputBorder} ${theme.inputBg} rounded-lg focus:outline-none ${theme.inputFocus}`}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium ${theme.cardText} mb-2`}>
                   Category *
                 </label>
 
@@ -332,8 +332,8 @@ function MyExercisesPage() {
                     onClick={() => setIsCreatingCategory(false)}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       !isCreatingCategory
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? `${theme.btnPrimary} ${theme.btnPrimaryText}`
+                        : `${theme.btnSecondary} ${theme.btnSecondaryText}`
                     }`}
                   >
                     Select Preset
@@ -343,8 +343,8 @@ function MyExercisesPage() {
                     onClick={() => setIsCreatingCategory(true)}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       isCreatingCategory
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? `${theme.btnPrimary} ${theme.btnPrimaryText}`
+                        : `${theme.btnSecondary} ${theme.btnSecondaryText}`
                     }`}
                   >
                     Create Custom
@@ -357,13 +357,13 @@ function MyExercisesPage() {
                     value={customCategory}
                     onChange={(e) => setCustomCategory(e.target.value)}
                     placeholder="Enter custom category name..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full px-4 py-2 border ${theme.inputBorder} ${theme.inputBg} rounded-lg focus:outline-none ${theme.inputFocus}`}
                   />
                 ) : (
                   <select
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className={`w-full px-4 py-2 border ${theme.inputBorder} ${theme.inputBg} rounded-lg focus:outline-none ${theme.inputFocus}`}
                   >
                     <option value="">Select a category...</option>
                     {categoryOptions.map((opt, idx) => (
@@ -376,13 +376,13 @@ function MyExercisesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium ${theme.cardText} mb-2`}>
                   Muscle Group *
                 </label>
                 <select
                   value={selectedMuscleGroup}
                   onChange={(e) => setSelectedMuscleGroup(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-4 py-2 border ${theme.inputBorder} ${theme.inputBg} rounded-lg focus:outline-none ${theme.inputFocus}`}
                 >
                   <option value="">Select muscle group...</option>
                   {muscleGroupOptions.map((opt, idx) => (
@@ -394,7 +394,7 @@ function MyExercisesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium ${theme.cardText} mb-2`}>
                   Notes (optional)
                 </label>
                 <textarea
@@ -402,7 +402,7 @@ function MyExercisesPage() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Any notes about this exercise..."
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-4 py-2 border ${theme.inputBorder} ${theme.inputBg} rounded-lg focus:outline-none ${theme.inputFocus}`}
                 />
               </div>
 
@@ -412,9 +412,9 @@ function MyExercisesPage() {
                     type="checkbox"
                     checked={isBodyweight}
                     onChange={(e) => setIsBodyweight(e.target.checked)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    className="w-4 h-4 rounded"
                   />
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className={`text-sm font-medium ${theme.cardText}`}>
                     Bodyweight Exercise (e.g., Pull-ups, Push-ups)
                   </span>
                 </label>
@@ -441,7 +441,7 @@ function MyExercisesPage() {
         {/* Exercise List */}
         <div className="space-y-4">
           {customExercises.length === 0 ? (
-            <div className="bg-white rounded-2xl shadow-lg p-8 text-center text-gray-500">
+            <div className={`${theme.cardBg} rounded-2xl shadow-lg p-8 text-center ${theme.cardTextSecondary}`}>
               <p className="text-xl mb-2">No custom exercises yet</p>
               <p>Click "Add Exercise" to create your first custom exercise</p>
             </div>
@@ -451,17 +451,17 @@ function MyExercisesPage() {
                 key={exercise.id}
                 className={`rounded-2xl shadow-lg p-6 transition-colors ${
                   editingId === exercise.id
-                    ? 'bg-blue-50 border-4 border-blue-400'
-                    : 'bg-white'
+                    ? `${theme.cardBgSecondary} border-4 ${theme.cardBorder}`
+                    : theme.cardBg
                 }`}
               >
                 {editingId === exercise.id ? (
                   /* Inline Edit Form */
                   <div className="space-y-4">
-                    <h2 className="text-2xl font-bold mb-4">Edit Exercise</h2>
+                    <h2 className={`text-2xl font-bold mb-4 ${theme.cardText}`}>Edit Exercise</h2>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={`block text-sm font-medium ${theme.cardText} mb-2`}>
                         Exercise Name *
                       </label>
                       <input
@@ -469,12 +469,12 @@ function MyExercisesPage() {
                         value={exerciseName}
                         onChange={(e) => setExerciseName(e.target.value)}
                         placeholder="e.g., Cable Shoulder Press"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full px-4 py-2 border ${theme.inputBorder} ${theme.inputBg} rounded-lg focus:outline-none ${theme.inputFocus}`}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={`block text-sm font-medium ${theme.cardText} mb-2`}>
                         Category *
                       </label>
 
@@ -484,8 +484,8 @@ function MyExercisesPage() {
                           onClick={() => setIsCreatingCategory(false)}
                           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                             !isCreatingCategory
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              ? `${theme.btnPrimary} ${theme.btnPrimaryText}`
+                              : `${theme.btnSecondary} ${theme.btnSecondaryText}`
                           }`}
                         >
                           Select Preset
@@ -495,8 +495,8 @@ function MyExercisesPage() {
                           onClick={() => setIsCreatingCategory(true)}
                           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                             isCreatingCategory
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                              ? `${theme.btnPrimary} ${theme.btnPrimaryText}`
+                              : `${theme.btnSecondary} ${theme.btnSecondaryText}`
                           }`}
                         >
                           Create Custom
@@ -509,13 +509,13 @@ function MyExercisesPage() {
                           value={customCategory}
                           onChange={(e) => setCustomCategory(e.target.value)}
                           placeholder="Enter custom category name..."
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className={`w-full px-4 py-2 border ${theme.inputBorder} ${theme.inputBg} rounded-lg focus:outline-none ${theme.inputFocus}`}
                         />
                       ) : (
                         <select
                           value={selectedCategory}
                           onChange={(e) => setSelectedCategory(e.target.value)}
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className={`w-full px-4 py-2 border ${theme.inputBorder} ${theme.inputBg} rounded-lg focus:outline-none ${theme.inputFocus}`}
                         >
                           <option value="">Select a category...</option>
                           {categoryOptions.map((opt, idx) => (
@@ -528,13 +528,13 @@ function MyExercisesPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={`block text-sm font-medium ${theme.cardText} mb-2`}>
                         Muscle Group *
                       </label>
                       <select
                         value={selectedMuscleGroup}
                         onChange={(e) => setSelectedMuscleGroup(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full px-4 py-2 border ${theme.inputBorder} ${theme.inputBg} rounded-lg focus:outline-none ${theme.inputFocus}`}
                       >
                         <option value="">Select muscle group...</option>
                         {muscleGroupOptions.map((opt, idx) => (
@@ -546,7 +546,7 @@ function MyExercisesPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className={`block text-sm font-medium ${theme.cardText} mb-2`}>
                         Notes (optional)
                       </label>
                       <textarea
@@ -554,7 +554,7 @@ function MyExercisesPage() {
                         onChange={(e) => setNotes(e.target.value)}
                         placeholder="Any notes about this exercise..."
                         rows={3}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full px-4 py-2 border ${theme.inputBorder} ${theme.inputBg} rounded-lg focus:outline-none ${theme.inputFocus}`}
                       />
                     </div>
 
@@ -564,9 +564,9 @@ function MyExercisesPage() {
                           type="checkbox"
                           checked={isBodyweight}
                           onChange={(e) => setIsBodyweight(e.target.checked)}
-                          className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                          className="w-4 h-4 rounded"
                         />
-                        <span className="text-sm font-medium text-gray-700">
+                        <span className={`text-sm font-medium ${theme.cardText}`}>
                           Bodyweight Exercise (e.g., Pull-ups, Push-ups)
                         </span>
                       </label>
@@ -591,9 +591,9 @@ function MyExercisesPage() {
                   /* Normal Card View */
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-2xl font-bold text-gray-800 mb-2 break-words">{exercise.name}</h3>
-                      <div className="flex gap-2 text-sm text-gray-600 flex-wrap">
-                        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full break-words">
+                      <h3 className={`text-2xl font-bold ${theme.cardText} mb-2 break-words`}>{exercise.name}</h3>
+                      <div className={`flex gap-2 text-sm ${theme.cardTextSecondary} flex-wrap`}>
+                        <span className={`${theme.cardBgSecondary} ${theme.cardText} px-3 py-1 rounded-full break-words`}>
                           {exercise.category}
                         </span>
                         <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full">
@@ -606,14 +606,14 @@ function MyExercisesPage() {
                         )}
                       </div>
                       {exercise.notes && (
-                        <p className="mt-2 text-gray-600 italic break-words">{exercise.notes}</p>
+                        <p className={`mt-2 ${theme.cardTextSecondary} italic break-words`}>{exercise.notes}</p>
                       )}
                     </div>
 
                     <div className="flex gap-2 sm:flex-shrink-0">
                       <button
                         onClick={() => startEdit(exercise)}
-                        className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-all active:scale-95 whitespace-nowrap"
+                        className={`px-4 py-2 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg text-sm font-medium transition-all active:scale-95 whitespace-nowrap`}
                       >
                         Edit
                       </button>

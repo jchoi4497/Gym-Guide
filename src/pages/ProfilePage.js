@@ -72,8 +72,8 @@ function ProfilePage() {
               onClick={() => setActiveTab('socials')}
               className={`py-3 px-4 font-semibold transition-colors ${
                 activeTab === 'socials'
-                  ? 'border-b-4 border-blue-600 text-blue-600'
-                  : `${theme.cardTextSecondary} hover:${theme.cardText}`
+                  ? `border-b-4 border-gray-400 ${theme.headerText}`
+                  : `${theme.headerText} opacity-60 hover:opacity-100`
               }`}
             >
               Socials
@@ -82,8 +82,8 @@ function ProfilePage() {
               onClick={() => setActiveTab('stats')}
               className={`py-3 px-4 font-semibold transition-colors ${
                 activeTab === 'stats'
-                  ? 'border-b-4 border-blue-600 text-blue-600'
-                  : `${theme.cardTextSecondary} hover:${theme.cardText}`
+                  ? `border-b-4 border-gray-400 ${theme.headerText}`
+                  : `${theme.headerText} opacity-60 hover:opacity-100`
               }`}
             >
               Stats
@@ -92,8 +92,8 @@ function ProfilePage() {
               onClick={() => setActiveTab('settings')}
               className={`py-3 px-4 font-semibold transition-colors ${
                 activeTab === 'settings'
-                  ? 'border-b-4 border-blue-600 text-blue-600'
-                  : `${theme.cardTextSecondary} hover:${theme.cardText}`
+                  ? `border-b-4 border-gray-400 ${theme.headerText}`
+                  : `${theme.headerText} opacity-60 hover:opacity-100`
               }`}
             >
               Settings

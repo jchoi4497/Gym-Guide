@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import db from '../../../config/firebase';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 function AddFriend({ userId }) {
   const [searchEmail, setSearchEmail] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [message, setMessage] = useState('');
+  const { theme } = useTheme();
 
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -123,13 +125,13 @@ function AddFriend({ userId }) {
           value={searchEmail}
           onChange={(e) => setSearchEmail(e.target.value)}
           placeholder="Enter email address..."
-          className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className={`flex-1 min-w-0 px-4 py-2 border ${theme.inputBorder} ${theme.inputBg} rounded-lg focus:outline-none ${theme.inputFocus}`}
           disabled={searching}
         />
         <button
           type="submit"
           disabled={searching}
-          className="flex-shrink-0 px-4 sm:px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors disabled:bg-gray-400 whitespace-nowrap"
+          className={`flex-shrink-0 px-4 sm:px-6 py-2 ${theme.btnPrimary} ${theme.btnPrimaryText} font-semibold rounded-lg transition-colors disabled:bg-gray-400 whitespace-nowrap`}
         >
           {searching ? 'Searching...' : 'Search'}
         </button>
@@ -150,36 +152,36 @@ function AddFriend({ userId }) {
           {searchResults.map((user) => (
             <div
               key={user.id}
-              className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-gray-50 rounded-lg"
+              className={`flex flex-col sm:flex-row sm:items-center gap-3 p-4 ${theme.cardBgSecondary} rounded-lg`}
             >
               <div className="flex items-center gap-3 flex-1 min-w-0 overflow-hidden">
                 <img
                   src={user.photoURL || '/default-avatar.png'}
                   alt={user.displayName}
-                  className="w-12 h-12 rounded-full border-2 border-gray-200 flex-shrink-0"
+                  className={`w-12 h-12 rounded-full border-2 ${theme.cardBorder} flex-shrink-0`}
                 />
                 <div className="flex-1 min-w-0 overflow-hidden">
-                  <p className="font-semibold text-gray-800 truncate">{user.displayName}</p>
-                  <p className="text-sm text-gray-600 truncate">{user.email}</p>
+                  <p className={`font-semibold ${theme.cardText} truncate`}>{user.displayName}</p>
+                  <p className={`text-sm ${theme.cardTextSecondary} truncate`}>{user.email}</p>
                 </div>
               </div>
               <div className="flex-shrink-0 w-full sm:w-auto">
                 {user.status === 'can_add' && (
                   <button
                     onClick={() => handleSendRequest(user.id)}
-                    className="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors whitespace-nowrap"
+                    className={`w-full sm:w-auto px-4 py-2 ${theme.btnPrimary} ${theme.btnPrimaryText} font-semibold rounded-lg transition-colors whitespace-nowrap`}
                   >
                     Add Friend
                   </button>
                 )}
                 {user.status === 'already_friends' && (
-                  <span className="text-sm text-gray-500 italic block text-center sm:text-left">Already friends</span>
+                  <span className={`text-sm ${theme.cardTextSecondary} italic block text-center sm:text-left`}>Already friends</span>
                 )}
                 {user.status === 'request_sent' && (
-                  <span className="text-sm text-gray-500 italic block text-center sm:text-left">Request sent</span>
+                  <span className={`text-sm ${theme.cardTextSecondary} italic block text-center sm:text-left`}>Request sent</span>
                 )}
                 {user.status === 'request_received' && (
-                  <span className="text-sm text-blue-600 italic block text-center sm:text-left">Check requests</span>
+                  <span className={`text-sm ${theme.cardText} italic block text-center sm:text-left`}>Check requests</span>
                 )}
               </div>
             </div>

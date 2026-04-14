@@ -2,11 +2,13 @@ import { useState } from 'react';
 import FriendsList from './FriendsList';
 import FriendRequests from './FriendRequests';
 import AddFriend from './AddFriend';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 function SocialsTab({ user }) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [activeTab, setActiveTab] = useState('add'); // 'add' or 'requests'
   const [requestCount, setRequestCount] = useState(0);
+  const { theme } = useTheme();
 
   const handleRequestHandled = () => {
     // Trigger refresh of friends list when request is accepted
@@ -20,15 +22,15 @@ function SocialsTab({ user }) {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Add Friend & Friend Requests Combined */}
-      <div className="bg-white rounded-xl shadow-md p-6">
+      <div className={`${theme.cardBg} rounded-xl shadow-md p-6 ${theme.cardBorder}`}>
         {/* Tabs */}
-        <div className="flex gap-4 mb-6 border-b border-gray-200">
+        <div className={`flex gap-4 mb-6 border-b ${theme.cardBorder}`}>
           <button
             onClick={() => setActiveTab('add')}
             className={`pb-2 px-4 font-semibold transition-colors ${
               activeTab === 'add'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
+                ? `border-b-2 border-gray-400 ${theme.cardText}`
+                : `${theme.cardText} opacity-60 hover:opacity-100`
             }`}
           >
             Add Friends
@@ -37,8 +39,8 @@ function SocialsTab({ user }) {
             onClick={() => setActiveTab('requests')}
             className={`pb-2 px-4 font-semibold transition-colors relative ${
               activeTab === 'requests'
-                ? 'border-b-2 border-blue-600 text-blue-600'
-                : 'text-gray-600 hover:text-gray-800'
+                ? `border-b-2 border-gray-400 ${theme.cardText}`
+                : `${theme.cardText} opacity-60 hover:opacity-100`
             }`}
           >
             Friend Requests
@@ -64,22 +66,22 @@ function SocialsTab({ user }) {
       </div>
 
       {/* My Friends - Separate Card */}
-      <div className="bg-white rounded-xl shadow-md p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4">My Friends</h3>
+      <div className={`${theme.cardBg} rounded-xl shadow-md p-6 ${theme.cardBorder}`}>
+        <h3 className={`text-xl font-bold ${theme.cardText} mb-4`}>My Friends</h3>
         <FriendsList key={refreshKey} userId={user.uid} />
       </div>
 
       {/* Coming Soon Features */}
-      <div className="bg-white rounded-xl shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">Coming Soon</h3>
+      <div className={`${theme.cardBg} rounded-xl shadow-md p-6 ${theme.cardBorder}`}>
+        <h3 className={`text-lg font-semibold ${theme.cardText} mb-4`}>Coming Soon</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-            <h4 className="font-semibold text-gray-800 mb-2">🏆 Leaderboards</h4>
-            <p className="text-sm text-gray-600">Compete with friends in challenges</p>
+          <div className={`border ${theme.cardBorder} rounded-lg p-4 ${theme.cardBgSecondary}`}>
+            <h4 className={`font-semibold ${theme.cardText} mb-2`}>🏆 Leaderboards</h4>
+            <p className={`text-sm ${theme.cardTextSecondary}`}>Compete with friends in challenges</p>
           </div>
-          <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-            <h4 className="font-semibold text-gray-800 mb-2">📊 Share Progress</h4>
-            <p className="text-sm text-gray-600">Share your fitness journey</p>
+          <div className={`border ${theme.cardBorder} rounded-lg p-4 ${theme.cardBgSecondary}`}>
+            <h4 className={`font-semibold ${theme.cardText} mb-2`}>📊 Share Progress</h4>
+            <p className={`text-sm ${theme.cardTextSecondary}`}>Share your fitness journey</p>
           </div>
         </div>
       </div>
