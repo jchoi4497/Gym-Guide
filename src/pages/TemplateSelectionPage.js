@@ -351,8 +351,8 @@ function TemplateSelectionPage() {
             onClick={() => setActiveTab('custom')}
             className={`px-5 py-2 rounded-full font-semibold transition-all text-sm ${
               activeTab === 'custom'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'bg-white text-gray-700 hover:bg-gray-50 shadow-sm'
+                ? `${theme.btnPrimary} ${theme.btnPrimaryText} shadow-md`
+                : `${theme.btnSecondary} ${theme.btnSecondaryText} shadow-sm`
             }`}
           >
             My Templates
@@ -361,8 +361,8 @@ function TemplateSelectionPage() {
             onClick={() => setActiveTab('builtin')}
             className={`px-5 py-2 rounded-full font-semibold transition-all text-sm ${
               activeTab === 'builtin'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'bg-white text-gray-700 hover:bg-gray-50 shadow-sm'
+                ? `${theme.btnPrimary} ${theme.btnPrimaryText} shadow-md`
+                : `${theme.btnSecondary} ${theme.btnSecondaryText} shadow-sm`
             }`}
           >
             Built-in Programs
@@ -373,8 +373,8 @@ function TemplateSelectionPage() {
         {activeTab === 'builtin' && (
           <div className="mb-16">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-                <span className="text-blue-600">📚</span> Built-in Programs
+              <h2 className={`text-3xl font-bold ${theme.cardText} flex items-center gap-2`}>
+                <span>📚</span> Built-in Programs
               </h2>
               {/* View Toggle Buttons */}
               <div className="flex gap-2">
@@ -382,8 +382,8 @@ function TemplateSelectionPage() {
                   onClick={() => setViewMode('cards')}
                   className={`px-3 py-2 rounded-lg font-semibold transition-all ${
                     viewMode === 'cards'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
+                      ? `${theme.btnPrimary} ${theme.btnPrimaryText}`
+                      : `${theme.btnSecondary} ${theme.btnSecondaryText} shadow-sm`
                   }`}
                   title="Card View"
                 >
@@ -398,8 +398,8 @@ function TemplateSelectionPage() {
                   onClick={() => setViewMode('list')}
                   className={`px-3 py-2 rounded-lg font-semibold transition-all ${
                     viewMode === 'list'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
+                      ? `${theme.btnPrimary} ${theme.btnPrimaryText}`
+                      : `${theme.btnSecondary} ${theme.btnSecondaryText} shadow-sm`
                   }`}
                   title="List View"
                 >
@@ -435,19 +435,19 @@ function TemplateSelectionPage() {
                 {filteredBuiltInTemplates.map(template => (
                   <div
                     key={template.id}
-                    className="bg-white rounded-lg shadow-md p-5 hover:shadow-lg transition-all"
+                    className={`${theme.cardBg} rounded-lg shadow-md p-5 hover:shadow-lg transition-all`}
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-gray-800 text-lg">{template.name}</h3>
-                        <div className="flex gap-4 mt-1 text-sm text-gray-600">
+                        <h3 className={`font-bold ${theme.cardText} text-lg`}>{template.name}</h3>
+                        <div className={`flex gap-4 mt-1 text-sm ${theme.cardTextSecondary}`}>
                           <span>🎯 {template.muscleGroup}</span>
                           {template.exercises && <span>🏋️ {template.exercises.length} exercises</span>}
                         </div>
                       </div>
                       <button
                         onClick={() => navigate('/Create', { state: { template } })}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm whitespace-nowrap flex-shrink-0"
+                        className={`px-4 py-2 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg transition-colors font-semibold text-sm whitespace-nowrap flex-shrink-0`}
                       >
                         Start
                       </button>
@@ -468,7 +468,7 @@ function TemplateSelectionPage() {
                 <select
                   value={filterTag}
                   onChange={(e) => setFilterTag(e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-4 py-3 rounded-lg border-2 ${theme.inputBorder} ${theme.inputBg} focus:outline-none ${theme.inputFocus}`}
                 >
                   <option value="all">All Tags</option>
                   {allTags.map(tag => (
@@ -483,10 +483,10 @@ function TemplateSelectionPage() {
               <>
                 {/* No results from search */}
                 {searchTerm && favoriteTemplates.length === 0 && regularTemplates.length === 0 && userTemplates.length > 0 && (
-                  <div className="bg-sky-50 rounded-3xl p-12 text-center shadow-lg mb-16">
+                  <div className={`${theme.cardBg} rounded-3xl p-12 text-center shadow-lg mb-16`}>
                     <div className="text-6xl mb-4">🔍</div>
-                    <h3 className="text-2xl font-bold mb-4 text-gray-800">No templates found</h3>
-                    <p className="text-gray-600">
+                    <h3 className={`text-2xl font-bold mb-4 ${theme.cardText}`}>No templates found</h3>
+                    <p className={theme.cardTextSecondary}>
                       Try adjusting your search terms
                     </p>
                   </div>
@@ -496,7 +496,7 @@ function TemplateSelectionPage() {
                 {favoriteTemplates.length > 0 && (
                   <div className="mb-16">
                     <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+                      <h2 className={`text-3xl font-bold ${theme.cardText} flex items-center gap-2`}>
                         <span className="text-yellow-500">⭐</span> Favorites
                       </h2>
                       {/* View Toggle Buttons - only show if this is the only section */}
@@ -506,8 +506,8 @@ function TemplateSelectionPage() {
                             onClick={() => setViewMode('cards')}
                             className={`px-3 py-2 rounded-lg font-semibold transition-all ${
                               viewMode === 'cards'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
+                                ? `${theme.btnPrimary} ${theme.btnPrimaryText}`
+                                : `${theme.btnSecondary} ${theme.btnSecondaryText} shadow-sm`
                             }`}
                             title="Card View"
                           >
@@ -522,8 +522,8 @@ function TemplateSelectionPage() {
                             onClick={() => setViewMode('list')}
                             className={`px-3 py-2 rounded-lg font-semibold transition-all ${
                               viewMode === 'list'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
+                                ? `${theme.btnPrimary} ${theme.btnPrimaryText}`
+                                : `${theme.btnSecondary} ${theme.btnSecondaryText} shadow-sm`
                             }`}
                             title="List View"
                           >
@@ -557,15 +557,15 @@ function TemplateSelectionPage() {
                         {favoriteTemplates.map(template => (
                           <div
                             key={template.id}
-                            className="bg-white rounded-lg shadow-md p-5 hover:shadow-lg transition-all"
+                            className={`${theme.cardBg} rounded-lg shadow-md p-5 hover:shadow-lg transition-all`}
                           >
                             <div className="flex items-start justify-between gap-6">
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-2">
-                                  <h3 className="font-bold text-gray-800 text-lg truncate">{template.name}</h3>
+                                  <h3 className={`font-bold ${theme.cardText} text-lg truncate`}>{template.name}</h3>
                                   <span className="text-yellow-500 flex-shrink-0">⭐</span>
                                 </div>
-                                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
+                                <div className={`flex flex-wrap gap-x-4 gap-y-1 text-sm ${theme.cardTextSecondary}`}>
                                   <span className="whitespace-nowrap">🎯 {template.customMuscleGroupName || template.muscleGroup || 'Any'}</span>
                                   {template.exercises && <span className="whitespace-nowrap">🏋️ {template.exercises.length} exercises</span>}
                                 </div>
@@ -573,7 +573,7 @@ function TemplateSelectionPage() {
                               <div className="flex gap-2 flex-shrink-0 items-start pt-1">
                                 <button
                                   onClick={() => navigate('/Create', { state: { templateId: template.id } })}
-                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm whitespace-nowrap"
+                                  className={`px-4 py-2 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg transition-colors font-semibold text-sm whitespace-nowrap`}
                                 >
                                   Start
                                 </button>
@@ -584,7 +584,7 @@ function TemplateSelectionPage() {
                                       e.stopPropagation();
                                       setOpenMenuId(openMenuId === template.id ? null : template.id);
                                     }}
-                                    className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                                    className={`px-3 py-2 ${theme.btnSecondary} ${theme.btnSecondaryText} rounded-lg transition-colors`}
                                   >
                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                                       <circle cx="10" cy="5" r="1.5"/>
@@ -593,14 +593,14 @@ function TemplateSelectionPage() {
                                     </svg>
                                   </button>
                                   {openMenuId === template.id && (
-                                    <div onClick={(e) => e.stopPropagation()} className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-xl border border-gray-200 z-10">
+                                    <div onClick={(e) => e.stopPropagation()} className={`absolute right-0 mt-2 w-32 ${theme.cardBg} rounded-lg shadow-xl border ${theme.cardBorder} z-10`}>
                                       <button
                                         onClick={() => {
                                           setEditingTemplate(template);
                                           setShowEditor(true);
                                           setOpenMenuId(null);
                                         }}
-                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 rounded-t-lg"
+                                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 text-sm ${theme.cardText} rounded-t-lg`}
                                       >
                                         Edit
                                       </button>
@@ -609,7 +609,7 @@ function TemplateSelectionPage() {
                                           handleDuplicate(template.id);
                                           setOpenMenuId(null);
                                         }}
-                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 text-sm ${theme.cardText}`}
                                       >
                                         Copy
                                       </button>
@@ -638,8 +638,8 @@ function TemplateSelectionPage() {
                 {regularTemplates.length > 0 && (
                   <div className="mb-16">
                     <div className="flex justify-between items-center mb-6">
-                      <h2 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-                        <span className="text-green-600">📋</span> My Templates
+                      <h2 className={`text-3xl font-bold ${theme.cardText} flex items-center gap-2`}>
+                        <span>📋</span> My Templates
                       </h2>
                       {/* View Toggle Buttons */}
                       <div className="flex gap-2">
@@ -647,8 +647,8 @@ function TemplateSelectionPage() {
                           onClick={() => setViewMode('cards')}
                           className={`px-3 py-2 rounded-lg font-semibold transition-all ${
                             viewMode === 'cards'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
+                              ? `${theme.btnPrimary} ${theme.btnPrimaryText}`
+                              : `${theme.btnSecondary} ${theme.btnSecondaryText} shadow-sm`
                           }`}
                           title="Card View"
                         >
@@ -663,8 +663,8 @@ function TemplateSelectionPage() {
                           onClick={() => setViewMode('list')}
                           className={`px-3 py-2 rounded-lg font-semibold transition-all ${
                             viewMode === 'list'
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-white text-gray-700 hover:bg-gray-100 shadow-sm'
+                              ? `${theme.btnPrimary} ${theme.btnPrimaryText}`
+                              : `${theme.btnSecondary} ${theme.btnSecondaryText} shadow-sm`
                           }`}
                           title="List View"
                         >
@@ -697,12 +697,12 @@ function TemplateSelectionPage() {
                         {regularTemplates.map(template => (
                           <div
                             key={template.id}
-                            className="bg-white rounded-lg shadow-md p-5 hover:shadow-lg transition-all"
+                            className={`${theme.cardBg} rounded-lg shadow-md p-5 hover:shadow-lg transition-all`}
                           >
                             <div className="flex items-start justify-between gap-6">
                               <div className="flex-1 min-w-0">
-                                <h3 className="font-bold text-gray-800 text-lg truncate mb-2">{template.name}</h3>
-                                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">
+                                <h3 className={`font-bold ${theme.cardText} text-lg truncate mb-2`}>{template.name}</h3>
+                                <div className={`flex flex-wrap gap-x-4 gap-y-1 text-sm ${theme.cardTextSecondary}`}>
                                   <span className="whitespace-nowrap">🎯 {template.customMuscleGroupName || template.muscleGroup || 'Any'}</span>
                                   {template.exercises && <span className="whitespace-nowrap">🏋️ {template.exercises.length} exercises</span>}
                                 </div>
@@ -710,7 +710,7 @@ function TemplateSelectionPage() {
                               <div className="flex gap-2 flex-shrink-0 items-start pt-1">
                                 <button
                                   onClick={() => navigate('/Create', { state: { templateId: template.id } })}
-                                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm whitespace-nowrap"
+                                  className={`px-4 py-2 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg transition-colors font-semibold text-sm whitespace-nowrap`}
                                 >
                                   Start
                                 </button>
@@ -721,7 +721,7 @@ function TemplateSelectionPage() {
                                       e.stopPropagation();
                                       setOpenMenuId(openMenuId === template.id ? null : template.id);
                                     }}
-                                    className="px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                                    className={`px-3 py-2 ${theme.btnSecondary} ${theme.btnSecondaryText} rounded-lg transition-colors`}
                                   >
                                     <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                                       <circle cx="10" cy="5" r="1.5"/>
@@ -730,14 +730,14 @@ function TemplateSelectionPage() {
                                     </svg>
                                   </button>
                                   {openMenuId === template.id && (
-                                    <div onClick={(e) => e.stopPropagation()} className="absolute right-0 mt-2 w-32 bg-white rounded-lg shadow-xl border border-gray-200 z-10">
+                                    <div onClick={(e) => e.stopPropagation()} className={`absolute right-0 mt-2 w-32 ${theme.cardBg} rounded-lg shadow-xl border ${theme.cardBorder} z-10`}>
                                       <button
                                         onClick={() => {
                                           setEditingTemplate(template);
                                           setShowEditor(true);
                                           setOpenMenuId(null);
                                         }}
-                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700 rounded-t-lg"
+                                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 text-sm ${theme.cardText} rounded-t-lg`}
                                       >
                                         Edit
                                       </button>
@@ -746,7 +746,7 @@ function TemplateSelectionPage() {
                                           handleDuplicate(template.id);
                                           setOpenMenuId(null);
                                         }}
-                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 text-sm text-gray-700"
+                                        className={`w-full text-left px-4 py-2 hover:bg-gray-100 text-sm ${theme.cardText}`}
                                       >
                                         Copy
                                       </button>
@@ -773,15 +773,15 @@ function TemplateSelectionPage() {
 
                 {/* Empty State */}
                 {userTemplates.length === 0 && (
-                  <div className="bg-sky-50 rounded-3xl p-12 text-center shadow-lg mb-16">
+                  <div className={`${theme.cardBg} rounded-3xl p-12 text-center shadow-lg mb-16`}>
                     <div className="text-6xl mb-4">📝</div>
-                    <h3 className="text-2xl font-bold mb-4 text-gray-800">No Custom Templates Yet</h3>
-                    <p className="text-gray-600 mb-6">
+                    <h3 className={`text-2xl font-bold mb-4 ${theme.cardText}`}>No Custom Templates Yet</h3>
+                    <p className={`${theme.cardTextSecondary} mb-6`}>
                       Create your first custom template to save your favorite workout routines
                     </p>
                     <button
                       onClick={handleCreateNew}
-                      className="px-8 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-all shadow-lg"
+                      className={`px-8 py-3 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-full font-semibold transition-all shadow-lg`}
                     >
                       Create Your First Template
                     </button>
@@ -792,10 +792,10 @@ function TemplateSelectionPage() {
 
             {/* Not Logged In State - show in custom tab only */}
             {!user && !isLoading && (
-              <div className="bg-sky-50 rounded-3xl p-12 text-center shadow-lg mb-12">
+              <div className={`${theme.cardBg} rounded-3xl p-12 text-center shadow-lg mb-12`}>
                 <div className="text-6xl mb-4">🔒</div>
-                <h3 className="text-2xl font-bold mb-4 text-gray-800">Sign In to Access Custom Templates</h3>
-                <p className="text-gray-600">
+                <h3 className={`text-2xl font-bold mb-4 ${theme.cardText}`}>Sign In to Access Custom Templates</h3>
+                <p className={theme.cardTextSecondary}>
                   Create and save custom workout templates by signing in with Google
                 </p>
               </div>
