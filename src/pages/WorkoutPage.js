@@ -374,7 +374,7 @@ function WorkoutPage() {
   };
 
   // Remove an entire exercise
-  const handleRemoveExercise = (categoryKey) => {
+  const handleRemoveExercise = async (categoryKey) => {
     const updatedExerciseData = { ...exerciseData };
     delete updatedExerciseData[categoryKey];
     setExerciseData(updatedExerciseData);
@@ -385,6 +385,20 @@ function WorkoutPage() {
       setMainExerciseOrder(prev => prev.filter(key => key !== categoryKey));
     }
 
+    // Immediately save deletion to Firebase to prevent deleted exercises from reappearing
+    if (workoutId && auth.currentUser) {
+      try {
+        const workoutRef = doc(db, 'workoutLogs', workoutId);
+        const updatedOrder = isCardioOrAbs ? mainExerciseOrder : mainExerciseOrder.filter(key => key !== categoryKey);
+        await updateDoc(workoutRef, {
+          exerciseData: updatedExerciseData,
+          mainExerciseOrder: updatedOrder,
+          lastModified: serverTimestamp()
+        });
+      } catch (error) {
+        console.error('Error saving exercise deletion:', error);
+      }
+    }
   };
 
   // Handle reordering of main workout exercises

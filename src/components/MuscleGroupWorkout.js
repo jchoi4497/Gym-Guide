@@ -194,7 +194,9 @@ function MuscleGroupWorkout({
     );
 
     setExercises(updatedExercises);
-    onExerciseDataChange(rowId, newExerciseValue, -1, null, detectedCategory);
+    // Convert exercise ID to full name before storing
+    const exerciseName = getExerciseName(newExerciseValue) || newExerciseValue;
+    onExerciseDataChange(rowId, exerciseName, -1, null, detectedCategory);
   };
 
   // Handle set data input change

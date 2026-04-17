@@ -6,6 +6,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { parseSet, combineSet, getPreviousSet } from '../utils/setHelpers';
 import { useSettings } from '../contexts/SettingsContext';
 import { displayWeight, saveWeight } from '../utils/weightConversion';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Field templates for different cardio exercise types
 const CARDIO_FIELD_TEMPLATES = {
@@ -52,6 +53,7 @@ function OptionalWorkoutSections({
   cardioExpanded: cardioExpandedProp, // Controlled state from parent (optional)
   setCardioExpanded: setCardioExpandedProp,
 }) {
+  const { theme } = useTheme();
   const [absEditMode, setAbsEditMode] = useState({}); // Track edit mode per abs exercise
 
   // Use controlled state from parent if provided, otherwise use local state
@@ -613,7 +615,7 @@ function OptionalWorkoutSections({
 
                               <button
                                 onClick={() => toggleAbsEditMode(exercise.id)}
-                                className="px-2 sm:px-4 py-2 rounded-md bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-semibold transition-colors cursor-pointer whitespace-nowrap text-sm sm:text-base order-2 sm:order-3"
+                                className={`px-2 sm:px-4 py-2 rounded-md ${theme.btnPrimary} ${theme.btnPrimaryText} font-semibold transition-colors cursor-pointer whitespace-nowrap text-sm sm:text-base order-2 sm:order-3`}
                                 title={isEditMode ? "Done editing sets" : "Edit set count"}
                               >
                                 {isEditMode ? '✓ Done' : 'Edit Sets'}
@@ -630,7 +632,7 @@ function OptionalWorkoutSections({
               {absExpanded && (
               <button
                 onClick={addCustomAbs}
-                className="w-full mt-4 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold shadow-md transition-all active:scale-95"
+                className={`w-full mt-4 px-4 py-3 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg font-semibold shadow-md transition-all active:scale-95`}
               >
                 + Add Custom Abs Exercise
               </button>
@@ -795,7 +797,7 @@ function OptionalWorkoutSections({
               {cardioExpanded && (
               <button
                 onClick={addCustomCardio}
-                className="w-full mt-4 px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold shadow-md transition-all active:scale-95"
+                className={`w-full mt-4 px-4 py-3 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg font-semibold shadow-md transition-all active:scale-95`}
               >
                 + Add Custom Cardio Exercise
               </button>
