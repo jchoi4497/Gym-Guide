@@ -21,10 +21,12 @@ import WorkoutAnalysis from './WorkoutAnalysis';
 import AddExerciseButton from '../components/AddExerciseButton';
 import OptionalWorkoutSections from '../components/OptionalWorkoutSections';
 import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from '../config/constants';
+import { useTheme } from '../contexts/ThemeContext';
 
 function SavedWorkout() {
   const { workoutId } = useParams();
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const [workoutData, setWorkoutData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -793,15 +795,15 @@ function SavedWorkout() {
   }
 
   return (
-    <div className="bg-gradient-to-br from-sky-300 to-stone-300 min-h-screen font-serif pb-80">
+    <div className={`${theme.pageBg} min-h-screen font-serif pb-80`}>
       <Navbar />
       <div className="px-4 sm:px-20">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-          <div className="text-5xl">{getLabel(muscleGroup)} Workout</div>
+          <div className={`text-5xl ${theme.headerText}`}>{getLabel(muscleGroup)} Workout</div>
           <div className="flex flex-col items-end gap-2">
             {isEditing ? (
               <div className="flex flex-col">
-                <label className="text-sm font-medium text-gray-700 mb-1">Workout Date:</label>
+                <label className={`text-sm font-medium ${theme.cardText} mb-1`}>Workout Date:</label>
                 <input
                   type="date"
                   value={editedDate}
@@ -816,12 +818,12 @@ function SavedWorkout() {
                     const day = String(today.getDate()).padStart(2, '0');
                     return `${year}-${month}-${day}`;
                   })()}
-                  className="px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                  className={`px-3 py-2 rounded-md border ${theme.inputBorder} ${theme.inputBg} focus:outline-none ${theme.inputFocus} text-lg`}
                 />
               </div>
             ) : (
               workoutData.date && (
-                <div className="text-5xl text-gray-600">
+                <div className={`text-5xl ${theme.cardTextSecondary}`}>
                   {new Date(workoutData.date.seconds * 1000).toLocaleDateString()}
                 </div>
               )
@@ -833,15 +835,15 @@ function SavedWorkout() {
       <div className="sm:px-20 px-4">
         {/* Chart View Buttons */}
         <div className={`flex flex-wrap items-center justify-end gap-2 mb-6 sm:mb-8 px-4 sm:px-0 ${isSaving ? 'pointer-events-none opacity-50' : ''}`}>
-          <span className="text-lg font-medium text-gray-700">Compare Data:</span>
+          <span className={`text-lg font-medium ${theme.cardText}`}>Compare Data:</span>
           <button
             onClick={() => setGraphView('previous')}
             disabled={isSaving}
-            className={`px-4 py-2 rounded-lg text-sky-50 text-sm font-semibold transition-all duration-200 shadow-md active:scale-95
+            className={`px-4 py-2 rounded-lg ${theme.btnPrimaryText} text-sm font-semibold transition-all duration-200 shadow-md active:scale-95
                         ${
                           graphView === 'previous'
-                            ? 'bg-blue-600 hover:bg-blue-700'
-                            : 'bg-gray-500 hover:bg-gray-600'
+                            ? theme.btnPrimary
+                            : theme.btnSecondary
                         }`}
           >
             Previous
@@ -849,11 +851,11 @@ function SavedWorkout() {
           <button
             onClick={() => setGraphView('monthly')}
             disabled={isSaving}
-            className={`px-4 py-2 rounded-lg text-sky-50 text-sm font-semibold transition-all duration-200 shadow-md active:scale-95
+            className={`px-4 py-2 rounded-lg ${theme.btnPrimaryText} text-sm font-semibold transition-all duration-200 shadow-md active:scale-95
                         ${
                           graphView === 'monthly'
-                            ? 'bg-blue-600 hover:bg-blue-700'
-                            : 'bg-gray-500 hover:bg-gray-600'
+                            ? theme.btnPrimary
+                            : theme.btnSecondary
                         }`}
           >
             Month
@@ -864,7 +866,7 @@ function SavedWorkout() {
         <div className="mb-4 px-4 sm:px-0 flex justify-end">
           <button
             onClick={() => setExpandAll(!expandAll)}
-            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-colors text-sm"
+            className={`px-4 py-2 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg font-semibold transition-colors text-sm`}
           >
             {expandAll ? 'Collapse All' : 'Expand All'}
           </button>
@@ -974,10 +976,10 @@ function SavedWorkout() {
         <Link to="/SavedWorkouts">
           <button
             disabled={isSaving}
-            className={`px-6 py-3 w-full sm:w-auto rounded-3xl shadow-lg text-sky-50 transition-all duration-300 ${
+            className={`px-6 py-3 w-full sm:w-auto rounded-3xl shadow-lg ${theme.btnPrimaryText} transition-all duration-300 ${
               isSaving
                 ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-gray-800 hover:bg-blue-600 active:bg-gray-600 active:scale-95'
+                : `${theme.btnSecondary} active:scale-95`
             }`}
           >
             View Workouts
@@ -989,7 +991,7 @@ function SavedWorkout() {
       {!isEditing && (
         <div className={`flex flex-col justify-end space-y-4 ${
           isButtonSticky
-            ? 'fixed bottom-0 left-0 right-0 bg-gradient-to-t from-sky-300 via-sky-300 to-transparent pt-6 pb-4 px-4 m-0 z-50'
+            ? `fixed bottom-0 left-0 right-0 ${theme.pageBg} bg-opacity-95 pt-6 pb-4 px-4 m-0 z-50`
             : 'm-6 px-4 sm:px-20'
         } sm:m-6 sm:px-20 sm:relative sm:bg-none sm:pt-0 sm:pb-0`}>
           <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
@@ -998,7 +1000,7 @@ function SavedWorkout() {
                 setIsEditing(true);
                 setHasUnsavedChanges(false);
               }}
-              className="px-6 py-3 rounded text-sky-50 transition-all bg-blue-500 hover:bg-blue-600 active:bg-blue-400 active:scale-95"
+              className={`px-6 py-3 rounded ${theme.btnPrimaryText} transition-all ${theme.btnPrimary} active:scale-95`}
             >
               Edit Workout
             </button>
@@ -1010,7 +1012,7 @@ function SavedWorkout() {
       {isEditing && (
         <div className={`flex flex-col justify-end space-y-4 ${
           isButtonSticky
-            ? 'fixed bottom-0 left-0 right-0 bg-gradient-to-t from-sky-300 via-sky-300 to-transparent pt-6 pb-4 px-4 m-0 z-50'
+            ? `fixed bottom-0 left-0 right-0 ${theme.pageBg} bg-opacity-95 pt-6 pb-4 px-4 m-0 z-50`
             : 'm-6 px-4 sm:px-20'
         } sm:m-6 sm:px-20 sm:relative sm:bg-none sm:pt-0 sm:pb-0`}>
           <button
@@ -1027,7 +1029,7 @@ function SavedWorkout() {
 
           <div className="flex flex-col gap-2">
             {isGeneratingSummary && (
-              <div className="text-blue-600 font-semibold animate-pulse">
+              <div className={`${theme.headerText} font-semibold animate-pulse`}>
                 🤖 Generating AI summary...
               </div>
             )}
