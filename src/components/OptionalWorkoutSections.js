@@ -57,6 +57,7 @@ function OptionalWorkoutSections({
   previousWorkoutData, // For graph comparison
   monthlyWorkoutData = [], // For monthly graph view
   graphView = 'previous', // 'previous' or 'monthly'
+  isSavedWorkoutEditMode = false, // Special flag for SavedWorkout edit mode styling
 }) {
   const { theme } = useTheme();
 
@@ -412,7 +413,24 @@ function OptionalWorkoutSections({
                           <div className="text-2xl font-bold text-gray-900">
                             {getExerciseName(exerciseData[exercise.id]?.exerciseName || exerciseData[exercise.id]?.selection || exercise.selected) || exerciseData[exercise.id]?.exerciseName || exerciseData[exercise.id]?.selection || exercise.selected}
                           </div>
+                        ) : isSavedWorkoutEditMode ? (
+                          // SAVEDWORKOUT EDIT MODE: Autocomplete styled like main exercises (bold text with underline on focus)
+                          <div className="text-2xl font-bold">
+                            <ExerciseAutocomplete
+                              value={exercise.selected === 'custom' ? '' : (getExerciseName(exerciseData[exercise.id]?.exerciseName || exerciseData[exercise.id]?.selection || exercise.selected))}
+                              onChange={(value) => {
+                                handleAbsChange(exercise.id, value, -1, null, value);
+                              }}
+                              onSelect={(exerciseObj) => {
+                                handleAbsChange(exercise.id, exerciseObj.name, -1, null, exerciseObj.isPreset ? exerciseObj.id : exerciseObj.name);
+                              }}
+                              previousCustomExercises={previousCustomExercises}
+                              placeholder="Exercise Name"
+                              className="bg-transparent border-b-2 border-sky-200 focus:border-sky-500 outline-none px-1 w-full"
+                            />
+                          </div>
                         ) : exercise.isCustom || exercise.selected === 'custom' || !exercise.options.find(opt => opt.value === exercise.selected) ? (
+                          // CREATE NEW WORKOUT MODE - Custom exercise: Use autocomplete
                           <ExerciseAutocomplete
                             value={exercise.selected === 'custom' ? '' : (getExerciseName(exerciseData[exercise.id]?.exerciseName || exerciseData[exercise.id]?.selection || exercise.selected))}
                             onChange={(value) => {
@@ -426,6 +444,7 @@ function OptionalWorkoutSections({
                             className="w-full px-2 sm:px-3 py-1 border border-blue-200 rounded-md focus:border-blue-500 outline-none transition-all text-sm"
                           />
                         ) : (
+                          // CREATE NEW WORKOUT MODE - Preset exercise: Use dropdown
                           <DropDown
                             options={[...exercise.options, { label: 'Custom', value: 'custom' }]}
                             onChange={(value) => handleAbsChange(exercise.id, value, -1, null, value)}
@@ -683,7 +702,24 @@ function OptionalWorkoutSections({
                           <div className="text-2xl font-bold text-gray-900">
                             {getExerciseName(exerciseData[exercise.id]?.exerciseName || exerciseData[exercise.id]?.selection || exercise.selected) || exerciseData[exercise.id]?.exerciseName || exerciseData[exercise.id]?.selection || exercise.selected}
                           </div>
+                        ) : isSavedWorkoutEditMode ? (
+                          // SAVEDWORKOUT EDIT MODE: Autocomplete styled like main exercises (bold text with underline on focus)
+                          <div className="text-2xl font-bold">
+                            <ExerciseAutocomplete
+                              value={exercise.selected === 'custom' ? '' : (getExerciseName(exerciseData[exercise.id]?.exerciseName || exerciseData[exercise.id]?.selection || exercise.selected))}
+                              onChange={(value) => {
+                                handleCardioChange(exercise.id, value, -1, null, value);
+                              }}
+                              onSelect={(exerciseObj) => {
+                                handleCardioChange(exercise.id, exerciseObj.name, -1, null, exerciseObj.isPreset ? exerciseObj.id : exerciseObj.name);
+                              }}
+                              previousCustomExercises={previousCustomExercises}
+                              placeholder="Exercise Name"
+                              className="bg-transparent border-b-2 border-sky-200 focus:border-sky-500 outline-none px-1 w-full"
+                            />
+                          </div>
                         ) : exercise.isCustom || exercise.selected === 'custom' || !exercise.options.find(opt => opt.value === exercise.selected) ? (
+                          // CREATE NEW WORKOUT MODE - Custom exercise: Use autocomplete
                           <ExerciseAutocomplete
                             value={exercise.selected === 'custom' ? '' : (getExerciseName(exerciseData[exercise.id]?.exerciseName || exerciseData[exercise.id]?.selection || exercise.selected))}
                             onChange={(value) => {
@@ -697,6 +733,7 @@ function OptionalWorkoutSections({
                             className="w-full px-2 sm:px-3 py-1 border border-blue-200 rounded-md focus:border-blue-500 outline-none transition-all text-sm"
                           />
                         ) : (
+                          // CREATE NEW WORKOUT MODE - Preset exercise: Use dropdown
                           <DropDown
                             options={[...exercise.options, { label: 'Custom', value: 'custom' }]}
                             onChange={(value) => handleCardioChange(exercise.id, value, -1, null, value)}

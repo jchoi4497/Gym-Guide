@@ -936,6 +936,7 @@ function SavedWorkout() {
               onAbsMoveDown={handleAbsMoveDown}
               isEditingSets={isEditing}
               disableCheckboxes={!isEditing}
+              isSavedWorkoutEditMode={isEditing}
               previousCustomExercises={previousCustomExercises}
               expandAll={expandAll}
               previousWorkoutData={previousWorkoutData}
@@ -995,6 +996,7 @@ function SavedWorkout() {
               onAbsMoveDown={handleAbsMoveDown}
               isEditingSets={isEditing}
               disableCheckboxes={!isEditing}
+              isSavedWorkoutEditMode={isEditing}
               previousCustomExercises={previousCustomExercises}
               expandAll={expandAll}
               previousWorkoutData={previousWorkoutData}
