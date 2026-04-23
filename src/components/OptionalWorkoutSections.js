@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getExercisesByCategory, EXERCISE_CATEGORIES, getPlaceholderForExercise, getExerciseName, getExerciseById, getExerciseIdByName } from '../config/exerciseConfig';
 import WeightRepsPicker from './WeightRepsPicker';
 import ExerciseAutocomplete from './ExerciseAutocomplete';
+import DropDown from './DropDown';
 import DataChart from './DataChart';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { parseSet, combineSet, getPreviousSet } from '../utils/setHelpers';
@@ -375,8 +376,9 @@ function OptionalWorkoutSections({
           </div>
 
         {showAbs && (
-          <div className="space-y-4">
-            {absExercises.map((exercise, index) => {
+          <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-2 sm:p-4 overflow-visible">
+            <div className="space-y-4">
+              {absExercises.map((exercise, index) => {
               const exerciseExpanded = exerciseExpandedStates[exercise.id] !== undefined
                 ? exerciseExpandedStates[exercise.id]
                 : true;
@@ -389,55 +391,43 @@ function OptionalWorkoutSections({
               };
 
               return (
-                <div key={exercise.id} className="mb-8 p-4 bg-sky-50 rounded-2xl shadow-lg relative">
+                <div key={exercise.id} className="relative border border-gray-300 rounded-lg bg-white shadow-sm mb-3 overflow-visible">
                   {/* Remove button - show when editing */}
                   {isEditingSets && (
                     <button
                       onClick={() => removeAbs(exercise.id)}
-                      className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90 z-20 cursor-pointer"
+                      className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90 z-30 cursor-pointer"
                       title="Remove Exercise"
                     >
-                      ✕
+                      <span className="text-xs font-bold">✕</span>
                     </button>
                   )}
 
-                  {/* Collapsible Header with Exercise Name */}
-                  <div className="flex items-center justify-between bg-sky-50 transition-colors rounded-lg pr-2 -m-4 p-4 mb-4">
-                    <div className="flex-1 flex items-center gap-4 min-w-0">
-                      <div className="text-2xl font-bold flex items-center gap-4 flex-1 min-w-0">
-                        {isEditingSets ? (
-                          exercise.isCustom ? (
-                            <ExerciseAutocomplete
-                              value={exerciseData[exercise.id]?.exerciseName || exercise.selected}
-                              onChange={(value) => handleAbsChange(exercise.id, value)}
-                              onSelect={(exerciseObj) => {
-                                handleAbsChange(exercise.id, exerciseObj.name);
-                              }}
-                              previousCustomExercises={previousCustomExercises}
-                              placeholder="Enter abs exercise name..."
-                              className="bg-transparent border-b-2 border-sky-200 focus:border-sky-500 outline-none px-1 w-full"
-                            />
-                          ) : (
-                            <select
-                              value={(() => {
-                                const currentName = exerciseData[exercise.id]?.exerciseName;
-                                const matchingOption = exercise.options.find(opt =>
-                                  opt.label === currentName || opt.value === currentName || opt.value === exercise.selected
-                                );
-                                return matchingOption ? matchingOption.value : exercise.selected;
-                              })()}
-                              onChange={(e) => handleAbsChange(exercise.id, e.target.value)}
-                              className="bg-transparent border-b-2 border-sky-200 focus:border-sky-500 outline-none px-1 w-full"
-                            >
-                              {exercise.options.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </option>
-                              ))}
-                            </select>
-                          )
+                  {/* Header - Always Visible */}
+                  <div className="flex items-center justify-between bg-sky-50 transition-colors rounded-t-lg pr-2">
+                    <div className="flex-1 flex items-center gap-2 py-2 sm:py-3 pl-8 sm:pl-3 min-w-0">
+                      <div className="flex-1 min-w-0">
+                        {exercise.isCustom || exercise.selected === 'custom' || !exercise.options.find(opt => opt.value === exercise.selected) ? (
+                          <ExerciseAutocomplete
+                            value={exercise.selected === 'custom' ? '' : (getExerciseName(exerciseData[exercise.id]?.exerciseName || exerciseData[exercise.id]?.selection || exercise.selected))}
+                            onChange={(value) => {
+                              handleAbsChange(exercise.id, value, -1, null, value);
+                            }}
+                            onSelect={(exerciseObj) => {
+                              handleAbsChange(exercise.id, exerciseObj.name, -1, null, exerciseObj.isPreset ? exerciseObj.id : exerciseObj.name);
+                            }}
+                            previousCustomExercises={previousCustomExercises}
+                            placeholder="Enter exercise name..."
+                            className="w-full px-2 sm:px-3 py-1 border border-blue-200 rounded-md focus:border-blue-500 outline-none transition-all text-sm"
+                            disabled={disableCheckboxes}
+                          />
                         ) : (
-                          exerciseData[exercise.id]?.exerciseName || exercise.selected
+                          <DropDown
+                            options={[...exercise.options, { label: 'Custom', value: 'custom' }]}
+                            onChange={(value) => handleAbsChange(exercise.id, value, -1, null, value)}
+                            value={exercise.selected}
+                            disabled={disableCheckboxes}
+                          />
                         )}
                       </div>
                     </div>
@@ -452,9 +442,11 @@ function OptionalWorkoutSections({
 
                   {/* Expandable Content */}
                   {exerciseExpanded && (
-                  <div className="flex flex-col lg:flex-row w-full gap-6">
-                    {/* Inputs section */}
-                    <div className="flex flex-col w-full lg:w-1/2">
+                  <div className="p-4 bg-sky-50 border-t border-gray-200">
+                    <div className="flex flex-col lg:flex-row w-full gap-6">
+                      {/* Inputs section */}
+                      <div className={`flex flex-col w-full ${monthlyWorkoutData && monthlyWorkoutData.length > 0 ? 'lg:w-1/2' : ''}`}>
+
                       {(() => {
                         const baseSetCount = Number(numberOfSets);
                         const currentSetCount = exerciseData[exercise.id]?.sets?.length || baseSetCount;
@@ -602,30 +594,34 @@ function OptionalWorkoutSections({
                       })()}
                       </div>
 
-                      {/* Graph section */}
-                      <div className="w-full lg:w-1/2">
-                        <DataChart
-                          exerciseKey={exercise.id}
-                          currentData={exerciseData[exercise.id]}
-                          monthlyWorkoutData={monthlyWorkoutData}
-                          graphView={graphView}
-                        />
-                      </div>
+                      {/* Graph section - only show if we have monthly workout data (i.e., saved workout) */}
+                      {monthlyWorkoutData && monthlyWorkoutData.length > 0 && (
+                        <div className="w-full lg:w-1/2">
+                          <DataChart
+                            exerciseKey={exercise.id}
+                            currentData={exerciseData[exercise.id]}
+                            monthlyWorkoutData={monthlyWorkoutData}
+                            graphView={graphView}
+                          />
+                        </div>
+                      )}
                     </div>
+                  </div>
                   )}
                 </div>
               );
             })}
 
-            {/* Add Custom Abs Exercise Button */}
-            {isEditingSets && (
-              <button
-                onClick={addCustomAbs}
-                className={`w-full mt-4 px-4 py-3 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg font-semibold shadow-md transition-all active:scale-95`}
-              >
-                + Add Custom Abs Exercise
-              </button>
-            )}
+              {/* Add Custom Abs Exercise Button */}
+              {isEditingSets && (
+                <button
+                  onClick={addCustomAbs}
+                  className={`w-full mt-4 px-4 py-3 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg font-semibold shadow-md transition-all active:scale-95`}
+                >
+                  + Add Custom Abs Exercise
+                </button>
+              )}
+            </div>
           </div>
         )}
         </div>
@@ -648,8 +644,9 @@ function OptionalWorkoutSections({
           </div>
 
         {showCardio && (
-          <div className="space-y-4">
-            {cardioExercises.map((exercise, index) => {
+          <div className="rounded-2xl shadow-lg bg-sky-50 mb-8 p-2 sm:p-4 overflow-visible">
+            <div className="space-y-4">
+              {cardioExercises.map((exercise, index) => {
               const exerciseExpanded = exerciseExpandedStates[exercise.id] !== undefined
                 ? exerciseExpandedStates[exercise.id]
                 : true;
@@ -662,55 +659,43 @@ function OptionalWorkoutSections({
               };
 
               return (
-                <div key={exercise.id} className="mb-8 p-4 bg-sky-50 rounded-2xl shadow-lg relative">
+                <div key={exercise.id} className="relative border border-gray-300 rounded-lg bg-white shadow-sm mb-3 overflow-visible">
                   {/* Remove button - show when editing */}
                   {isEditingSets && (
                     <button
                       onClick={() => removeCardio(exercise.id)}
-                      className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90 z-20 cursor-pointer"
+                      className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-transform active:scale-90 z-30 cursor-pointer"
                       title="Remove Exercise"
                     >
-                      ✕
+                      <span className="text-xs font-bold">✕</span>
                     </button>
                   )}
 
-                  {/* Collapsible Header with Exercise Name */}
-                  <div className="flex items-center justify-between bg-sky-50 transition-colors rounded-lg pr-2 -m-4 p-4 mb-4">
-                    <div className="flex-1 flex items-center gap-4 min-w-0">
-                      <div className="text-2xl font-bold flex items-center gap-4 flex-1 min-w-0">
-                        {isEditingSets ? (
-                          exercise.isCustom ? (
-                            <ExerciseAutocomplete
-                              value={exerciseData[exercise.id]?.exerciseName || exercise.selected}
-                              onChange={(value) => handleCardioChange(exercise.id, value)}
-                              onSelect={(exerciseObj) => {
-                                handleCardioChange(exercise.id, exerciseObj.name);
-                              }}
-                              previousCustomExercises={previousCustomExercises}
-                              placeholder="Enter cardio exercise name..."
-                              className="bg-transparent border-b-2 border-sky-200 focus:border-sky-500 outline-none px-1 w-full"
-                            />
-                          ) : (
-                            <select
-                              value={(() => {
-                                const currentName = exerciseData[exercise.id]?.exerciseName;
-                                const matchingOption = exercise.options.find(opt =>
-                                  opt.label === currentName || opt.value === currentName || opt.value === exercise.selected
-                                );
-                                return matchingOption ? matchingOption.value : exercise.selected;
-                              })()}
-                              onChange={(e) => handleCardioChange(exercise.id, e.target.value)}
-                              className="bg-transparent border-b-2 border-sky-200 focus:border-sky-500 outline-none px-1 w-full"
-                            >
-                              {exercise.options.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                  {opt.label}
-                                </option>
-                              ))}
-                            </select>
-                          )
+                  {/* Header - Always Visible */}
+                  <div className="flex items-center justify-between bg-sky-50 transition-colors rounded-t-lg pr-2">
+                    <div className="flex-1 flex items-center gap-2 py-2 sm:py-3 pl-8 sm:pl-3 min-w-0">
+                      <div className="flex-1 min-w-0">
+                        {exercise.isCustom || exercise.selected === 'custom' || !exercise.options.find(opt => opt.value === exercise.selected) ? (
+                          <ExerciseAutocomplete
+                            value={exercise.selected === 'custom' ? '' : (getExerciseName(exerciseData[exercise.id]?.exerciseName || exerciseData[exercise.id]?.selection || exercise.selected))}
+                            onChange={(value) => {
+                              handleCardioChange(exercise.id, value, -1, null, value);
+                            }}
+                            onSelect={(exerciseObj) => {
+                              handleCardioChange(exercise.id, exerciseObj.name, -1, null, exerciseObj.isPreset ? exerciseObj.id : exerciseObj.name);
+                            }}
+                            previousCustomExercises={previousCustomExercises}
+                            placeholder="Enter exercise name..."
+                            className="w-full px-2 sm:px-3 py-1 border border-blue-200 rounded-md focus:border-blue-500 outline-none transition-all text-sm"
+                            disabled={disableCheckboxes}
+                          />
                         ) : (
-                          exerciseData[exercise.id]?.exerciseName || exercise.selected
+                          <DropDown
+                            options={[...exercise.options, { label: 'Custom', value: 'custom' }]}
+                            onChange={(value) => handleCardioChange(exercise.id, value, -1, null, value)}
+                            value={exercise.selected}
+                            disabled={disableCheckboxes}
+                          />
                         )}
                       </div>
                     </div>
@@ -725,24 +710,25 @@ function OptionalWorkoutSections({
 
                   {/* Expandable Content */}
                   {exerciseExpanded && (
-                    <div className="flex flex-col lg:flex-row lg:gap-6 w-full">
-                      {/* Inputs section */}
-                      <div className="flex flex-col w-full lg:w-1/2">
+                    <div className="p-4 bg-sky-50 border-t border-gray-200">
+                      <div className="flex flex-col lg:flex-row w-full gap-6">
+                        {/* Inputs section */}
+                        <div className={`flex flex-col w-full ${monthlyWorkoutData && monthlyWorkoutData.length > 0 ? 'lg:w-1/2' : ''}`}>
+
                         {(() => {
                           const selectedExerciseId = exercise.selected || '';
                           const cardioFields = getCardioFields(selectedExerciseId);
 
                           return (
-                            <div className="flex flex-wrap gap-3">
+                            <div className="flex flex-col sm:flex-row sm:flex-wrap sm:gap-2 items-center">
                               {cardioFields.map((label, idx) => {
                                 const value = (exerciseData[exercise.id]?.sets || [])[idx] || '';
 
                                 return (
-                                  <div key={idx} className="flex flex-col">
-                                    <label className="text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+                                  <div key={idx} className="relative mb-2 sm:mb-0 flex-shrink-0">
                                     {disableCheckboxes ? (
                                       // VIEW MODE: Simple display
-                                      <div className="px-2 py-3 w-28 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 text-gray-900 text-center text-lg">
+                                      <div className="p-4 rounded bg-gradient-to-r from-blue-50 to-blue-100 text-xl min-w-[100px] text-center">
                                         {value || '-'}
                                       </div>
                                     ) : isMobile ? (
@@ -750,9 +736,9 @@ function OptionalWorkoutSections({
                                       <button
                                         type="button"
                                         onClick={() => handleOpenCardioPicker(exercise.id, idx, label)}
-                                        className="px-2 py-3 w-28 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg hover:bg-blue-200 active:scale-95"
+                                        className="px-2 py-2 w-24 sm:w-28 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
                                       >
-                                        {value || <span className="text-gray-400 text-sm">{label}</span>}
+                                        {value || <span className="text-gray-400 text-xs">{label}</span>}
                                       </button>
                                     ) : (
                                       // DESKTOP EDIT: Regular input
@@ -766,7 +752,7 @@ function OptionalWorkoutSections({
                                           if (parseFloat(e.target.value) < 0) return;
                                           handleCardioInput(exercise.id, exercise.selected, idx, e.target.value);
                                         }}
-                                        className="px-2 py-3 w-28 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-lg"
+                                        className="px-2 py-2 w-24 sm:w-28 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm"
                                       />
                                     )}
                                   </div>
@@ -777,30 +763,34 @@ function OptionalWorkoutSections({
                         })()}
                       </div>
 
-                      {/* Graph section */}
-                      <div className="w-full lg:w-1/2">
-                        <DataChart
-                          exerciseKey={exercise.id}
-                          currentData={exerciseData[exercise.id]}
-                          monthlyWorkoutData={monthlyWorkoutData}
-                          graphView={graphView}
-                        />
-                      </div>
+                      {/* Graph section - only show if we have monthly workout data (i.e., saved workout) */}
+                      {monthlyWorkoutData && monthlyWorkoutData.length > 0 && (
+                        <div className="w-full lg:w-1/2">
+                          <DataChart
+                            exerciseKey={exercise.id}
+                            currentData={exerciseData[exercise.id]}
+                            monthlyWorkoutData={monthlyWorkoutData}
+                            graphView={graphView}
+                          />
+                        </div>
+                      )}
                     </div>
+                  </div>
                   )}
                 </div>
               );
             })}
 
-            {/* Add Custom Cardio Exercise Button */}
-            {isEditingSets && (
-              <button
-                onClick={addCustomCardio}
-                className={`w-full mt-4 px-4 py-3 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg font-semibold shadow-md transition-all active:scale-95`}
-              >
-                + Add Custom Cardio Exercise
-              </button>
-            )}
+              {/* Add Custom Cardio Exercise Button */}
+              {isEditingSets && (
+                <button
+                  onClick={addCustomCardio}
+                  className={`w-full mt-4 px-4 py-3 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg font-semibold shadow-md transition-all active:scale-95`}
+                >
+                  + Add Custom Cardio Exercise
+                </button>
+              )}
+            </div>
           </div>
         )}
         </div>

@@ -912,40 +912,38 @@ function SavedWorkout() {
           </button>
         </div>
 
-        {/* Optional Cardio & Abs Sections at TOP - Show in both edit and view mode */}
-        {(showAbs || showCardio) && (
-          <div className="mb-6">
-            <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
-              <OptionalWorkoutSections
-                numberOfSets={workoutData?.numberOfSets || 4}
-                exerciseData={isEditing ? editedInputs : exerciseData}
-                onExerciseDataChange={handleOptionalExerciseChange}
-                onRemoveSet={handleRemoveOptionalSet}
-                position="top"
-                showCardio={showCardio}
-                setShowCardio={setShowCardio}
-                showAbs={showAbs}
-                setShowAbs={setShowAbs}
-                cardioAtTop={cardioAtTop}
-                absAtTop={absAtTop}
-                sectionOrder={sectionOrder}
-                onToggleCardioPosition={handleToggleCardioPosition}
-                onToggleAbsPosition={handleToggleAbsPosition}
-                onCardioMoveUp={handleCardioMoveUp}
-                onCardioMoveDown={handleCardioMoveDown}
-                onAbsMoveUp={handleAbsMoveUp}
-                onAbsMoveDown={handleAbsMoveDown}
-                isEditingSets={isEditing}
-                disableCheckboxes={!isEditing}
-                previousCustomExercises={previousCustomExercises}
-                expandAll={expandAll}
-                previousWorkoutData={previousWorkoutData}
-                monthlyWorkoutData={monthlyWorkoutData}
-                graphView={graphView}
-              />
-            </div>
+        {/* Optional Cardio & Abs Sections at TOP - Always show checkboxes */}
+        <div className="mb-6">
+          <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
+            <OptionalWorkoutSections
+              numberOfSets={workoutData?.numberOfSets || 4}
+              exerciseData={isEditing ? editedInputs : exerciseData}
+              onExerciseDataChange={handleOptionalExerciseChange}
+              onRemoveSet={handleRemoveOptionalSet}
+              position="top"
+              showCardio={showCardio}
+              setShowCardio={setShowCardio}
+              showAbs={showAbs}
+              setShowAbs={setShowAbs}
+              cardioAtTop={cardioAtTop}
+              absAtTop={absAtTop}
+              sectionOrder={sectionOrder}
+              onToggleCardioPosition={handleToggleCardioPosition}
+              onToggleAbsPosition={handleToggleAbsPosition}
+              onCardioMoveUp={handleCardioMoveUp}
+              onCardioMoveDown={handleCardioMoveDown}
+              onAbsMoveUp={handleAbsMoveUp}
+              onAbsMoveDown={handleAbsMoveDown}
+              isEditingSets={isEditing}
+              disableCheckboxes={!isEditing}
+              previousCustomExercises={previousCustomExercises}
+              expandAll={expandAll}
+              previousWorkoutData={previousWorkoutData}
+              monthlyWorkoutData={monthlyWorkoutData}
+              graphView={graphView}
+            />
           </div>
-        )}
+        </div>
 
         {/* Workout Inputs */}
         <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
@@ -973,40 +971,38 @@ function SavedWorkout() {
           </div>
         )}
 
-        {/* Optional Cardio & Abs Sections at BOTTOM - Show in both edit and view mode */}
-        {(showAbs || showCardio) && (
-          <div className="mb-6">
-            <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
-              <OptionalWorkoutSections
-                numberOfSets={workoutData?.numberOfSets || 4}
-                exerciseData={isEditing ? editedInputs : exerciseData}
-                onExerciseDataChange={handleOptionalExerciseChange}
-                onRemoveSet={handleRemoveOptionalSet}
-                position="bottom"
-                showCardio={showCardio}
-                setShowCardio={setShowCardio}
-                showAbs={showAbs}
-                setShowAbs={setShowAbs}
-                cardioAtTop={cardioAtTop}
-                absAtTop={absAtTop}
-                sectionOrder={sectionOrder}
-                onToggleCardioPosition={handleToggleCardioPosition}
-                onToggleAbsPosition={handleToggleAbsPosition}
-                onCardioMoveUp={handleCardioMoveUp}
-                onCardioMoveDown={handleCardioMoveDown}
-                onAbsMoveUp={handleAbsMoveUp}
-                onAbsMoveDown={handleAbsMoveDown}
-                isEditingSets={isEditing}
-                disableCheckboxes={!isEditing}
-                previousCustomExercises={previousCustomExercises}
-                expandAll={expandAll}
-                previousWorkoutData={previousWorkoutData}
-                monthlyWorkoutData={monthlyWorkoutData}
-                graphView={graphView}
-              />
-            </div>
+        {/* Optional Cardio & Abs Sections at BOTTOM - Always show checkboxes */}
+        <div className="mb-6">
+          <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
+            <OptionalWorkoutSections
+              numberOfSets={workoutData?.numberOfSets || 4}
+              exerciseData={isEditing ? editedInputs : exerciseData}
+              onExerciseDataChange={handleOptionalExerciseChange}
+              onRemoveSet={handleRemoveOptionalSet}
+              position="bottom"
+              showCardio={showCardio}
+              setShowCardio={setShowCardio}
+              showAbs={showAbs}
+              setShowAbs={setShowAbs}
+              cardioAtTop={cardioAtTop}
+              absAtTop={absAtTop}
+              sectionOrder={sectionOrder}
+              onToggleCardioPosition={handleToggleCardioPosition}
+              onToggleAbsPosition={handleToggleAbsPosition}
+              onCardioMoveUp={handleCardioMoveUp}
+              onCardioMoveDown={handleCardioMoveDown}
+              onAbsMoveUp={handleAbsMoveUp}
+              onAbsMoveDown={handleAbsMoveDown}
+              isEditingSets={isEditing}
+              disableCheckboxes={!isEditing}
+              previousCustomExercises={previousCustomExercises}
+              expandAll={expandAll}
+              previousWorkoutData={previousWorkoutData}
+              monthlyWorkoutData={monthlyWorkoutData}
+              graphView={graphView}
+            />
           </div>
-        )}
+        </div>
 
         {/* Workout Notes */}
         <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
