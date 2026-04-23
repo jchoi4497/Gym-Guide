@@ -255,8 +255,8 @@ function SortableExerciseItem({
 
       {/* Expandable Content */}
       {isExpanded && (
-      <div className="flex flex-col md:flex-row md:space-x-6 space-y-6 sm:space-y-0">
-        <div className="flex-1 flex flex-col gap-3">
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col gap-3 w-full lg:w-1/2">
           {/* Set Inputs */}
           <div className="flex flex-wrap gap-3">
             {/* Determine exercise type once for all sets */}
@@ -446,7 +446,7 @@ function SortableExerciseItem({
         </div>
 
         {/* Chart */}
-        <div className="flex-1">
+        <div className="w-full lg:w-1/2">
           <DataChart
             exerciseKey={exerciseKey}
             currentData={data}

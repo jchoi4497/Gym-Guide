@@ -79,8 +79,10 @@ function SavedWorkout() {
       let q;
 
       if (isPresetMuscleGroup) {
-        // For preset muscle groups, filter by muscle group for targeted comparison
-        // Try with new field name first
+        // For preset muscle groups, fetch workouts from the same muscle group
+        // But ALSO fetch recent workouts from all groups for abs/cardio comparison
+
+        // Query 1: Same muscle group workouts (for main exercises)
         q = query(
           collection(db, 'workoutLogs'),
           where(FIREBASE_FIELDS.USER_ID, '==', user.uid),
@@ -105,9 +107,44 @@ function SavedWorkout() {
           querySnapshot = await getDocs(q);
         }
 
-        const docs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        setMonthlyWorkoutData(docs);
-        setPreviousWorkoutData(docs[0] || null);
+        const muscleGroupDocs = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+        // Query 2: Recent workouts from ALL muscle groups (for abs/cardio comparison)
+        const allWorkoutsQuery = query(
+          collection(db, 'workoutLogs'),
+          where(FIREBASE_FIELDS.USER_ID, '==', user.uid),
+          where(FIREBASE_FIELDS.DATE, '<', currentDate),
+          orderBy(FIREBASE_FIELDS.DATE, 'desc'),
+          limit(10), // Get more workouts to find abs/cardio exercises
+        );
+
+        const allWorkoutsSnapshot = await getDocs(allWorkoutsQuery);
+        const allDocs = allWorkoutsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+        // Combine both datasets: prioritize same muscle group, then add others
+        // Remove duplicates by using a Map keyed by document ID
+        const combinedMap = new Map();
+
+        // Add same muscle group workouts first (these are prioritized)
+        muscleGroupDocs.forEach(doc => combinedMap.set(doc.id, doc));
+
+        // Add workouts from all muscle groups (for abs/cardio)
+        allDocs.forEach(doc => {
+          if (!combinedMap.has(doc.id)) {
+            combinedMap.set(doc.id, doc);
+          }
+        });
+
+        // Convert back to array and sort by date (most recent first)
+        const combinedDocs = Array.from(combinedMap.values()).sort((a, b) => {
+          const aTime = a.date?.seconds || 0;
+          const bTime = b.date?.seconds || 0;
+          return bTime - aTime;
+        });
+
+        // Use combined docs for monthly data (includes both same muscle group and others)
+        setMonthlyWorkoutData(combinedDocs);
+        setPreviousWorkoutData(muscleGroupDocs[0] || allDocs[0] || null);
       } else {
         // For custom muscle groups, fetch recent workouts across ALL muscle groups
         // This allows exercise-level comparison (e.g., "Push Day" can compare with "Chest/Triceps")
@@ -334,7 +371,7 @@ function SavedWorkout() {
   };
 
   // Handler for optional sections (cardio/abs)
-  const handleOptionalExerciseChange = (categoryKey, exerciseName, setIndex, setInput) => {
+  const handleOptionalExerciseChange = (categoryKey, exerciseName, setIndex, setInput, selectionId) => {
     const updatedInputs = { ...editedInputs };
     const numberOfSets = workoutData?.numberOfSets || 4;
 
@@ -343,12 +380,16 @@ function SavedWorkout() {
       updatedInputs[categoryKey] = {
         sets: setsArray,
         exerciseName: exerciseName,
+        selection: selectionId || exerciseName,
       };
     }
 
     if (setIndex === -1) {
       // -1 means changing the exercise selection
       updatedInputs[categoryKey].exerciseName = exerciseName;
+      if (selectionId !== null && selectionId !== undefined) {
+        updatedInputs[categoryKey].selection = selectionId;
+      }
     } else {
       // Otherwise updating a specific set
       updatedInputs[categoryKey].sets[setIndex] = setInput;
@@ -672,20 +713,19 @@ function SavedWorkout() {
   }, [isEditing, hasUnsavedChanges]);
 
   const handleSaveChanges = async () => {
-    // 1. Get all names, filter out any undefined/null, and trim them
-    const names = Object.values(editedInputs)
-      .map((ex) => (ex.exerciseName || ex.selection)?.toLowerCase().trim())
-      .filter((name) => name && name !== ''); // Only check rows that actually have a name
+    // Validate that all exercises have names
+    const hasEmptyNames = Object.values(editedInputs).some(ex => {
+      const name = (ex.exerciseName || ex.selection)?.trim();
+      return !name || name === '';
+    });
 
-    // 2. Check for duplicates
-    const duplicateNames = names.filter((name, index) => names.indexOf(name) !== index);
-
-    if (duplicateNames.length > 0) {
-      alert(`Duplicate exercise found: "${duplicateNames[0]}". Please use unique names.`);
-      return; // STOP the save process
+    if (hasEmptyNames) {
+      alert('Please fill in all exercise names before saving.');
+      return;
     }
 
-    // 3. If no duplicates, proceed with saving
+    // Note: Duplicate names are allowed - what matters is that exercise keys are unique
+    // (which is guaranteed by the data structure)
     try {
       setIsSaving(true);
       setIsGeneratingSummary(true);
@@ -899,6 +939,9 @@ function SavedWorkout() {
                 disableCheckboxes={!isEditing}
                 previousCustomExercises={previousCustomExercises}
                 expandAll={expandAll}
+                previousWorkoutData={previousWorkoutData}
+                monthlyWorkoutData={monthlyWorkoutData}
+                graphView={graphView}
               />
             </div>
           </div>
@@ -957,6 +1000,9 @@ function SavedWorkout() {
                 disableCheckboxes={!isEditing}
                 previousCustomExercises={previousCustomExercises}
                 expandAll={expandAll}
+                previousWorkoutData={previousWorkoutData}
+                monthlyWorkoutData={monthlyWorkoutData}
+                graphView={graphView}
               />
             </div>
           </div>

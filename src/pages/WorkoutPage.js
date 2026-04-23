@@ -121,15 +121,23 @@ function WorkoutPage() {
     return () => unsubscribe();
   }, [workoutId, navigate]);
 
-  // Check for active workout session (has completed sets in Firebase)
+  // Check for active workout session (has any exercise data in Firebase)
   useEffect(() => {
     if (workout && workout.status === 'draft') {
-      // Check if there are any completed sets in exerciseData
-      const hasCompletedSets = Object.values(workout.exerciseData || {}).some(exercise => {
+      // Check if there are any completed sets OR any exercises with names filled in
+      const exerciseData = workout.exerciseData || {};
+      const hasAnyData = Object.values(exerciseData).some(exercise => {
+        // Check for completed sets
         const sets = exercise.sets || [];
-        return sets.some(set => set && set.trim() !== '');
+        const hasCompletedSets = sets.some(set => set && set.trim() !== '');
+
+        // Check for exercise name filled in
+        const hasExerciseName = (exercise.exerciseName || exercise.selection)?.trim();
+
+        return hasCompletedSets || hasExerciseName;
       });
-      setHasActiveSession(hasCompletedSets);
+
+      setHasActiveSession(hasAnyData);
     } else {
       setHasActiveSession(false);
     }
