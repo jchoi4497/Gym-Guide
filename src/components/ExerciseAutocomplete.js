@@ -20,6 +20,7 @@ function ExerciseAutocomplete({
 }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+  const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const wrapperRef = useRef(null);
   const inputRef = useRef(null);
   const justSelectedRef = useRef(false); // Track if we just selected from dropdown
@@ -99,8 +100,10 @@ function ExerciseAutocomplete({
 
       setFilteredSuggestions(filtered);
       setShowSuggestions(true);
+      setHighlightedIndex(-1); // Reset highlight when typing
     } else {
       setShowSuggestions(false);
+      setHighlightedIndex(-1);
     }
   };
 
@@ -111,6 +114,7 @@ function ExerciseAutocomplete({
 
     // Immediately hide suggestions
     setShowSuggestions(false);
+    setHighlightedIndex(-1);
 
     // Call onSelect to set the complete exercise data
     // This will update category, exerciseId, and exerciseName all at once
@@ -125,6 +129,36 @@ function ExerciseAutocomplete({
     setTimeout(() => {
       justSelectedRef.current = false;
     }, 200);
+  };
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e) => {
+    if (!showSuggestions || filteredSuggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex(prev =>
+          prev < filteredSuggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex(prev => (prev > 0 ? prev - 1 : -1));
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (highlightedIndex >= 0 && highlightedIndex < filteredSuggestions.length) {
+          handleSuggestionClick(filteredSuggestions[highlightedIndex]);
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setHighlightedIndex(-1);
+        break;
+      default:
+        break;
+    }
   };
 
   // Close suggestions when clicking outside
@@ -178,6 +212,7 @@ function ExerciseAutocomplete({
         placeholder={placeholder}
         value={value}
         onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
         onBlur={() => {
           // Only delay if dropdown is showing (to allow mousedown to fire)
           // Otherwise blur immediately to ensure data is saved
@@ -185,10 +220,12 @@ function ExerciseAutocomplete({
             setTimeout(() => {
               handleBlur();
               setShowSuggestions(false);
+              setHighlightedIndex(-1);
             }, 150);
           } else {
             handleBlur();
             setShowSuggestions(false);
+            setHighlightedIndex(-1);
           }
         }}
         onFocus={() => {
@@ -205,6 +242,7 @@ function ExerciseAutocomplete({
             });
             setFilteredSuggestions(filtered);
             setShowSuggestions(true);
+            setHighlightedIndex(-1);
           }
         }}
         className={className}
@@ -223,7 +261,10 @@ function ExerciseAutocomplete({
                 e.preventDefault();
                 handleSuggestionClick(exercise);
               }}
-              className="px-4 py-2 cursor-pointer hover:bg-blue-100 flex items-center justify-between"
+              onMouseEnter={() => setHighlightedIndex(index)}
+              className={`px-4 py-2 cursor-pointer flex items-center justify-between transition-colors ${
+                index === highlightedIndex ? 'bg-blue-200' : 'hover:bg-blue-100'
+              }`}
             >
               <span className="text-gray-800">{exercise.name}</span>
               {exercise.isPreset ? (
