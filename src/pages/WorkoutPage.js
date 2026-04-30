@@ -12,11 +12,55 @@ import { FIREBASE_FIELDS } from '../config/constants';
 import { getMuscleGroupFromCategory } from '../utils/categoryDetection';
 import { EXERCISES } from '../config/exerciseConfig';
 import { useTheme } from '../contexts/ThemeContext';
+import { WorkoutProvider, useWorkout } from '../contexts/WorkoutContext';
 
-function WorkoutPage() {
+function WorkoutPageContent() {
   const { theme } = useTheme();
   const { workoutId } = useParams();
   const navigate = useNavigate();
+
+  // Get workout context
+  const {
+    exerciseData,
+    setExerciseData,
+    favoriteExercises,
+    setFavoriteExercises,
+    previousWorkoutData,
+    setPreviousWorkoutData,
+    previousCustomExercises,
+    setPreviousCustomExercises,
+    isEditingSets,
+    setIsEditingSets,
+    expandAll,
+    setExpandAll,
+    absExpanded,
+    setAbsExpanded,
+    cardioExpanded,
+    setCardioExpanded,
+    mainExerciseOrder,
+    setMainExerciseOrder,
+    showCardio,
+    setShowCardio,
+    showAbs,
+    setShowAbs,
+    cardioAtTop,
+    setCardioAtTop,
+    absAtTop,
+    setAbsAtTop,
+    sectionOrder,
+    setSectionOrder,
+    handleExerciseDataChange,
+    batchInitializeExercises,
+    handleRemoveExercise,
+    handleRemoveSet,
+    handleReorderExercises,
+    toggleFavorite,
+    handleCardioMoveUp,
+    handleCardioMoveDown,
+    handleAbsMoveUp,
+    handleAbsMoveDown,
+    updateWorkoutState,
+  } = useWorkout();
 
   // Workout data from Firebase
   const [workout, setWorkout] = useState(null);
@@ -24,29 +68,13 @@ function WorkoutPage() {
   const [hasActiveSession, setHasActiveSession] = useState(false);
   const [user, setUser] = useState(null);
 
-  // Workout state
-  const [exerciseData, setExerciseData] = useState({});
+  // Local state not managed by context
   const [note, setNote] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
-  const [previousWorkoutData, setPreviousWorkoutData] = useState(null);
-  const [previousCustomExercises, setPreviousCustomExercises] = useState([]);
-  const [favoriteExercises, setFavoriteExercises] = useState([]);
-
-  // Section position states
-  const [cardioAtTop, setCardioAtTop] = useState(false);
-  const [absAtTop, setAbsAtTop] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState('abs-first');
-  const [showCardio, setShowCardio] = useState(false);
-  const [showAbs, setShowAbs] = useState(false);
 
   // UI state
   const [isButtonSticky, setIsButtonSticky] = useState(true);
-  const [isEditingSets, setIsEditingSets] = useState(false);
-  const [expandAll, setExpandAll] = useState(false);
-  const [absExpanded, setAbsExpanded] = useState(true);
-  const [cardioExpanded, setCardioExpanded] = useState(true);
-  const [mainExerciseOrder, setMainExerciseOrder] = useState([]);
   const [startButtonState, setStartButtonState] = useState('header'); // 'header', 'fixed' (mobile only)
   const [isMobile, setIsMobile] = useState(false);
 
@@ -85,14 +113,18 @@ function WorkoutPage() {
         if (workoutSnap.exists()) {
           const workoutData = workoutSnap.data();
           setWorkout(workoutData);
-          setExerciseData(workoutData.exerciseData || {});
           setNote(workoutData.note || '');
-          setShowCardio(workoutData.showCardio || false);
-          setShowAbs(workoutData.showAbs || false);
-          setCardioAtTop(workoutData.cardioAtTop || false);
-          setAbsAtTop(workoutData.absAtTop || false);
-          setSectionOrder(workoutData.sectionOrder || 'abs-first');
-          setMainExerciseOrder(workoutData.mainExerciseOrder || []);
+
+          // Update workout context with data from Firebase
+          updateWorkoutState({
+            exerciseData: workoutData.exerciseData || {},
+            showCardio: workoutData.showCardio || false,
+            showAbs: workoutData.showAbs || false,
+            cardioAtTop: workoutData.cardioAtTop || false,
+            absAtTop: workoutData.absAtTop || false,
+            sectionOrder: workoutData.sectionOrder || 'abs-first',
+            mainExerciseOrder: workoutData.mainExerciseOrder || [],
+          });
         } else {
           alert('Workout not found');
           navigate('/Create');
@@ -170,22 +202,18 @@ function WorkoutPage() {
     }
   };
 
-  // Toggle favorite exercise
-  const toggleFavorite = async (exerciseId) => {
+  // Toggle favorite exercise with Firebase persistence
+  const handleToggleFavorite = async (exerciseId) => {
     const user = auth.currentUser;
     if (!user) return;
 
-    const newFavorites = favoriteExercises.includes(exerciseId)
-      ? favoriteExercises.filter(id => id !== exerciseId)
-      : [...favoriteExercises, exerciseId];
-
-    setFavoriteExercises(newFavorites);
-
-    try {
-      await setDoc(doc(db, 'userFavorites', user.uid), { favorites: newFavorites });
-    } catch (error) {
-      console.error('Error saving favorites:', error);
-    }
+    await toggleFavorite(exerciseId, async (newFavorites) => {
+      try {
+        await setDoc(doc(db, 'userFavorites', user.uid), { favorites: newFavorites });
+      } catch (error) {
+        console.error('Error saving favorites:', error);
+      }
+    });
   };
 
   // Fetch all custom exercises from user's workout history AND "My Exercises" page
@@ -304,213 +332,25 @@ function WorkoutPage() {
     }
   };
 
-  // Batch initialize multiple exercises at once
-  const batchInitializeExercises = (exercisesToInit) => {
-    if (!actualNumberOfSets || actualNumberOfSets < 1) {
-      console.warn('[batchInitializeExercises] Skipping - invalid actualNumberOfSets:', actualNumberOfSets);
-      return;
-    }
-
-    setExerciseData(prevExerciseData => {
-      const updatedExerciseData = { ...prevExerciseData };
-
-      exercisesToInit.forEach(({ categoryKey, exerciseName }) => {
-        if (!updatedExerciseData[categoryKey] || !updatedExerciseData[categoryKey].exerciseName) {
-          const setsArray = new Array(actualNumberOfSets).fill('');
-          updatedExerciseData[categoryKey] = {
-            sets: setsArray,
-            exerciseName: exerciseName,
-          };
+  // Remove an entire exercise with Firebase persistence
+  const handleRemoveExerciseWithSave = async (categoryKey) => {
+    // Use context function with Firebase save callback
+    handleRemoveExercise(categoryKey, async (updatedExerciseData, updatedOrder) => {
+      if (workoutId && auth.currentUser) {
+        try {
+          const workoutRef = doc(db, 'workoutLogs', workoutId);
+          await updateDoc(workoutRef, {
+            exerciseData: updatedExerciseData,
+            mainExerciseOrder: updatedOrder,
+            lastModified: serverTimestamp()
+          });
+        } catch (error) {
+          console.error('Error saving exercise deletion:', error);
         }
-      });
-
-      return updatedExerciseData;
-    });
-
-    const newKeys = exercisesToInit.map(ex => ex.categoryKey);
-    setMainExerciseOrder(prev => {
-      const keysToAdd = newKeys.filter(key => !prev.includes(key));
-      return [...prev, ...keysToAdd];
+      }
     });
   };
 
-  // Handle exercise data change
-  const handleExerciseDataChange = (categoryKey, exerciseName, setIndex, setInput, detectedCategory) => {
-    setExerciseData(prevExerciseData => {
-      const updatedExerciseData = { ...prevExerciseData };
-
-      const isCardio = categoryKey.startsWith('cardio') || categoryKey.startsWith('custom_cardio');
-      const isAbs = categoryKey.startsWith('abs') || categoryKey.startsWith('custom_abs');
-      const isCardioOrAbs = isCardio || isAbs;
-
-      if (!updatedExerciseData[categoryKey]) {
-        const safeSetsCount = actualNumberOfSets && actualNumberOfSets > 0 ? actualNumberOfSets : 4;
-        const setsArray = isCardio ? [] : new Array(safeSetsCount).fill('');
-        updatedExerciseData[categoryKey] = {
-          sets: setsArray,
-          exerciseName: exerciseName,
-        };
-
-        if (!isCardioOrAbs) {
-          setMainExerciseOrder(prev => [...prev, categoryKey]);
-        }
-      }
-
-      if (setIndex === -1) {
-        updatedExerciseData[categoryKey].exerciseName = exerciseName;
-        if (detectedCategory) {
-          if (isCardioOrAbs) {
-            updatedExerciseData[categoryKey].selection = detectedCategory;
-          } else {
-            updatedExerciseData[categoryKey].detectedCategory = detectedCategory;
-          }
-        }
-        if (!updatedExerciseData[categoryKey].sets || updatedExerciseData[categoryKey].sets.length === 0) {
-          const safeSetsCount = actualNumberOfSets && actualNumberOfSets > 0 ? actualNumberOfSets : 4;
-          updatedExerciseData[categoryKey].sets = isCardio ? [] : new Array(safeSetsCount).fill('');
-        }
-      } else {
-        const currentSets = updatedExerciseData[categoryKey].sets;
-        while (currentSets.length <= setIndex) {
-          currentSets.push('');
-        }
-        updatedExerciseData[categoryKey].sets[setIndex] = setInput;
-      }
-
-      return updatedExerciseData;
-    });
-  };
-
-  // Remove an entire exercise
-  const handleRemoveExercise = async (categoryKey) => {
-    const updatedExerciseData = { ...exerciseData };
-    delete updatedExerciseData[categoryKey];
-    setExerciseData(updatedExerciseData);
-
-    const isCardioOrAbs = categoryKey.startsWith('cardio') || categoryKey.startsWith('custom_cardio') ||
-                          categoryKey.startsWith('abs') || categoryKey.startsWith('custom_abs');
-    if (!isCardioOrAbs) {
-      setMainExerciseOrder(prev => prev.filter(key => key !== categoryKey));
-    }
-
-    // Immediately save deletion to Firebase to prevent deleted exercises from reappearing
-    if (workoutId && auth.currentUser) {
-      try {
-        const workoutRef = doc(db, 'workoutLogs', workoutId);
-        const updatedOrder = isCardioOrAbs ? mainExerciseOrder : mainExerciseOrder.filter(key => key !== categoryKey);
-        await updateDoc(workoutRef, {
-          exerciseData: updatedExerciseData,
-          mainExerciseOrder: updatedOrder,
-          lastModified: serverTimestamp()
-        });
-      } catch (error) {
-        console.error('Error saving exercise deletion:', error);
-      }
-    }
-  };
-
-  // Handle reordering of main workout exercises
-  const handleReorderExercises = (newOrder) => {
-    setMainExerciseOrder(newOrder);
-  };
-
-  // Remove a specific set from an exercise
-  const handleRemoveSet = (categoryKey, setIndex) => {
-    const updatedExerciseData = { ...exerciseData };
-
-    if (!updatedExerciseData[categoryKey]) {
-      const setsArray = new Array(actualNumberOfSets).fill('');
-      updatedExerciseData[categoryKey] = {
-        sets: setsArray,
-        exerciseName: '',
-      };
-    }
-
-    updatedExerciseData[categoryKey].sets = updatedExerciseData[categoryKey].sets.filter((_, i) => i !== setIndex);
-    setExerciseData(updatedExerciseData);
-  };
-
-  // Handle moving cardio section
-  const handleCardioMoveUp = () => {
-    if (!cardioAtTop) {
-      if (!absAtTop) {
-        if (sectionOrder === 'abs-first') {
-          setSectionOrder('cardio-first');
-        } else {
-          setCardioAtTop(true);
-        }
-      } else {
-        setCardioAtTop(true);
-      }
-    } else {
-      if (absAtTop) {
-        if (sectionOrder === 'abs-first') {
-          setSectionOrder('cardio-first');
-        }
-      }
-    }
-  };
-
-  const handleCardioMoveDown = () => {
-    if (cardioAtTop) {
-      if (absAtTop) {
-        if (sectionOrder === 'cardio-first') {
-          setSectionOrder('abs-first');
-        } else {
-          setCardioAtTop(false);
-        }
-      } else {
-        setCardioAtTop(false);
-      }
-    } else {
-      if (!absAtTop) {
-        if (sectionOrder === 'cardio-first') {
-          setSectionOrder('abs-first');
-        }
-      }
-    }
-  };
-
-  // Handle moving abs section
-  const handleAbsMoveUp = () => {
-    if (!absAtTop) {
-      if (!cardioAtTop) {
-        if (sectionOrder === 'cardio-first') {
-          setSectionOrder('abs-first');
-        } else {
-          setAbsAtTop(true);
-        }
-      } else {
-        setAbsAtTop(true);
-      }
-    } else {
-      if (cardioAtTop) {
-        if (sectionOrder === 'cardio-first') {
-          setSectionOrder('abs-first');
-        }
-      }
-    }
-  };
-
-  const handleAbsMoveDown = () => {
-    if (absAtTop) {
-      if (cardioAtTop) {
-        if (sectionOrder === 'abs-first') {
-          setSectionOrder('cardio-first');
-        } else {
-          setAbsAtTop(false);
-        }
-      } else {
-        setAbsAtTop(false);
-      }
-    } else {
-      if (!cardioAtTop) {
-        if (sectionOrder === 'abs-first') {
-          setSectionOrder('cardio-first');
-        }
-      }
-    }
-  };
 
   // Auto-save workout draft to Firebase whenever state changes
   useEffect(() => {
@@ -939,28 +779,7 @@ function WorkoutPage() {
           <div className={`mb-10 ${isSaving ? 'pointer-events-none opacity-50' : ''}`}>
             <OptionalWorkoutSections
               numberOfSets={actualNumberOfSets}
-              exerciseData={exerciseData}
-              onExerciseDataChange={handleExerciseDataChange}
-              onRemoveSet={handleRemoveSet}
-              cardioAtTop={cardioAtTop}
-              absAtTop={absAtTop}
-              sectionOrder={sectionOrder}
-              onCardioMoveUp={handleCardioMoveUp}
-              onCardioMoveDown={handleCardioMoveDown}
-              onAbsMoveUp={handleAbsMoveUp}
-              onAbsMoveDown={handleAbsMoveDown}
-              showCardio={showCardio}
-              setShowCardio={setShowCardio}
-              showAbs={showAbs}
-              setShowAbs={setShowAbs}
               position="top"
-              isEditingSets={isEditingSets}
-              previousCustomExercises={previousCustomExercises}
-              expandAll={expandAll}
-              absExpanded={absExpanded}
-              setAbsExpanded={setAbsExpanded}
-              cardioExpanded={cardioExpanded}
-              setCardioExpanded={setCardioExpanded}
             />
           </div>
         )}
@@ -972,21 +791,9 @@ function WorkoutPage() {
               muscleGroup={actualMuscleGroup}
               numberOfSets={actualNumberOfSets}
               setRangeLabel={setRangeLabel}
-              exerciseData={exerciseData}
-              onExerciseDataChange={handleExerciseDataChange}
-              onBatchInitializeExercises={batchInitializeExercises}
-              onRemoveSet={handleRemoveSet}
-              onRemoveExercise={handleRemoveExercise}
               previousExerciseData={previousWorkoutData?.exerciseData || previousWorkoutData?.inputs}
-              previousCustomExercises={previousCustomExercises}
-              favoriteExercises={favoriteExercises}
-              onToggleFavorite={toggleFavorite}
-              isEditingSets={isEditingSets}
-              onEditingSetsChange={setIsEditingSets}
-              expandAll={expandAll}
-              onExpandAllChange={setExpandAll}
-              onReorderExercises={handleReorderExercises}
-              exerciseOrder={mainExerciseOrder}
+              onRemoveExercise={handleRemoveExerciseWithSave}
+              onToggleFavorite={handleToggleFavorite}
             />
           )}
         </div>
@@ -996,28 +803,7 @@ function WorkoutPage() {
           <div className={`mb-10 ${isSaving ? 'pointer-events-none opacity-50' : ''}`}>
             <OptionalWorkoutSections
               numberOfSets={actualNumberOfSets}
-              exerciseData={exerciseData}
-              onExerciseDataChange={handleExerciseDataChange}
-              onRemoveSet={handleRemoveSet}
-              cardioAtTop={cardioAtTop}
-              absAtTop={absAtTop}
-              sectionOrder={sectionOrder}
-              onCardioMoveUp={handleCardioMoveUp}
-              onCardioMoveDown={handleCardioMoveDown}
-              onAbsMoveUp={handleAbsMoveUp}
-              onAbsMoveDown={handleAbsMoveDown}
-              showCardio={showCardio}
-              setShowCardio={setShowCardio}
-              showAbs={showAbs}
-              setShowAbs={setShowAbs}
               position="bottom"
-              isEditingSets={isEditingSets}
-              previousCustomExercises={previousCustomExercises}
-              expandAll={expandAll}
-              absExpanded={absExpanded}
-              setAbsExpanded={setAbsExpanded}
-              cardioExpanded={cardioExpanded}
-              setCardioExpanded={setCardioExpanded}
             />
           </div>
         )}
@@ -1095,6 +881,15 @@ function WorkoutPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// Wrapper component that provides workout context
+function WorkoutPage() {
+  return (
+    <WorkoutProvider>
+      <WorkoutPageContent />
+    </WorkoutProvider>
   );
 }
 

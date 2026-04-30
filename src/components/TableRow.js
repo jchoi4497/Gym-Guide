@@ -7,6 +7,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { parseSet, combineSet, getPreviousSet, countFilledSets } from '../utils/setHelpers';
 import { useSettings } from '../contexts/SettingsContext';
 import { displayWeight, saveWeight } from '../utils/weightConversion';
+import { useWorkout } from '../contexts/WorkoutContext';
 
 function TableRow({
   numberOfSets,
@@ -19,14 +20,17 @@ function TableRow({
   isCustom,
   onRemove,
   onRemoveSet,
-  previousCustomExercises = [],
-  isEditingSets = false,
-  favoriteExercises = [],
   onToggleFavorite,
-  expandAll,
-  addCustomExercise,
 }) {
   const { settings } = useSettings();
+
+  // Get state from context
+  const {
+    previousCustomExercises,
+    isEditingSets,
+    favoriteExercises,
+    expandAll,
+  } = useWorkout();
 
   // Calculate current set count consistently
   const baseSetCount = Number(numberOfSets);
@@ -243,9 +247,7 @@ function TableRow({
                   onSelect={(exercise) => {
                     onChange(exercise.name, exercise.category);
                   }}
-                  previousCustomExercises={previousCustomExercises}
                   placeholder="Enter exercise name..."
-                  pussy={addCustomExercise}
                   className="w-full px-2 sm:px-3 py-1 border border-blue-200 rounded-md focus:border-blue-500 outline-none transition-all text-sm"
                 />
               ) : (

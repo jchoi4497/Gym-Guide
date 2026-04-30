@@ -16,9 +16,10 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { useWorkout } from '../contexts/WorkoutContext';
 
 // Sortable wrapper for TableRow
-function SortableTableRow({ exercise, addCustomExercise, isEditingSets, onMoveUp, onMoveDown, isFirst, isLast, expandAll, ...props }) {
+function SortableTableRow({ exercise, isEditingSets, onMoveUp, onMoveDown, isFirst, isLast, expandAll, ...props }) {
   const {
     attributes,
     listeners,
@@ -106,7 +107,6 @@ function SortableTableRow({ exercise, addCustomExercise, isEditingSets, onMoveUp
         {...props}
         isEditingSets={isEditingSets}
         expandAll={expandAll}
-        addCustomExercise={addCustomExercise}
       />
     </div>
   );
@@ -119,18 +119,20 @@ function WorkoutTable({
   exercises,
   onExerciseChange,
   onCellInput,
-  exerciseData,
   onRemove,
-  onRemoveSet,
-  previousCustomExercises = [],
-  isEditingSets = false,
-  onReorder,
-  favoriteExercises = [],
   onToggleFavorite,
-  expandAll = true, // Controlled by parent
-  onExpandAllChange, // Handler to update parent state
-  addCustomExercise,
+  onReorder,
 }) {
+  // Get state from context
+  const {
+    exerciseData,
+    handleRemoveSet,
+    previousCustomExercises,
+    isEditingSets,
+    favoriteExercises,
+    expandAll,
+    setExpandAll,
+  } = useWorkout();
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -178,7 +180,7 @@ function WorkoutTable({
           {setRangeLabel} - {muscleGroup}
         </div>
         <button
-          onClick={() => onExpandAllChange && onExpandAllChange(!expandAll)}
+          onClick={() => setExpandAll(!expandAll)}
           className="px-2 sm:px-3 py-1.5 text-xs sm:text-sm font-medium text-blue-600 hover:bg-blue-100 rounded-md transition-colors"
         >
           {expandAll ? '▼ Collapse All' : '▶ Expand All'}
@@ -209,17 +211,12 @@ function WorkoutTable({
                   onCellInput(exercise.id, exercise.selected, index, inputValue)
                 }
                 onRemove={() => onRemove(exercise.id)}
-                onRemoveSet={(index) => onRemoveSet(exercise.id, index)}
-                previousCustomExercises={previousCustomExercises}
-                isEditingSets={isEditingSets}
-                favoriteExercises={favoriteExercises}
-                expandAll={expandAll}
+                onRemoveSet={(index) => handleRemoveSet(exercise.id, index)}
                 onToggleFavorite={onToggleFavorite}
                 onMoveUp={moveUp}
                 onMoveDown={moveDown}
                 isFirst={index === 0}
                 isLast={index === exercises.length - 1}
-                addCustomExercise={addCustomExercise}
               />
             ))}
           </div>

@@ -9,6 +9,7 @@ import { parseSet, combineSet, getPreviousSet } from '../utils/setHelpers';
 import { useSettings } from '../contexts/SettingsContext';
 import { displayWeight, saveWeight } from '../utils/weightConversion';
 import { useTheme } from '../contexts/ThemeContext';
+import { useWorkout } from '../contexts/WorkoutContext';
 
 // Field templates for different cardio exercise types
 const CARDIO_FIELD_TEMPLATES = {
@@ -31,44 +32,76 @@ const getCardioFields = (exerciseId) => {
  */
 function OptionalWorkoutSections({
   numberOfSets,
-  exerciseData,
-  onExerciseDataChange,
-  onRemoveSet,
-  cardioAtTop,
-  absAtTop,
-  sectionOrder,
-  onCardioMoveUp,
-  onCardioMoveDown,
-  onAbsMoveUp,
-  onAbsMoveDown,
-  showCardio,
-  setShowCardio,
-  showAbs,
-  setShowAbs,
   position, // "top" or "bottom"
-  isEditingSets = false, // Control visibility of remove buttons
-  previousCustomExercises = [], // For autocomplete suggestions
   disableCheckboxes = false, // Disable checkboxes (for saved workouts in view mode)
-  expandAll = true, // Control expand/collapse from parent
-  absExpanded: absExpandedProp, // Controlled state from parent (optional)
-  setAbsExpanded: setAbsExpandedProp,
-  cardioExpanded: cardioExpandedProp, // Controlled state from parent (optional)
-  setCardioExpanded: setCardioExpandedProp,
   previousWorkoutData, // For graph comparison
   monthlyWorkoutData = [], // For monthly graph view
   graphView = 'previous', // 'previous' or 'monthly'
   isSavedWorkoutEditMode = false, // Special flag for SavedWorkout edit mode styling
+  // Props for when context is not available (SavedWorkout)
+  exerciseData: exerciseDataProp,
+  onExerciseDataChange: onExerciseDataChangeProp,
+  onRemoveSet: onRemoveSetProp,
+  cardioAtTop: cardioAtTopProp,
+  absAtTop: absAtTopProp,
+  sectionOrder: sectionOrderProp,
+  onCardioMoveUp: onCardioMoveUpProp,
+  onCardioMoveDown: onCardioMoveDownProp,
+  onAbsMoveUp: onAbsMoveUpProp,
+  onAbsMoveDown: onAbsMoveDownProp,
+  showCardio: showCardioProp,
+  setShowCardio: setShowCardioProp,
+  showAbs: showAbsProp,
+  setShowAbs: setShowAbsProp,
+  isEditingSets: isEditingSetsProp,
+  previousCustomExercises: previousCustomExercisesProp,
+  expandAll: expandAllProp,
+  absExpanded: absExpandedProp,
+  setAbsExpanded: setAbsExpandedProp,
+  cardioExpanded: cardioExpandedProp,
+  setCardioExpanded: setCardioExpandedProp,
 }) {
   const { theme } = useTheme();
 
-  // Use controlled state from parent if provided, otherwise use local state
+  // Try to use context, but fall back to props if context is not available
+  let contextData = null;
+  try {
+    contextData = useWorkout();
+  } catch (e) {
+    // Context not available - using props from SavedWorkout
+  }
+
+  // Use context if available, otherwise use props
+  const exerciseData = contextData?.exerciseData ?? exerciseDataProp;
+  const handleExerciseDataChange = contextData?.handleExerciseDataChange ?? onExerciseDataChangeProp;
+  const handleRemoveSet = contextData?.handleRemoveSet ?? onRemoveSetProp;
+  const cardioAtTop = contextData?.cardioAtTop ?? cardioAtTopProp;
+  const absAtTop = contextData?.absAtTop ?? absAtTopProp;
+  const sectionOrder = contextData?.sectionOrder ?? sectionOrderProp;
+  const handleCardioMoveUp = contextData?.handleCardioMoveUp ?? onCardioMoveUpProp;
+  const handleCardioMoveDown = contextData?.handleCardioMoveDown ?? onCardioMoveDownProp;
+  const handleAbsMoveUp = contextData?.handleAbsMoveUp ?? onAbsMoveUpProp;
+  const handleAbsMoveDown = contextData?.handleAbsMoveDown ?? onAbsMoveDownProp;
+  const showCardio = contextData?.showCardio ?? showCardioProp;
+  const setShowCardio = contextData?.setShowCardio ?? setShowCardioProp;
+  const showAbs = contextData?.showAbs ?? showAbsProp;
+  const setShowAbs = contextData?.setShowAbs ?? setShowAbsProp;
+  const isEditingSets = contextData?.isEditingSets ?? isEditingSetsProp ?? false;
+  const previousCustomExercises = contextData?.previousCustomExercises ?? previousCustomExercisesProp ?? [];
+  const expandAll = contextData?.expandAll ?? expandAllProp ?? true;
+  const absExpandedContext = contextData?.absExpanded ?? absExpandedProp;
+  const setAbsExpandedContext = contextData?.setAbsExpanded ?? setAbsExpandedProp;
+  const cardioExpandedContext = contextData?.cardioExpanded ?? cardioExpandedProp;
+  const setCardioExpandedContext = contextData?.setCardioExpanded ?? setCardioExpandedProp;
+
+  // Use context state for expand/collapse, with local state fallback
   const [absExpandedLocal, setAbsExpandedLocal] = useState(true);
   const [cardioExpandedLocal, setCardioExpandedLocal] = useState(true);
 
-  const absExpanded = absExpandedProp !== undefined ? absExpandedProp : absExpandedLocal;
-  const setAbsExpanded = setAbsExpandedProp || setAbsExpandedLocal;
-  const cardioExpanded = cardioExpandedProp !== undefined ? cardioExpandedProp : cardioExpandedLocal;
-  const setCardioExpanded = setCardioExpandedProp || setCardioExpandedLocal;
+  const absExpanded = absExpandedContext !== undefined ? absExpandedContext : absExpandedLocal;
+  const setAbsExpanded = setAbsExpandedContext || setAbsExpandedLocal;
+  const cardioExpanded = cardioExpandedContext !== undefined ? cardioExpandedContext : cardioExpandedLocal;
+  const setCardioExpanded = setCardioExpandedContext || setCardioExpandedLocal;
 
   const [cardioExercises, setCardioExercises] = useState([]);
   const [absExercises, setAbsExercises] = useState([]);
@@ -137,7 +170,7 @@ function OptionalWorkoutSections({
         setCardioExercises([defaultCardio]);
         // Initialize the default cardio exercise in exerciseData with proper name
         const cardioName = getExerciseName('treadmill');
-        onExerciseDataChange('cardio_section', cardioName, -1, null, null);
+        handleExerciseDataChange('cardio_section', cardioName, -1, null, null);
       }
       cardioInitialized.current = true;
     } else if (!showCardio) {
@@ -175,7 +208,7 @@ function OptionalWorkoutSections({
         setAbsExercises([defaultAbs]);
         // Initialize the default abs exercise in exerciseData with proper name
         const absName = getExerciseName('abcrunchmachine');
-        onExerciseDataChange('abs_section', absName, -1, null, null);
+        handleExerciseDataChange('abs_section', absName, -1, null, null);
       }
       absInitialized.current = true;
     } else if (!showAbs) {
@@ -197,7 +230,7 @@ function OptionalWorkoutSections({
       },
     ]);
     // Initialize in exerciseData with empty values
-    onExerciseDataChange(customId, '', -1, null, null);
+    handleExerciseDataChange(customId, '', -1, null, null);
   };
 
   // Add custom abs exercise
@@ -213,7 +246,7 @@ function OptionalWorkoutSections({
       },
     ]);
     // Initialize in exerciseData with empty values
-    onExerciseDataChange(customId, '', -1, null, null);
+    handleExerciseDataChange(customId, '', -1, null, null);
   };
 
   // Remove cardio exercise
@@ -235,7 +268,7 @@ function OptionalWorkoutSections({
       ex.id === rowId ? { ...ex, selected: newValue } : ex
     ));
 
-    onExerciseDataChange(rowId, exerciseName, -1, null, newValue);
+    handleExerciseDataChange(rowId, exerciseName, -1, null, newValue);
   };
 
   const handleAbsChange = (rowId, newValue) => {
@@ -247,28 +280,28 @@ function OptionalWorkoutSections({
       ex.id === rowId ? { ...ex, selected: newValue } : ex
     ));
 
-    onExerciseDataChange(rowId, exerciseName, -1, null, newValue);
+    handleExerciseDataChange(rowId, exerciseName, -1, null, newValue);
   };
 
   const handleCardioInput = (rowId, selected, index, inputValue) => {
-    onExerciseDataChange(rowId, selected, index, inputValue, null);
+    handleExerciseDataChange(rowId, selected, index, inputValue, null);
   };
 
   const handleAbsInput = (rowId, selected, index, inputValue) => {
-    onExerciseDataChange(rowId, selected, index, inputValue, null);
+    handleExerciseDataChange(rowId, selected, index, inputValue, null);
   };
 
   const handleAbsAddSet = (rowId, selected) => {
     const currentSets = exerciseData[rowId]?.sets || [];
     const currentSetCount = currentSets.length || Number(numberOfSets);
-    onExerciseDataChange(rowId, selected, currentSetCount, '', null);
+    handleExerciseDataChange(rowId, selected, currentSetCount, '', null);
   };
 
   const handleAbsRemoveSet = (rowId) => {
     const currentSets = exerciseData[rowId]?.sets || [];
     const currentSetCount = currentSets.length || Number(numberOfSets);
-    if (currentSetCount > 1 && onRemoveSet) {
-      onRemoveSet(rowId, currentSetCount - 1);
+    if (currentSetCount > 1 && handleRemoveSet) {
+      handleRemoveSet(rowId, currentSetCount - 1);
     }
   };
 
@@ -297,13 +330,13 @@ function OptionalWorkoutSections({
     if (pickerExerciseId && pickerSetIndex !== null) {
       const combined = combineSet(weight, reps);
       const selectedExercise = exerciseData[pickerExerciseId]?.exerciseName || absExercises.find(ex => ex.id === pickerExerciseId)?.selected;
-      console.log('💾 [handleAbsPickerSave] Calling onExerciseDataChange with:', {
+      console.log('💾 [handleAbsPickerSave] Calling handleExerciseDataChange with:', {
         exerciseId: pickerExerciseId,
         exerciseName: selectedExercise,
         setIndex: pickerSetIndex,
         combined
       });
-      onExerciseDataChange(pickerExerciseId, selectedExercise, pickerSetIndex, combined, null);
+      handleExerciseDataChange(pickerExerciseId, selectedExercise, pickerSetIndex, combined, null);
     }
   };
 

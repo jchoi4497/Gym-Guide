@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { EXERCISES } from '../config/exerciseConfig';
 import { detectCategoryFromName } from '../utils/categoryDetection';
+import { useWorkout } from '../contexts/WorkoutContext';
 
 /**
  * Autocomplete input for exercise names
@@ -12,13 +13,24 @@ function ExerciseAutocomplete({
   value,
   onChange,
   onSelect,
-  previousCustomExercises = [],
   placeholder = 'Exercise Name',
   className = '',
   autoFocus = false,
   disabled = false,
-  pussy,
 }) {
+  // Get previousCustomExercises and addCustomExercise from context if available
+  let previousCustomExercises = [];
+  let addCustomExercise = null;
+
+  try {
+    const context = useWorkout();
+    previousCustomExercises = context.previousCustomExercises || [];
+    addCustomExercise = context.addCustomExercise;
+  } catch (e) {
+    // Context not available (e.g., in SavedWorkout view mode)
+    previousCustomExercises = [];
+    addCustomExercise = null;
+  }
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -130,7 +142,10 @@ function ExerciseAutocomplete({
       inputRef.current.blur();
     }
 
-    pussy();
+    // Call addCustomExercise if available (from context)
+    if (addCustomExercise) {
+      addCustomExercise();
+    }
 
     // Reset the flag after a short delay
     setTimeout(() => {

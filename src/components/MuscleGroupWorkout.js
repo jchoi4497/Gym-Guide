@@ -1,28 +1,33 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import WorkoutTable from './WorkoutTable';
 import AddExerciseButton from './AddExerciseButton';
 import { getDefaultExercises, getExerciseName } from '../config/exerciseConfig';
+import { useWorkout } from '../contexts/WorkoutContext';
 
 function MuscleGroupWorkout({
   muscleGroup,
   numberOfSets,
   setRangeLabel,
-  exerciseData,
-  onExerciseDataChange,
-  onBatchInitializeExercises,
-  onRemoveSet,
-  onRemoveExercise,
   previousExerciseData,
-  previousCustomExercises = [],
-  favoriteExercises = [],
-  onToggleFavorite,
-  isEditingSets,
-  onEditingSetsChange,
-  expandAll = true,
-  onExpandAllChange,
-  onReorderExercises, // Handler for when user reorders exercises
-  exerciseOrder = [], // Tracked order from parent
+  onRemoveExercise, // Firebase-specific handler from WorkoutPage
+  onToggleFavorite, // Firebase-specific handler from WorkoutPage
 }) {
+  // Get workout state and functions from context
+  const {
+    exerciseData,
+    handleExerciseDataChange,
+    batchInitializeExercises,
+    handleRemoveSet,
+    handleReorderExercises,
+    isEditingSets,
+    setIsEditingSets,
+    expandAll,
+    setExpandAll,
+    mainExerciseOrder: exerciseOrder,
+    previousCustomExercises,
+    favoriteExercises,
+    setAddCustomExercise,
+  } = useWorkout();
   // Track if we've already initialized to prevent re-initialization
   const hasInitialized = useRef(false);
   // Track the previous muscle group to detect actual changes
@@ -68,8 +73,8 @@ function MuscleGroupWorkout({
       });
 
       // Batch initialize all exercises in a single state update (optimal performance)
-      if (exercisesToInit.length > 0 && onBatchInitializeExercises) {
-        onBatchInitializeExercises(exercisesToInit);
+      if (exercisesToInit.length > 0) {
+        batchInitializeExercises(exercisesToInit);
       }
 
       hasInitialized.current = true; // Mark as initialized
@@ -171,10 +176,10 @@ function MuscleGroupWorkout({
   }, [muscleGroup, exerciseData, exerciseOrder]);
 
   // Add a custom exercise row
-  const addCustomExercise = () => {
+  const addCustomExercise = useCallback(() => {
     const customId = `custom_${Date.now()}`;
-    setExercises([
-      ...exercises,
+    setExercises((prevExercises) => [
+      ...prevExercises,
       {
         id: customId,
         selected: '',
@@ -183,8 +188,13 @@ function MuscleGroupWorkout({
       },
     ]);
     // Initialize in exerciseData with empty value
-    onExerciseDataChange(customId, '', -1, null, null);
-  };
+    handleExerciseDataChange(customId, '', -1, null, null);
+  }, [handleExerciseDataChange]);
+
+  // Register addCustomExercise with context
+  useEffect(() => {
+    setAddCustomExercise(() => addCustomExercise);
+  }, [addCustomExercise, setAddCustomExercise]);
 
   // Remove an exercise row
   const removeExercise = (rowId) => {
@@ -205,23 +215,21 @@ function MuscleGroupWorkout({
     setExercises(updatedExercises);
     // Convert exercise ID to full name before storing
     const exerciseName = getExerciseName(newExerciseValue) || newExerciseValue;
-    onExerciseDataChange(rowId, exerciseName, -1, null, detectedCategory);
+    handleExerciseDataChange(rowId, exerciseName, -1, null, detectedCategory);
   };
 
   // Handle set data input change
   const handleInputChange = (rowId, selected, index, inputValue) => {
-    onExerciseDataChange(rowId, selected, index, inputValue, null);
+    handleExerciseDataChange(rowId, selected, index, inputValue, null);
   };
 
   // Handle reordering exercises
   const handleReorder = (newOrderedExercises) => {
     setExercises(newOrderedExercises);
 
-    // Notify parent of the new order (extract IDs)
-    if (onReorderExercises) {
-      const newOrder = newOrderedExercises.map((ex) => ex.id);
-      onReorderExercises(newOrder);
-    }
+    // Notify context of the new order (extract IDs)
+    const newOrder = newOrderedExercises.map((ex) => ex.id);
+    handleReorderExercises(newOrder);
   };
 
   return (
@@ -229,7 +237,7 @@ function MuscleGroupWorkout({
       {/* Edit Sets Toggle Button - above the workout table, left-aligned */}
       <div className="mb-4 flex justify-start">
         <button
-          onClick={() => onEditingSetsChange(!isEditingSets)}
+          onClick={() => setIsEditingSets(!isEditingSets)}
           className={`px-4 py-2 rounded-lg text-white font-semibold transition-all active:scale-95 shadow-md ${
             isEditingSets ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-500 hover:bg-blue-600'
           }`}
@@ -245,19 +253,11 @@ function MuscleGroupWorkout({
         exercises={exercises}
         onExerciseChange={handleExerciseChange}
         onCellInput={handleInputChange}
-        exerciseData={exerciseData}
         onRemove={removeExercise}
-        onRemoveSet={onRemoveSet}
-        previousCustomExercises={previousCustomExercises}
-        isEditingSets={isEditingSets}
-        onReorder={handleReorder}
-        favoriteExercises={favoriteExercises}
         onToggleFavorite={onToggleFavorite}
-        expandAll={expandAll}
-        onExpandAllChange={onExpandAllChange}
-        addCustomExercise={addCustomExercise}
+        onReorder={handleReorder}
       />
-      <AddExerciseButton onClick={addCustomExercise} />
+      <AddExerciseButton />
     </div>
   );
 }
