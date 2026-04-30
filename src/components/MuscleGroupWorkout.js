@@ -23,7 +23,6 @@ function MuscleGroupWorkout({
   onReorderExercises, // Handler for when user reorders exercises
   exerciseOrder = [], // Tracked order from parent
 }) {
-
   // Track if we've already initialized to prevent re-initialization
   const hasInitialized = useRef(false);
   // Track the previous muscle group to detect actual changes
@@ -38,12 +37,14 @@ function MuscleGroupWorkout({
       return getDefaultExercises(muscleGroup);
     } else {
       // Custom muscle group - start with one empty custom exercise
-      return [{
-        id: `custom_${Date.now()}`,
-        selected: '',
-        options: [],
-        isCustom: true,
-      }];
+      return [
+        {
+          id: `custom_${Date.now()}`,
+          selected: '',
+          options: [],
+          isCustom: true,
+        },
+      ];
     }
   });
 
@@ -54,7 +55,7 @@ function MuscleGroupWorkout({
       // Collect all exercises that need initialization
       const exercisesToInit = [];
 
-      exercises.forEach(exercise => {
+      exercises.forEach((exercise) => {
         if (exercise.selected && exercise.selected !== 'custom') {
           const existingData = exerciseData[exercise.id];
           if (!existingData || !existingData.exerciseName) {
@@ -87,12 +88,14 @@ function MuscleGroupWorkout({
         setExercises(getDefaultExercises(muscleGroup));
       } else {
         // Custom muscle group - start with one empty custom exercise
-        setExercises([{
-          id: `custom_${Date.now()}`,
-          selected: '',
-          options: [],
-          isCustom: true,
-        }]);
+        setExercises([
+          {
+            id: `custom_${Date.now()}`,
+            selected: '',
+            options: [],
+            isCustom: true,
+          },
+        ]);
       }
     }
     prevMuscleGroup.current = muscleGroup;
@@ -104,24 +107,27 @@ function MuscleGroupWorkout({
     // Filter out cardio and abs exercises - they're handled by OptionalWorkoutSections
     const filterOutCardioAbs = (key) => {
       const lowerKey = key.toLowerCase();
-      return !lowerKey.startsWith('cardio') &&
-             !lowerKey.startsWith('abs') &&
-             !lowerKey.startsWith('custom_cardio') &&
-             !lowerKey.startsWith('custom_abs');
+      return (
+        !lowerKey.startsWith('cardio') &&
+        !lowerKey.startsWith('abs') &&
+        !lowerKey.startsWith('custom_cardio') &&
+        !lowerKey.startsWith('custom_abs')
+      );
     };
 
     const exerciseDataKeys = Object.keys(exerciseData || {}).filter(filterOutCardioAbs);
     const currentExerciseCount = exercises.length;
-    const currentExerciseIds = new Set(exercises.map(ex => ex.id));
+    const currentExerciseIds = new Set(exercises.map((ex) => ex.id));
 
     // Only rebuild if exerciseData has MORE exercises than current (template loaded)
     // OR if we have no exercises yet (initial load)
     if (currentExerciseCount === 0) {
       if (exerciseDataKeys.length > 0) {
         // Use exerciseOrder from parent if available, otherwise use keys as-is
-        const orderedKeys = exerciseOrder && exerciseOrder.length > 0
-          ? exerciseOrder.filter(key => exerciseDataKeys.includes(key))
-          : exerciseDataKeys;
+        const orderedKeys =
+          exerciseOrder && exerciseOrder.length > 0
+            ? exerciseOrder.filter((key) => exerciseDataKeys.includes(key))
+            : exerciseDataKeys;
 
         // Build exercises array from exerciseData (template loading)
         const exercisesFromData = orderedKeys.map((categoryId) => ({
@@ -139,14 +145,16 @@ function MuscleGroupWorkout({
     } else if (exerciseDataKeys.length > currentExerciseCount) {
       // Only rebuild if there are NEW keys in exerciseData that aren't in current exercises
       // This indicates a template was loaded, not that user added/removed exercises
-      const newKeys = exerciseDataKeys.filter(key => !currentExerciseIds.has(key));
-      const hasSignificantNewData = newKeys.length > 1 || (newKeys.length === 1 && exerciseData[newKeys[0]]?.exerciseName);
+      const newKeys = exerciseDataKeys.filter((key) => !currentExerciseIds.has(key));
+      const hasSignificantNewData =
+        newKeys.length > 1 || (newKeys.length === 1 && exerciseData[newKeys[0]]?.exerciseName);
 
       if (hasSignificantNewData) {
         // Use exerciseOrder from parent if available, otherwise use keys as-is
-        const orderedKeys = exerciseOrder && exerciseOrder.length > 0
-          ? exerciseOrder.filter(key => exerciseDataKeys.includes(key))
-          : exerciseDataKeys;
+        const orderedKeys =
+          exerciseOrder && exerciseOrder.length > 0
+            ? exerciseOrder.filter((key) => exerciseDataKeys.includes(key))
+            : exerciseDataKeys;
 
         // Template loaded - rebuild from exerciseData
         const exercisesFromData = orderedKeys.map((categoryId) => ({
@@ -190,8 +198,9 @@ function MuscleGroupWorkout({
   // Handle exercise selection change
   const handleExerciseChange = (rowId, newExerciseValue, detectedCategory) => {
     const updatedExercises = exercises.map((ex) =>
-      ex.id === rowId ? { ...ex, selected: newExerciseValue } : ex
+      ex.id === rowId ? { ...ex, selected: newExerciseValue } : ex,
     );
+    console.log(123);
 
     setExercises(updatedExercises);
     // Convert exercise ID to full name before storing
@@ -210,7 +219,7 @@ function MuscleGroupWorkout({
 
     // Notify parent of the new order (extract IDs)
     if (onReorderExercises) {
-      const newOrder = newOrderedExercises.map(ex => ex.id);
+      const newOrder = newOrderedExercises.map((ex) => ex.id);
       onReorderExercises(newOrder);
     }
   };
@@ -222,9 +231,7 @@ function MuscleGroupWorkout({
         <button
           onClick={() => onEditingSetsChange(!isEditingSets)}
           className={`px-4 py-2 rounded-lg text-white font-semibold transition-all active:scale-95 shadow-md ${
-            isEditingSets
-              ? 'bg-orange-500 hover:bg-orange-600'
-              : 'bg-blue-500 hover:bg-blue-600'
+            isEditingSets ? 'bg-orange-500 hover:bg-orange-600' : 'bg-blue-500 hover:bg-blue-600'
           }`}
         >
           {isEditingSets ? '✓ Done Editing Sets' : '✎ Edit Sets'}
@@ -248,6 +255,7 @@ function MuscleGroupWorkout({
         onToggleFavorite={onToggleFavorite}
         expandAll={expandAll}
         onExpandAllChange={onExpandAllChange}
+        addCustomExercise={addCustomExercise}
       />
       <AddExerciseButton onClick={addCustomExercise} />
     </div>

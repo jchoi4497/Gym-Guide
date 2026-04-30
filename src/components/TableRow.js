@@ -24,6 +24,7 @@ function TableRow({
   favoriteExercises = [],
   onToggleFavorite,
   expandAll,
+  addCustomExercise,
 }) {
   const { settings } = useSettings();
 
@@ -110,59 +111,67 @@ function TableRow({
 
       cellElements.push(
         <div key={i + rowId} className="relative mb-2 sm:mb-0 flex-shrink-0">
-          <span className="absolute -top-2 -left-2 text-xs text-gray-400 font-medium bg-sky-50 px-1 rounded z-10">{i + 1}</span>
+          <span className="absolute -top-2 -left-2 text-xs text-gray-400 font-medium bg-sky-50 px-1 rounded z-10">
+            {i + 1}
+          </span>
           <div className="relative flex items-center gap-1">
-          {isMobile ? (
-            // MOBILE: Buttons that open picker modal
-            <>
-              {showWeightInput && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => handleOpenPicker(i, 'weight')}
-                    className="px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
-                  >
-                    {displayWeight(currentSet.weight, settings.weightUnit) || <span className="text-gray-400">{settings.weightUnit}</span>}
-                  </button>
-                  <span className="text-gray-500 font-bold text-xs">×</span>
-                </>
-              )}
-              <button
-                type="button"
-                onClick={() => handleOpenPicker(i, 'reps')}
-                className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95 ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
-              >
-                {currentSet.reps || <span className="text-gray-400">{isCardio ? placeholder : (isTimed ? "sec" : "reps")}</span>}
-              </button>
-            </>
-          ) : (
-            // DESKTOP: Regular text inputs
-            <>
-              {showWeightInput && (
-                <>
-                  <input
-                    type="number"
-                    step="0.5"
-                    min="0"
-                    value={displayWeight(currentSet.weight, settings.weightUnit)}
-                    onChange={(e) => handleWeightChange(i, e.target.value)}
-                    placeholder={settings.weightUnit}
-                    className="px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm"
-                  />
-                  <span className="text-gray-500 font-bold text-xs">×</span>
-                </>
-              )}
-              <input
-                type="number"
-                step={isCardio ? "0.1" : "1"}
-                min="0"
-                value={currentSet.reps}
-                onChange={(e) => handleRepsChange(i, e.target.value)}
-                placeholder={isCardio ? placeholder : (isTimed ? "sec" : "reps")}
-                className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
-              />
-            </>
-          )}
+            {isMobile ? (
+              // MOBILE: Buttons that open picker modal
+              <>
+                {showWeightInput && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenPicker(i, 'weight')}
+                      className="px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95"
+                    >
+                      {displayWeight(currentSet.weight, settings.weightUnit) || (
+                        <span className="text-gray-400">{settings.weightUnit}</span>
+                      )}
+                    </button>
+                    <span className="text-gray-500 font-bold text-xs">×</span>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleOpenPicker(i, 'reps')}
+                  className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm hover:bg-blue-200 active:scale-95 ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
+                >
+                  {currentSet.reps || (
+                    <span className="text-gray-400">
+                      {isCardio ? placeholder : isTimed ? 'sec' : 'reps'}
+                    </span>
+                  )}
+                </button>
+              </>
+            ) : (
+              // DESKTOP: Regular text inputs
+              <>
+                {showWeightInput && (
+                  <>
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="0"
+                      value={displayWeight(currentSet.weight, settings.weightUnit)}
+                      onChange={(e) => handleWeightChange(i, e.target.value)}
+                      placeholder={settings.weightUnit}
+                      className="px-2 py-2 w-16 sm:w-20 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm"
+                    />
+                    <span className="text-gray-500 font-bold text-xs">×</span>
+                  </>
+                )}
+                <input
+                  type="number"
+                  step={isCardio ? '0.1' : '1'}
+                  min="0"
+                  value={currentSet.reps}
+                  onChange={(e) => handleRepsChange(i, e.target.value)}
+                  placeholder={isCardio ? placeholder : isTimed ? 'sec' : 'reps'}
+                  className={`px-2 py-2 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm ${showWeightInput ? 'w-14 sm:w-16' : 'w-16 sm:w-20'}`}
+                />
+              </>
+            )}
 
             {/* Copy Previous Set Button - only show if there's a previous set and current set is empty */}
             {hasPreviousSet && !currentSet.weight && !currentSet.reps && (
@@ -176,7 +185,7 @@ function TableRow({
               </button>
             )}
           </div>
-        </div>
+        </div>,
       );
     }
     return cellElements;
@@ -193,7 +202,10 @@ function TableRow({
   };
 
   // Get current set being edited
-  const currentSet = editingSetIndex !== null ? parseSet((setInputs && setInputs[editingSetIndex]) || '') : { weight: '', reps: '' };
+  const currentSet =
+    editingSetIndex !== null
+      ? parseSet((setInputs && setInputs[editingSetIndex]) || '')
+      : { weight: '', reps: '' };
 
   // Determine exercise type for picker
   const placeholder = getPlaceholderForExercise(value);
@@ -224,7 +236,7 @@ function TableRow({
         <div className="flex items-center justify-between bg-sky-50 transition-colors rounded-t-lg pr-2">
           <div className="flex-1 flex items-center gap-2 py-2 sm:py-3 pl-8 sm:pl-3 min-w-0">
             <div className="flex-1 min-w-0">
-              {isCustom || value === 'custom' || !options.find(opt => opt.value === value) ? (
+              {isCustom || value === 'custom' || !options.find((opt) => opt.value === value) ? (
                 <ExerciseAutocomplete
                   value={value === 'custom' ? '' : value}
                   onChange={onChange}
@@ -233,6 +245,7 @@ function TableRow({
                   }}
                   previousCustomExercises={previousCustomExercises}
                   placeholder="Enter exercise name..."
+                  pussy={addCustomExercise}
                   className="w-full px-2 sm:px-3 py-1 border border-blue-200 rounded-md focus:border-blue-500 outline-none transition-all text-sm"
                 />
               ) : (

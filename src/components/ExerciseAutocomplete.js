@@ -13,10 +13,11 @@ function ExerciseAutocomplete({
   onChange,
   onSelect,
   previousCustomExercises = [],
-  placeholder = "Exercise Name",
-  className = "",
+  placeholder = 'Exercise Name',
+  className = '',
   autoFocus = false,
   disabled = false,
+  pussy,
 }) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
@@ -28,14 +29,14 @@ function ExerciseAutocomplete({
   // Combine preset exercises and previous customs
   const allExercises = [
     // Presets from exerciseConfig
-    ...Object.values(EXERCISES).map(ex => ({
+    ...Object.values(EXERCISES).map((ex) => ({
       name: ex.name,
       id: ex.id,
       category: ex.category,
       isPreset: true,
     })),
     // Previous custom exercises
-    ...previousCustomExercises.map(custom => ({
+    ...previousCustomExercises.map((custom) => ({
       name: custom.name,
       id: custom.id || custom.name, // Use name as fallback ID
       category: custom.category, // Include category from MyExercises
@@ -44,8 +45,9 @@ function ExerciseAutocomplete({
   ];
 
   // Remove duplicates (if user's custom matches a preset name)
-  const uniqueExercises = allExercises.filter((exercise, index, self) =>
-    index === self.findIndex(e => e.name.toLowerCase() === exercise.name.toLowerCase())
+  const uniqueExercises = allExercises.filter(
+    (exercise, index, self) =>
+      index === self.findIndex((e) => e.name.toLowerCase() === exercise.name.toLowerCase()),
   );
 
   // Normalize string for better matching (remove spaces, lowercase, remove special chars)
@@ -58,13 +60,13 @@ function ExerciseAutocomplete({
     const normalized = normalize(inputValue);
 
     // First, try exact normalized match
-    const exactMatch = uniqueExercises.find(ex =>
-      ex.isPreset && normalize(ex.name) === normalized
+    const exactMatch = uniqueExercises.find(
+      (ex) => ex.isPreset && normalize(ex.name) === normalized,
     );
     if (exactMatch) return exactMatch;
 
     // Then, try if input is contained in preset name or vice versa
-    const partialMatch = uniqueExercises.find(ex => {
+    const partialMatch = uniqueExercises.find((ex) => {
       if (!ex.isPreset) return false;
       const exNormalized = normalize(ex.name);
       return exNormalized.includes(normalized) || normalized.includes(exNormalized);
@@ -82,20 +84,23 @@ function ExerciseAutocomplete({
       const normalizedInput = normalize(inputValue);
 
       // Filter suggestions based on input with smart matching
-      const filtered = uniqueExercises.filter(ex => {
+      const filtered = uniqueExercises.filter((ex) => {
         const normalizedName = normalize(ex.name);
 
         // Match if:
         // 1. Normalized name includes the input (e.g., "benchpress" matches "Bench Press")
         // 2. OR original name includes the input (e.g., "bench" matches "Bench Press")
         // 3. OR any word in the name starts with the input (e.g., "press" matches "Bench Press")
-        const wordsMatch = ex.name.toLowerCase().split(/\s+/).some(word =>
-          word.startsWith(inputValue.toLowerCase())
-        );
+        const wordsMatch = ex.name
+          .toLowerCase()
+          .split(/\s+/)
+          .some((word) => word.startsWith(inputValue.toLowerCase()));
 
-        return normalizedName.includes(normalizedInput) ||
-               ex.name.toLowerCase().includes(inputValue.toLowerCase()) ||
-               wordsMatch;
+        return (
+          normalizedName.includes(normalizedInput) ||
+          ex.name.toLowerCase().includes(inputValue.toLowerCase()) ||
+          wordsMatch
+        );
       });
 
       setFilteredSuggestions(filtered);
@@ -125,6 +130,8 @@ function ExerciseAutocomplete({
       inputRef.current.blur();
     }
 
+    pussy();
+
     // Reset the flag after a short delay
     setTimeout(() => {
       justSelectedRef.current = false;
@@ -138,15 +145,19 @@ function ExerciseAutocomplete({
     switch (e.key) {
       case 'ArrowDown':
         e.preventDefault();
-        setHighlightedIndex(prev =>
-          prev < filteredSuggestions.length - 1 ? prev + 1 : prev
-        );
+        setHighlightedIndex((prev) => (prev < filteredSuggestions.length - 1 ? prev + 1 : prev));
         break;
       case 'ArrowUp':
         e.preventDefault();
-        setHighlightedIndex(prev => (prev > 0 ? prev - 1 : -1));
+        setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : -1));
         break;
       case 'Enter':
+        console.log(value, filteredSuggestions[0]);
+
+        if (filteredSuggestions.length && filteredSuggestions[0].name === value) {
+          handleSuggestionClick(filteredSuggestions[0]);
+        }
+        // Log shows but on enter doesnt select preset but create custom workout on exact name match with autosuggest
         e.preventDefault();
         if (highlightedIndex >= 0 && highlightedIndex < filteredSuggestions.length) {
           handleSuggestionClick(filteredSuggestions[highlightedIndex]);
@@ -184,8 +195,8 @@ function ExerciseAutocomplete({
 
     if (value.trim().length > 0) {
       // Check if this is a preset exercise
-      const presetExercise = uniqueExercises.find(ex =>
-        ex.isPreset && normalize(ex.name) === normalize(value)
+      const presetExercise = uniqueExercises.find(
+        (ex) => ex.isPreset && normalize(ex.name) === normalize(value),
       );
 
       if (presetExercise) {
@@ -231,14 +242,17 @@ function ExerciseAutocomplete({
         onFocus={() => {
           if (value.trim().length > 0) {
             const normalizedInput = normalize(value);
-            const filtered = uniqueExercises.filter(ex => {
+            const filtered = uniqueExercises.filter((ex) => {
               const normalizedName = normalize(ex.name);
-              const wordsMatch = ex.name.toLowerCase().split(/\s+/).some(word =>
-                word.startsWith(value.toLowerCase())
+              const wordsMatch = ex.name
+                .toLowerCase()
+                .split(/\s+/)
+                .some((word) => word.startsWith(value.toLowerCase()));
+              return (
+                normalizedName.includes(normalizedInput) ||
+                ex.name.toLowerCase().includes(value.toLowerCase()) ||
+                wordsMatch
               );
-              return normalizedName.includes(normalizedInput) ||
-                     ex.name.toLowerCase().includes(value.toLowerCase()) ||
-                     wordsMatch;
             });
             setFilteredSuggestions(filtered);
             setShowSuggestions(true);
@@ -268,13 +282,9 @@ function ExerciseAutocomplete({
             >
               <span className="text-gray-800">{exercise.name}</span>
               {exercise.isPreset ? (
-                <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                  Preset
-                </span>
+                <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">Preset</span>
               ) : (
-                <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                  Custom
-                </span>
+                <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">Custom</span>
               )}
             </div>
           ))}
@@ -282,30 +292,31 @@ function ExerciseAutocomplete({
       )}
 
       {/* No matches found */}
-      {showSuggestions && value.trim().length > 0 && filteredSuggestions.length === 0 && (() => {
-        const detectedCategory = detectCategoryFromName(value);
-        return (
-          <div className="absolute z-[100] w-full mt-1 bg-white border border-green-300 rounded-lg shadow-lg px-4 py-3">
-            <div className="flex items-start gap-2">
-              <span className="text-green-600 text-lg">✓</span>
-              <div>
-                <p className="text-gray-800 font-medium text-sm">
-                  Creating new custom exercise:
-                </p>
-                <p className="text-green-700 font-bold">"{value}"</p>
-                {detectedCategory && (
-                  <p className="text-blue-600 text-xs mt-1">
-                    🏷️ Auto-detected category: {detectedCategory}
+      {showSuggestions &&
+        value.trim().length > 0 &&
+        filteredSuggestions.length === 0 &&
+        (() => {
+          const detectedCategory = detectCategoryFromName(value);
+          return (
+            <div className="absolute z-[100] w-full mt-1 bg-white border border-green-300 rounded-lg shadow-lg px-4 py-3">
+              <div className="flex items-start gap-2">
+                <span className="text-green-600 text-lg">✓</span>
+                <div>
+                  <p className="text-gray-800 font-medium text-sm">Creating new custom exercise:</p>
+                  <p className="text-green-700 font-bold">"{value}"</p>
+                  {detectedCategory && (
+                    <p className="text-blue-600 text-xs mt-1">
+                      🏷️ Auto-detected category: {detectedCategory}
+                    </p>
+                  )}
+                  <p className="text-gray-500 text-xs mt-1">
+                    Click anywhere to confirm or keep typing to modify
                   </p>
-                )}
-                <p className="text-gray-500 text-xs mt-1">
-                  Click anywhere to confirm or keep typing to modify
-                </p>
+                </div>
               </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
     </div>
   );
 }

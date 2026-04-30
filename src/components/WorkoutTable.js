@@ -18,7 +18,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 // Sortable wrapper for TableRow
-function SortableTableRow({ exercise, isEditingSets, onMoveUp, onMoveDown, isFirst, isLast, expandAll, ...props }) {
+function SortableTableRow({ exercise, addCustomExercise, isEditingSets, onMoveUp, onMoveDown, isFirst, isLast, expandAll, ...props }) {
   const {
     attributes,
     listeners,
@@ -51,8 +51,18 @@ function SortableTableRow({ exercise, isEditingSets, onMoveUp, onMoveDown, isFir
               }`}
               title="Move up"
             >
-              <svg className={`w-3 h-3 ${isFirst ? 'text-gray-400' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 15l7-7 7 7" />
+              <svg
+                className={`w-3 h-3 ${isFirst ? 'text-gray-400' : 'text-white'}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={3}
+                  d="M5 15l7-7 7 7"
+                />
               </svg>
             </button>
             <button
@@ -65,8 +75,18 @@ function SortableTableRow({ exercise, isEditingSets, onMoveUp, onMoveDown, isFir
               }`}
               title="Move down"
             >
-              <svg className={`w-3 h-3 ${isLast ? 'text-gray-400' : 'text-white'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+              <svg
+                className={`w-3 h-3 ${isLast ? 'text-gray-400' : 'text-white'}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={3}
+                  d="M19 9l-7 7-7-7"
+                />
               </svg>
             </button>
           </div>
@@ -82,7 +102,12 @@ function SortableTableRow({ exercise, isEditingSets, onMoveUp, onMoveDown, isFir
           </div>
         </>
       )}
-      <TableRow {...props} isEditingSets={isEditingSets} expandAll={expandAll} />
+      <TableRow
+        {...props}
+        isEditingSets={isEditingSets}
+        expandAll={expandAll}
+        addCustomExercise={addCustomExercise}
+      />
     </div>
   );
 }
@@ -104,8 +129,8 @@ function WorkoutTable({
   onToggleFavorite,
   expandAll = true, // Controlled by parent
   onExpandAllChange, // Handler to update parent state
+  addCustomExercise,
 }) {
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -114,7 +139,7 @@ function WorkoutTable({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragEnd = (event) => {
@@ -160,13 +185,9 @@ function WorkoutTable({
         </button>
       </div>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext
-          items={exercises.map(ex => ex.id)}
+          items={exercises.map((ex) => ex.id)}
           strategy={verticalListSortingStrategy}
           disabled={!isEditingSets}
         >
@@ -181,7 +202,9 @@ function WorkoutTable({
                 isCustom={exercise.isCustom}
                 numberOfSets={numberOfSets}
                 setInputs={exerciseData[exercise.id]?.sets}
-                onChange={(newOption, detectedCategory) => onExerciseChange(exercise.id, newOption, detectedCategory)}
+                onChange={(newOption, detectedCategory) =>
+                  onExerciseChange(exercise.id, newOption, detectedCategory)
+                }
                 cellInput={(index, inputValue) =>
                   onCellInput(exercise.id, exercise.selected, index, inputValue)
                 }
@@ -196,6 +219,7 @@ function WorkoutTable({
                 onMoveDown={moveDown}
                 isFirst={index === 0}
                 isLast={index === exercises.length - 1}
+                addCustomExercise={addCustomExercise}
               />
             ))}
           </div>
