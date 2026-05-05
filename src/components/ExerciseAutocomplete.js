@@ -21,15 +21,21 @@ function ExerciseAutocomplete({
   // Get previousCustomExercises and addCustomExercise from context if available
   let previousCustomExercises = [];
   let addCustomExercise = null;
+  let muscleGroup = '';
+  let templateId = null;
 
   try {
     const context = useWorkout();
     previousCustomExercises = context.previousCustomExercises || [];
     addCustomExercise = context.addCustomExercise;
+    muscleGroup = context.muscleGroup || '';
+    templateId = context.templateId || null;
   } catch (e) {
     // Context not available (e.g., in SavedWorkout view mode)
     previousCustomExercises = [];
     addCustomExercise = null;
+    muscleGroup = '';
+    templateId = null;
   }
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
@@ -142,8 +148,16 @@ function ExerciseAutocomplete({
       inputRef.current.blur();
     }
 
-    // Call addCustomExercise if available (from context)
-    if (addCustomExercise) {
+    // Call addCustomExercise if available and NOT from a template or preset muscle group
+    const isPresetMuscleGroup = ['chest', 'back', 'legs', 'shoulders'].includes(muscleGroup);
+    console.log('Debug addCustomExercise check:', {
+      muscleGroup,
+      templateId,
+      isPresetMuscleGroup,
+      shouldAdd: !isPresetMuscleGroup && !templateId,
+    });
+
+    if (addCustomExercise && !isPresetMuscleGroup && !templateId) {
       addCustomExercise();
     }
 
@@ -155,6 +169,38 @@ function ExerciseAutocomplete({
 
   // Handle keyboard navigation
   const handleKeyDown = (e) => {
+
+    // Handle Enter Key first, even with no suggestions
+    if (e.key === 'Enter') {
+      e.preventDefault();
+
+        // If user highlighted suggestion with arrows, select it
+        if (highlightedIndex >= 0 && highlightedIndex < filteredSuggestions.length) {
+          handleSuggestionClick(filteredSuggestions[highlightedIndex]);
+        }
+
+        // if there is an exact match in filtered suggestions, select it
+        else if (filteredSuggestions.length && filteredSuggestions[0].name === value) {
+          handleSuggestionClick(filteredSuggestions[0]);
+        }
+
+        // if input exists but no matches create custom
+        else if (value.trim().length > 0) {
+          const detectedCategory = detectCategoryFromName(value);
+          const customExercise = {
+            name: value,
+            id: value,
+            isPreset: false,
+            category: detectedCategory || `custom_${Date.now()}`,
+          };
+          handleSuggestionClick(customExercise);
+          console.log(value)
+        }
+        return
+    }
+
+    // For other keys, only handle is suggestions are showing
+
     if (!showSuggestions || filteredSuggestions.length === 0) return;
 
     switch (e.key) {
@@ -165,18 +211,6 @@ function ExerciseAutocomplete({
       case 'ArrowUp':
         e.preventDefault();
         setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : -1));
-        break;
-      case 'Enter':
-        console.log(value, filteredSuggestions[0]);
-
-        if (filteredSuggestions.length && filteredSuggestions[0].name === value) {
-          handleSuggestionClick(filteredSuggestions[0]);
-        }
-        // Log shows but on enter doesnt select preset but create custom workout on exact name match with autosuggest
-        e.preventDefault();
-        if (highlightedIndex >= 0 && highlightedIndex < filteredSuggestions.length) {
-          handleSuggestionClick(filteredSuggestions[highlightedIndex]);
-        }
         break;
       case 'Escape':
         setShowSuggestions(false);
