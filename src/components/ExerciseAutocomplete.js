@@ -37,12 +37,14 @@ function ExerciseAutocomplete({
     muscleGroup = '';
     templateId = null;
   }
+  
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const wrapperRef = useRef(null);
   const inputRef = useRef(null);
   const justSelectedRef = useRef(false); // Track if we just selected from dropdown
+  const enterPressedRef = useRef(false); // Track if Enter was already pressed on this row
 
   // Combine preset exercises and previous customs
   const allExercises = [
@@ -98,6 +100,9 @@ function ExerciseAutocomplete({
     const inputValue = e.target.value;
     onChange(inputValue);
 
+    // Reset enter pressed flag when user starts typing (indicates new row or editing)
+    enterPressedRef.current = false;
+
     if (inputValue.trim().length > 0) {
       const normalizedInput = normalize(inputValue);
 
@@ -149,16 +154,19 @@ function ExerciseAutocomplete({
     }
 
     // Call addCustomExercise if available and NOT from a template or preset muscle group
+    // AND only if we haven't already created a row for this input
     const isPresetMuscleGroup = ['chest', 'back', 'legs', 'shoulders'].includes(muscleGroup);
     console.log('Debug addCustomExercise check:', {
       muscleGroup,
       templateId,
       isPresetMuscleGroup,
       shouldAdd: !isPresetMuscleGroup && !templateId,
+      alreadyCreatedRow: enterPressedRef.current,
     });
 
-    if (addCustomExercise && !isPresetMuscleGroup && !templateId) {
+    if (addCustomExercise && !isPresetMuscleGroup && !templateId && !enterPressedRef.current) {
       addCustomExercise();
+      enterPressedRef.current = true; // Mark that we created a row
     }
 
     // Reset the flag after a short delay
