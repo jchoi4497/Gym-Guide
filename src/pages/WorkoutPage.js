@@ -118,6 +118,8 @@ function WorkoutPageContent() {
           // Update workout context with data from Firebase
           updateWorkoutState({
             exerciseData: workoutData.exerciseData || {},
+            muscleGroup: workoutData.muscleGroup || '',
+            templateId: workoutData.templateId || null,
             showCardio: workoutData.showCardio || false,
             showAbs: workoutData.showAbs || false,
             cardioAtTop: workoutData.cardioAtTop || false,

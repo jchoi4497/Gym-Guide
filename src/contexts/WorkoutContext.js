@@ -10,6 +10,7 @@ export function WorkoutProvider({ children, initialData = {} }) {
   const [numberOfSets, setNumberOfSets] = useState(initialData.numberOfSets || 4);
   const [muscleGroup, setMuscleGroup] = useState(initialData.muscleGroup || '');
   const [setRangeLabel, setSetRangeLabel] = useState(initialData.setRangeLabel || '4 sets');
+  const [templateId, setTemplateId] = useState(initialData.templateId || null);
 
   // Favorites and previous data
   const [favoriteExercises, setFavoriteExercises] = useState(initialData.favoriteExercises || []);
@@ -255,6 +256,7 @@ export function WorkoutProvider({ children, initialData = {} }) {
     if (updates.numberOfSets !== undefined) setNumberOfSets(updates.numberOfSets);
     if (updates.muscleGroup !== undefined) setMuscleGroup(updates.muscleGroup);
     if (updates.setRangeLabel !== undefined) setSetRangeLabel(updates.setRangeLabel);
+    if (updates.templateId !== undefined) setTemplateId(updates.templateId);
     if (updates.favoriteExercises !== undefined) setFavoriteExercises(updates.favoriteExercises);
     if (updates.previousWorkoutData !== undefined) setPreviousWorkoutData(updates.previousWorkoutData);
     if (updates.previousCustomExercises !== undefined) setPreviousCustomExercises(updates.previousCustomExercises);
@@ -276,6 +278,8 @@ export function WorkoutProvider({ children, initialData = {} }) {
     setMuscleGroup,
     setRangeLabel,
     setSetRangeLabel,
+    templateId,
+    setTemplateId,
     favoriteExercises,
     setFavoriteExercises,
     previousWorkoutData,
