@@ -20,6 +20,7 @@ import WorkoutNotes from './WorkoutNotes';
 import WorkoutAnalysis from './WorkoutAnalysis';
 import AddExerciseButton from '../components/AddExerciseButton';
 import OptionalWorkoutSections from '../components/OptionalWorkoutSections';
+import SaveAsTemplateButton from '../components/SaveAsTemplateButton';
 import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from '../config/constants';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -1048,6 +1049,11 @@ function SavedWorkout() {
             >
               Edit Workout
             </button>
+            <SaveAsTemplateButton
+              workoutData={workoutData}
+              buttonText="Save as Template"
+              buttonClassName={`px-6 py-3 rounded ${theme.btnPrimaryText} transition-all ${theme.btnSecondary} active:scale-95`}
+            />
           </div>
         </div>
       )}
