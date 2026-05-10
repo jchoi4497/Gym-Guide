@@ -63,9 +63,15 @@ function SaveAsTemplateButton({ workoutData, buttonText = 'Save as Template', bu
     }
   };
 
-  // Generate default name for the template
+  // Generate default name for the template using workout's actual date
+  const getWorkoutDate = () => {
+    if (!workoutData) return new Date();
+    const date = workoutData.date?.toDate?.() || workoutData.date || new Date(workoutData.workoutDate);
+    return date instanceof Date ? date : new Date(date);
+  };
+
   const defaultName = workoutData
-    ? `${workoutData.muscleGroup || workoutData.customMuscleGroupName || 'Workout'} - ${new Date().toLocaleDateString()}`
+    ? `${workoutData.muscleGroup || workoutData.customMuscleGroupName || 'Workout'} - ${getWorkoutDate().toLocaleDateString()}`
     : 'My Template';
 
   // Default button styling if none provided

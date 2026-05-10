@@ -49,6 +49,7 @@ function CreateWorkoutPage() {
   // Templates state
   const [recentTemplates, setRecentTemplates] = useState([]);
   const [loadedTemplate, setLoadedTemplate] = useState(null);
+  const [selectedDropdownValue, setSelectedDropdownValue] = useState('');
 
   // Scheduled workouts state
   const [todayScheduledWorkouts, setTodayScheduledWorkouts] = useState([]);
@@ -115,6 +116,7 @@ function CreateWorkoutPage() {
         setCustomSetCount(templateToLoad.customSetCount?.toString() || '');
         setCustomRepCount(templateToLoad.customRepCount?.toString() || '');
         setLoadedTemplate(templateToLoad);
+        setSelectedDropdownValue(templateToLoad.id || ''); // Show template in dropdown
         setCurrentStep(3); // Auto-advance to date selection
       }
     };
@@ -256,6 +258,7 @@ function CreateWorkoutPage() {
     setCustomSetCount(template.customSetCount?.toString() || '');
     setCustomRepCount(template.customRepCount?.toString() || '');
     setLoadedTemplate(template); // Save the template so we can access exercises later
+    setSelectedDropdownValue(template.id || ''); // Show template in dropdown
     // Auto-advance to step 3 (date selection) when template is loaded
     setCurrentStep(3);
   };
@@ -291,6 +294,8 @@ function CreateWorkoutPage() {
       setLoadedTemplate(null);
     }
 
+    setSelectedDropdownValue(workout.id ? `scheduled-${workout.id}` : ''); // Show scheduled workout in dropdown
+
     // Auto-advance to step 3 (date selection)
     setCurrentStep(3);
   };
@@ -298,6 +303,7 @@ function CreateWorkoutPage() {
   const handleMuscleGroupSelect = (option) => {
     setSelectedMuscleGroup(option);
     setLoadedTemplate(null); // Clear loaded template when manually changing selection
+    setSelectedDropdownValue(''); // Clear dropdown selection
     // Clear custom name if switching away from custom
     if (option !== 'custom') {
       setCustomMuscleGroupName('');
@@ -309,6 +315,7 @@ function CreateWorkoutPage() {
   const handleSetCountSelect = (option) => {
     setNumberOfSets(option);
     setLoadedTemplate(null); // Clear loaded template when manually changing selection
+    setSelectedDropdownValue(''); // Clear dropdown selection
     // Clear custom values if switching away from custom
     if (option !== 'custom') {
       setCustomSetCount('');
@@ -350,9 +357,34 @@ function CreateWorkoutPage() {
 
       // Convert template exercises to exerciseData format if template was loaded
       let exerciseData = {};
+      let mainExerciseOrder = [];
+      let showCardio = false;
+      let showAbs = false;
+      let cardioAtTop = false;
+      let absAtTop = false;
+
       if (loadedTemplate && loadedTemplate.exercises) {
-        exerciseData = templateToExerciseData(loadedTemplate, actualNumberOfSets);
+        const templateResult = templateToExerciseData(loadedTemplate, actualNumberOfSets);
+        exerciseData = templateResult.exerciseData;
+        mainExerciseOrder = templateResult.mainExerciseOrder;
         console.log('✅ Loaded exercises from template:', Object.keys(exerciseData).length);
+        console.log('✅ Exercise order:', mainExerciseOrder);
+
+        // Check if template has cardio/abs exercises
+        const hasCardioExercises = Object.keys(exerciseData).some(key =>
+          key.toLowerCase().includes('cardio')
+        );
+        const hasAbsExercises = Object.keys(exerciseData).some(key =>
+          key.toLowerCase().includes('abs')
+        );
+
+        // Use template flags if available, otherwise detect from exerciseData
+        showCardio = loadedTemplate.includeCardio ?? hasCardioExercises;
+        showAbs = loadedTemplate.includeAbs ?? hasAbsExercises;
+        cardioAtTop = loadedTemplate.cardioAtTop || false;
+        absAtTop = loadedTemplate.absAtTop || false;
+
+        console.log('✅ Template flags - showCardio:', showCardio, 'showAbs:', showAbs);
       }
 
       // Create draft workout directly in workoutLogs
@@ -371,12 +403,12 @@ function CreateWorkoutPage() {
         lastModified: serverTimestamp(),
         note: '',
         summary: '',
-        showCardio: false,
-        showAbs: false,
-        cardioAtTop: false,
-        absAtTop: false,
+        showCardio: showCardio,
+        showAbs: showAbs,
+        cardioAtTop: cardioAtTop,
+        absAtTop: absAtTop,
         sectionOrder: 'abs-first',
-        mainExerciseOrder: [],
+        mainExerciseOrder: mainExerciseOrder,
         exerciseOrder: []
       });
 
@@ -465,6 +497,7 @@ function CreateWorkoutPage() {
               </Link>
             </div>
             <select
+              value={selectedDropdownValue}
               onChange={(e) => {
                 const value = e.target.value;
                 if (!value) return;

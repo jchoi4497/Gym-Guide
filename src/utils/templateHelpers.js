@@ -50,9 +50,12 @@ export async function loadTemplate(userId, templateId) {
  * Convert template exercises to exerciseData format for HypertrophyPage
  * Template format: { category: "incline", exerciseId: "dip", exerciseName: "Dumbbell Incline Press" }
  * HypertrophyPage format: { "incline": { exerciseName: "Dumbbell Incline Press", sets: [] } }
+ *
+ * Returns: { exerciseData, mainExerciseOrder }
  */
 export function templateToExerciseData(template, numberOfSets) {
   const exerciseData = {};
+  const mainExerciseOrder = [];
 
   console.log('🔍 [templateToExerciseData] Starting conversion');
   console.log('🔍 [templateToExerciseData] Template:', template.name);
@@ -61,7 +64,7 @@ export function templateToExerciseData(template, numberOfSets) {
 
   if (!template.exercises || template.exercises.length === 0) {
     console.warn('⚠️ [templateToExerciseData] No exercises in template!');
-    return exerciseData;
+    return { exerciseData, mainExerciseOrder };
   }
 
   // Ensure numberOfSets is a valid integer (handle string values from form inputs)
@@ -94,6 +97,13 @@ export function templateToExerciseData(template, numberOfSets) {
 
       exerciseData[exercise.category] = exerciseObj;
 
+      // Track order - only add main exercises (not cardio/abs sections)
+      const isCardioOrAbs = exercise.category.toLowerCase().includes('cardio') ||
+                           exercise.category.toLowerCase().includes('abs');
+      if (!isCardioOrAbs) {
+        mainExerciseOrder.push(exercise.category);
+      }
+
       console.log(`✅ [templateToExerciseData] Added: ${exercise.category} -> ${displayName}`);
     } else {
       console.warn(`⚠️ [templateToExerciseData] Skipping exercise ${index} - missing category or exerciseId:`, exercise);
@@ -102,9 +112,13 @@ export function templateToExerciseData(template, numberOfSets) {
 
   console.log('🔍 [templateToExerciseData] Final exerciseData:', exerciseData);
   console.log('🔍 [templateToExerciseData] Total exercises loaded:', Object.keys(exerciseData).length);
+  console.log('🔍 [templateToExerciseData] Main exercise order:', mainExerciseOrder);
 
   // Clean any undefined values before returning (Firebase safety)
-  return cleanUndefinedValues(exerciseData);
+  return {
+    exerciseData: cleanUndefinedValues(exerciseData),
+    mainExerciseOrder
+  };
 }
 
 /**
