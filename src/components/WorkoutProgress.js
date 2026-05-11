@@ -2,10 +2,12 @@ import { useMemo, useState } from 'react';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useSettings } from '../contexts/SettingsContext';
 import { displayWeight, saveWeight } from '../utils/weightConversion';
+import ExerciseAutocomplete from './ExerciseAutocomplete';
 
-function WorkoutProgress({ exercises, currentSetIndex, onUpdateSet, onOpenPicker, onReorderExercise }) {
+function WorkoutProgress({ exercises, currentSetIndex, onUpdateSet, onOpenPicker, onReorderExercise, onUpdateExerciseName, onExerciseSelect }) {
   const { settings } = useSettings();
   const [expandedExerciseIndex, setExpandedExerciseIndex] = useState(null); // null = all collapsed
+  const [editingNameIndex, setEditingNameIndex] = useState(null);
 
   // Mobile detection (using shared hook)
   const isMobile = useIsMobile();
@@ -92,23 +94,46 @@ function WorkoutProgress({ exercises, currentSetIndex, onUpdateSet, onOpenPicker
                 )}
 
                 {/* Exercise Info - Clickable */}
-                <button
-                  onClick={() => setExpandedExerciseIndex(expandedExerciseIndex === idx ? null : idx)}
-                  className="flex-1 flex items-center justify-between py-2 px-3 hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
+                <div className="flex-1 flex items-center justify-between py-2 px-3">
+                  <div className="flex items-center gap-2 flex-1">
                     {exercise.completedSets.length === exercise.totalSets ? (
                       <span className="text-green-600 text-lg">✓</span>
                     ) : (
                       <span className="text-gray-400 text-lg">○</span>
                     )}
-                    <span className={`text-sm font-medium ${
-                      exercise.completedSets.length === exercise.totalSets ? 'text-gray-500 line-through' : 'text-gray-800'
-                    }`}>
-                      {exercise.exerciseName}
-                    </span>
+                    {editingNameIndex === idx ? (
+                      <ExerciseAutocomplete
+                        value={exercise.exerciseName || ''}
+                        onChange={(value) => onUpdateExerciseName && onUpdateExerciseName(idx, value)}
+                        onSelect={(selectedExercise) => {
+                          if (onExerciseSelect) {
+                            onExerciseSelect(idx, selectedExercise);
+                          }
+                          setEditingNameIndex(null);
+                        }}
+                        placeholder="Enter exercise name..."
+                        className="flex-1 px-2 py-1 text-sm border border-blue-500 rounded focus:outline-none"
+                        autoFocus
+                      />
+                    ) : (
+                      <span
+                        onClick={() => {
+                          if (!exercise.exerciseName || exercise.key?.startsWith('custom_')) {
+                            setEditingNameIndex(idx);
+                          }
+                        }}
+                        className={`text-sm font-medium cursor-pointer ${
+                          exercise.completedSets.length === exercise.totalSets ? 'text-gray-500 line-through' : 'text-gray-800'
+                        } ${!exercise.exerciseName ? 'text-gray-400 italic' : ''}`}
+                      >
+                        {exercise.exerciseName || 'Click to name exercise...'}
+                      </span>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setExpandedExerciseIndex(expandedExerciseIndex === idx ? null : idx)}
+                    className="flex items-center gap-2 px-2 hover:bg-gray-100 rounded transition-colors"
+                  >
                     <span className={`text-sm font-semibold ${
                       exercise.completedSets.length === exercise.totalSets ? 'text-green-600' : 'text-gray-600'
                     }`}>
@@ -117,8 +142,8 @@ function WorkoutProgress({ exercises, currentSetIndex, onUpdateSet, onOpenPicker
                     <span className="text-gray-400 text-xs">
                       {expandedExerciseIndex === idx ? '▼' : '▶'}
                     </span>
-                  </div>
-                </button>
+                  </button>
+                </div>
               </div>
 
               {/* Expanded Table View */}
