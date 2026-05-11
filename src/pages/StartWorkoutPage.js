@@ -320,8 +320,8 @@ function StartWorkoutPage() {
     }
   };
 
-  // Complete the current set
-  const handleCompleteSet = async () => {
+  // Move to next set (completing current set)
+  const handleNextSet = async () => {
     if (!currentExercise || (!currentSetData.weight && !currentSetData.reps)) return;
 
     const completedSet = {
@@ -398,9 +398,19 @@ function StartWorkoutPage() {
     const existingSet = exercise?.completedSets?.find(s => s.setNumber === setNum);
 
     if (existingSet) {
+      // Load existing set data
       setCurrentSetData({ weight: existingSet.weight, reps: existingSet.reps });
     } else {
-      setCurrentSetData({ weight: '', reps: '' });
+      // No existing set - copy from most recent completed set of this exercise
+      const lastCompletedSet = exercise?.completedSets?.length > 0
+        ? exercise.completedSets[exercise.completedSets.length - 1]
+        : null;
+
+      if (lastCompletedSet) {
+        setCurrentSetData({ weight: lastCompletedSet.weight, reps: lastCompletedSet.reps });
+      } else {
+        setCurrentSetData({ weight: '', reps: '' });
+      }
     }
   };
 
@@ -841,18 +851,18 @@ function StartWorkoutPage() {
             </div>
           </div>
 
-          {/* Complete Set Button */}
+          {/* Next Set Button */}
           <button
             onClick={() => {
               if (currentSetData.weight || currentSetData.reps) {
-                handleCompleteSet();
+                handleNextSet();
               } else {
                 handleOpenPicker(isCardio ? 'reps' : 'weight');
               }
             }}
             className="w-full py-4 rounded-xl font-bold text-lg bg-green-700 hover:bg-green-800 text-white shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-green-600 border-b-2 border-r-2 border-b-green-900 border-r-green-900 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all"
           >
-            ✓ Complete Set
+            ✓ Next Set
           </button>
 
           {/* Navigation Button */}
