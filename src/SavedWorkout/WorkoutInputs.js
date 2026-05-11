@@ -285,7 +285,10 @@ function SortableExerciseItem({
                     : (sets[idx] || '');
 
                   return (
-                    <div key={idx}>
+                    <div key={idx} className="relative">
+                      <span className="absolute -top-2 -left-2 text-xs text-gray-400 font-medium bg-sky-50 px-1 rounded z-10">
+                        {label}
+                      </span>
                       <input
                         type="text"
                         value={value}
@@ -314,7 +317,10 @@ function SortableExerciseItem({
                 const currentSet = parseSet((editedInputs[exerciseKey]?.sets || editedInputs[exerciseKey]?.input)?.[idx] || setData || '');
 
                 return (
-                  <div key={idx}>
+                  <div key={idx} className="relative">
+                    <span className="absolute -top-2 -left-2 text-xs text-gray-400 font-medium bg-sky-50 px-1 rounded z-10">
+                      {idx + 1}
+                    </span>
                   {isEditing ? (
                     isMobile ? (
                       // MOBILE: Buttons that open picker modal
