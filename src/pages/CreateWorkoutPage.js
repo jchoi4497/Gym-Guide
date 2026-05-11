@@ -176,7 +176,7 @@ function CreateWorkoutPage() {
           const favorites = templatesArray.filter(t => t.isFavorite);
           const nonFavorites = templatesArray.filter(t => !t.isFavorite);
 
-          // Sort non-favorites by lastUsed
+          // Sort non-favorites by lastUsed (most recent first)
           const sortedNonFavorites = nonFavorites.sort((a, b) => {
             // Handle both Firestore Timestamp and ISO string
             const aTime = a.lastUsed
@@ -188,8 +188,8 @@ function CreateWorkoutPage() {
             return bTime - aTime;
           });
 
-          // Combine: all favorites first, then recent non-favorites to fill up to 5 total
-          const combined = [...favorites, ...sortedNonFavorites].slice(0, 5);
+          // Show ALL templates: favorites first, then sorted by most recent use
+          const combined = [...favorites, ...sortedNonFavorites];
 
           console.log('Templates to show:', combined.length, '(Favorites:', favorites.length, ')');
           setRecentTemplates(combined);
@@ -358,10 +358,6 @@ function CreateWorkoutPage() {
       // Convert template exercises to exerciseData format if template was loaded
       let exerciseData = {};
       let mainExerciseOrder = [];
-      let showCardio = false;
-      let showAbs = false;
-      let cardioAtTop = false;
-      let absAtTop = false;
 
       if (loadedTemplate && loadedTemplate.exercises) {
         const templateResult = templateToExerciseData(loadedTemplate, actualNumberOfSets);
@@ -369,22 +365,6 @@ function CreateWorkoutPage() {
         mainExerciseOrder = templateResult.mainExerciseOrder;
         console.log('✅ Loaded exercises from template:', Object.keys(exerciseData).length);
         console.log('✅ Exercise order:', mainExerciseOrder);
-
-        // Check if template has cardio/abs exercises
-        const hasCardioExercises = Object.keys(exerciseData).some(key =>
-          key.toLowerCase().includes('cardio')
-        );
-        const hasAbsExercises = Object.keys(exerciseData).some(key =>
-          key.toLowerCase().includes('abs')
-        );
-
-        // Use template flags if available, otherwise detect from exerciseData
-        showCardio = loadedTemplate.includeCardio ?? hasCardioExercises;
-        showAbs = loadedTemplate.includeAbs ?? hasAbsExercises;
-        cardioAtTop = loadedTemplate.cardioAtTop || false;
-        absAtTop = loadedTemplate.absAtTop || false;
-
-        console.log('✅ Template flags - showCardio:', showCardio, 'showAbs:', showAbs);
       }
 
       // Create draft workout directly in workoutLogs
@@ -403,16 +383,23 @@ function CreateWorkoutPage() {
         lastModified: serverTimestamp(),
         note: '',
         summary: '',
-        showCardio: showCardio,
-        showAbs: showAbs,
-        cardioAtTop: cardioAtTop,
-        absAtTop: absAtTop,
-        sectionOrder: 'abs-first',
+        templateId: loadedTemplate?.id || null,
         mainExerciseOrder: mainExerciseOrder,
         exerciseOrder: []
       });
 
       console.log('✅ Created draft workout in workoutLogs:', workoutRef.id);
+
+      // Update template's lastUsed timestamp if workout was created from template
+      if (loadedTemplate?.id) {
+        try {
+          const { updateTemplateLastUsed } = await import('../utils/templateHelpers');
+          await updateTemplateLastUsed(auth.currentUser.uid, loadedTemplate.id);
+          console.log('✅ Updated template lastUsed timestamp');
+        } catch (error) {
+          console.error('Error updating template lastUsed:', error);
+        }
+      }
 
       // Navigate to workout page with the new ID
       navigate(`/workout/${workoutRef.id}`);

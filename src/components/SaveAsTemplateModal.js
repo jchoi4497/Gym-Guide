@@ -220,8 +220,6 @@ function SaveAsTemplateModal({ isOpen, onClose, onSave, defaultName = '', workou
                 <li>Muscle Group: {workoutData.muscleGroup || workoutData.customMuscleGroupName || 'Custom'}</li>
                 <li>Sets: {workoutData.numberOfSets || workoutData.customSetCount || 'N/A'}</li>
                 {workoutData.customRepCount && <li>Target Reps: {workoutData.customRepCount}</li>}
-                {workoutData.showCardio && <li>Includes cardio section</li>}
-                {workoutData.showAbs && <li>Includes abs section</li>}
               </ul>
             </div>
           )}

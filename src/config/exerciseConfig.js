@@ -894,3 +894,62 @@ export const DEFAULT_EXERCISES = {
 export function getDefaultExercises(muscleGroup) {
   return DEFAULT_EXERCISES[muscleGroup] || [];
 }
+
+// ====================================
+// CARDIO FIELD TEMPLATES
+// ====================================
+
+/**
+ * Field templates for different cardio exercise types
+ * Cardio exercises use custom fields instead of Weight x Reps
+ */
+export const CARDIO_FIELD_TEMPLATES = {
+  treadmill: ['Incline', 'Time (min)', 'Speed (mph)'],
+  bike: ['Resistance', 'Time (min)', 'Speed (mph)'],
+  elliptical: ['Resistance', 'Time (min)'],
+  stairmaster: ['Level', 'Time (min)'],
+  running: ['Distance (mi)', 'Time (min)', 'Pace (min/mi)'],
+  // Default for custom cardio
+  default: ['Metric 1', 'Metric 2', 'Metric 3'],
+};
+
+/**
+ * Get field labels for a cardio exercise by exercise ID or name
+ */
+export function getCardioFields(exerciseIdOrName) {
+  if (!exerciseIdOrName) return CARDIO_FIELD_TEMPLATES.default;
+
+  // Try exact match first (for IDs like 'treadmill')
+  const lowerInput = exerciseIdOrName.toLowerCase();
+  if (CARDIO_FIELD_TEMPLATES[lowerInput]) {
+    return CARDIO_FIELD_TEMPLATES[lowerInput];
+  }
+
+  // Try to find by exercise name (e.g., "Treadmill" -> "treadmill")
+  const exercise = Object.values(EXERCISES).find(ex =>
+    ex.name.toLowerCase() === lowerInput || ex.id.toLowerCase() === lowerInput
+  );
+
+  if (exercise && CARDIO_FIELD_TEMPLATES[exercise.id]) {
+    return CARDIO_FIELD_TEMPLATES[exercise.id];
+  }
+
+  return CARDIO_FIELD_TEMPLATES.default;
+}
+
+/**
+ * Determine if an exercise uses cardio fields (custom metrics) vs standard weight/reps
+ */
+export function isCardioExercise(categoryKey, exerciseId) {
+  if (!categoryKey && !exerciseId) return false;
+
+  const key = (categoryKey || '').toLowerCase();
+  const id = (exerciseId || '').toLowerCase();
+
+  // Check category key
+  if (key.includes('cardio') || key.startsWith('custom_cardio')) return true;
+
+  // Check if it's a known cardio exercise ID
+  const cardioIds = ['treadmill', 'bike', 'elliptical', 'stairmaster', 'running'];
+  return cardioIds.includes(id);
+}

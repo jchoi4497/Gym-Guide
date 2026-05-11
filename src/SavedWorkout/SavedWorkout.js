@@ -19,7 +19,6 @@ import WorkoutInputs from './WorkoutInputs';
 import WorkoutNotes from './WorkoutNotes';
 import WorkoutAnalysis from './WorkoutAnalysis';
 import AddExerciseButton from '../components/AddExerciseButton';
-import OptionalWorkoutSections from '../components/OptionalWorkoutSections';
 import SaveAsTemplateButton from '../components/SaveAsTemplateButton';
 import { FIREBASE_FIELDS, MUSCLE_GROUP_OPTIONS } from '../config/constants';
 import { useTheme } from '../contexts/ThemeContext';
@@ -45,12 +44,6 @@ function SavedWorkout() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [editedDate, setEditedDate] = useState('');
 
-  // Optional sections state
-  const [showCardio, setShowCardio] = useState(false);
-  const [showAbs, setShowAbs] = useState(false);
-  const [cardioAtTop, setCardioAtTop] = useState(false);
-  const [absAtTop, setAbsAtTop] = useState(false);
-  const [sectionOrder, setSectionOrder] = useState('abs-first'); // 'abs-first' or 'cardio-first'
 
   // Sticky button state for mobile
   const [isButtonSticky, setIsButtonSticky] = useState(true);
@@ -252,16 +245,6 @@ function SavedWorkout() {
         setNote(data.note || '');
         setSummary(data.summary || '');
 
-        // Check if workout has cardio or abs data and auto-show those sections
-        const hasCardio = Object.keys(exerciseData).some(key =>
-          key.includes('cardio') || exerciseData[key]?.exerciseName?.toLowerCase().includes('cardio')
-        );
-        const hasAbs = Object.keys(exerciseData).some(key =>
-          key.includes('abs') || exerciseData[key]?.exerciseName?.toLowerCase().includes('abs')
-        );
-        if (hasCardio) setShowCardio(true);
-        if (hasAbs) setShowAbs(true);
-
         // Set the date for editing (convert Firebase timestamp to YYYY-MM-DD)
         if (data.date) {
           const workoutDate = data.date.toDate ? data.date.toDate() : new Date(data.date.seconds * 1000);
@@ -273,27 +256,19 @@ function SavedWorkout() {
 
         // Load exercise order - use saved order if available, otherwise create default
         if (data.exerciseOrder && data.exerciseOrder.length > 0) {
-          // CRITICAL FIX: Check if saved order is incomplete (missing exercises)
+          // Check if saved order is incomplete (missing exercises)
           const exerciseKeys = Object.keys(exerciseData);
-          const mainExerciseKeys = exerciseKeys.filter(k =>
-            !k.toLowerCase().includes('cardio') &&
-            !k.toLowerCase().includes('abs')
-          );
-          const savedOrderMainKeys = data.exerciseOrder.filter(k =>
-            !k.toLowerCase().includes('cardio') &&
-            !k.toLowerCase().includes('abs')
-          );
 
           // If saved order is missing exercises, reconstruct it
-          if (savedOrderMainKeys.length < mainExerciseKeys.length) {
+          if (data.exerciseOrder.length < exerciseKeys.length) {
             console.warn('⚠️ [SavedWorkout] Incomplete exerciseOrder detected!', {
-              saved: savedOrderMainKeys.length,
-              actual: mainExerciseKeys.length,
-              missing: mainExerciseKeys.filter(k => !data.exerciseOrder.includes(k))
+              saved: data.exerciseOrder.length,
+              actual: exerciseKeys.length,
+              missing: exerciseKeys.filter(k => !data.exerciseOrder.includes(k))
             });
 
             // Reconstruct: use saved order for exercises that are in it, then append missing ones
-            const missingKeys = mainExerciseKeys.filter(k => !data.exerciseOrder.includes(k));
+            const missingKeys = exerciseKeys.filter(k => !data.exerciseOrder.includes(k));
             const reconstructedOrder = [...data.exerciseOrder, ...missingKeys];
             console.log('💾 [SavedWorkout] Reconstructed order:', reconstructedOrder);
             setExerciseOrder(reconstructedOrder);
@@ -313,16 +288,6 @@ function SavedWorkout() {
           setExerciseOrder(sorted);
         }
 
-        // Load section order and positions if available
-        if (data.sectionOrder) {
-          setSectionOrder(data.sectionOrder);
-        }
-        if (data.cardioAtTop !== undefined) {
-          setCardioAtTop(data.cardioAtTop);
-        }
-        if (data.absAtTop !== undefined) {
-          setAbsAtTop(data.absAtTop);
-        }
       } else {
         setError('No such document found.');
       }
@@ -369,161 +334,6 @@ function SavedWorkout() {
   const handleReorderExercises = (newOrder) => {
     setExerciseOrder(newOrder);
     setHasUnsavedChanges(true);
-  };
-
-  // Handler for optional sections (cardio/abs)
-  const handleOptionalExerciseChange = (categoryKey, exerciseName, setIndex, setInput, selectionId) => {
-    const updatedInputs = { ...editedInputs };
-    const numberOfSets = workoutData?.numberOfSets || 4;
-
-    if (!updatedInputs[categoryKey]) {
-      const setsArray = new Array(numberOfSets).fill('');
-      updatedInputs[categoryKey] = {
-        sets: setsArray,
-        exerciseName: exerciseName,
-        selection: selectionId || exerciseName,
-      };
-    }
-
-    if (setIndex === -1) {
-      // -1 means changing the exercise selection
-      updatedInputs[categoryKey].exerciseName = exerciseName;
-      if (selectionId !== null && selectionId !== undefined) {
-        updatedInputs[categoryKey].selection = selectionId;
-      }
-    } else {
-      // Otherwise updating a specific set
-      updatedInputs[categoryKey].sets[setIndex] = setInput;
-    }
-
-    setEditedInputs(updatedInputs);
-    setHasUnsavedChanges(true);
-  };
-
-  // Toggle functions for optional sections
-  const handleToggleCardioPosition = () => {
-    setCardioAtTop(!cardioAtTop);
-    setHasUnsavedChanges(true);
-  };
-
-  const handleToggleAbsPosition = () => {
-    setAbsAtTop(!absAtTop);
-    setHasUnsavedChanges(true);
-  };
-
-  // Move handlers for cardio/abs sections
-  const handleCardioMoveUp = () => {
-    if (!cardioAtTop) {
-      // Cardio is at bottom
-      if (!absAtTop) {
-        // Both at bottom - check order
-        if (sectionOrder === 'abs-first') {
-          // Abs is first, Cardio is second - swap them
-          setSectionOrder('cardio-first');
-        } else {
-          // Cardio is already first at bottom - move to top
-          setCardioAtTop(true);
-        }
-      } else {
-        // Abs is at top, Cardio at bottom - just move Cardio to top
-        setCardioAtTop(true);
-      }
-    } else {
-      // Cardio is already at top - maybe swap order if both at top
-      if (absAtTop && sectionOrder === 'cardio-first') {
-        setSectionOrder('abs-first');
-      }
-    }
-    setHasUnsavedChanges(true);
-  };
-
-  const handleCardioMoveDown = () => {
-    if (cardioAtTop) {
-      // Cardio is at top
-      if (absAtTop) {
-        // Both at top - check order
-        if (sectionOrder === 'cardio-first') {
-          // Cardio is first, Abs is second - swap them
-          setSectionOrder('abs-first');
-        } else {
-          // Cardio is already second at top - move to bottom
-          setCardioAtTop(false);
-        }
-      } else {
-        // Abs is at bottom, Cardio at top - just move Cardio to bottom
-        setCardioAtTop(false);
-      }
-    } else {
-      // Cardio is already at bottom - maybe swap order if both at bottom
-      if (!absAtTop && sectionOrder === 'abs-first') {
-        setSectionOrder('cardio-first');
-      }
-    }
-    setHasUnsavedChanges(true);
-  };
-
-  const handleAbsMoveUp = () => {
-    if (!absAtTop) {
-      // Abs is at bottom
-      if (!cardioAtTop) {
-        // Both at bottom - check order
-        if (sectionOrder === 'cardio-first') {
-          // Cardio is first, Abs is second - swap them
-          setSectionOrder('abs-first');
-        } else {
-          // Abs is already first at bottom - move to top
-          setAbsAtTop(true);
-        }
-      } else {
-        // Cardio is at top, Abs at bottom - just move Abs to top
-        setAbsAtTop(true);
-      }
-    } else {
-      // Abs is already at top - maybe swap order if both at top
-      if (cardioAtTop && sectionOrder === 'abs-first') {
-        setSectionOrder('cardio-first');
-      }
-    }
-    setHasUnsavedChanges(true);
-  };
-
-  const handleAbsMoveDown = () => {
-    if (absAtTop) {
-      // Abs is at top
-      if (cardioAtTop) {
-        // Both at top - check order
-        if (sectionOrder === 'abs-first') {
-          // Abs is first, Cardio is second - swap them
-          setSectionOrder('cardio-first');
-        } else {
-          // Abs is already second at top - move to bottom
-          setAbsAtTop(false);
-        }
-      } else {
-        // Cardio is at bottom, Abs at top - just move Abs to bottom
-        setAbsAtTop(false);
-      }
-    } else {
-      // Abs is already at bottom - maybe swap order if both at bottom
-      if (!cardioAtTop && sectionOrder === 'cardio-first') {
-        setSectionOrder('abs-first');
-      }
-    }
-    setHasUnsavedChanges(true);
-  };
-
-  // Handler for removing sets from optional sections
-  const handleRemoveOptionalSet = (rowId, setIndex) => {
-    const updatedInputs = { ...editedInputs };
-    if (updatedInputs[rowId]?.sets) {
-      updatedInputs[rowId].sets = updatedInputs[rowId].sets.filter((_, idx) => idx !== setIndex);
-      // Also update input array for backward compatibility
-      if (updatedInputs[rowId].input) {
-        updatedInputs[rowId].input = updatedInputs[rowId].input.filter((_, idx) => idx !== setIndex);
-      }
-      setEditedInputs(updatedInputs);
-      setHasUnsavedChanges(true);
-    }
   };
 
   useEffect(() => {
@@ -637,15 +447,12 @@ function SavedWorkout() {
       const orderChanged = JSON.stringify(exerciseOrder) !== JSON.stringify(
         Object.keys(originalExerciseData)
       );
-      const sectionOrderChanged = workoutData.sectionOrder !== sectionOrder;
-      const cardioPositionChanged = workoutData.cardioAtTop !== cardioAtTop;
-      const absPositionChanged = workoutData.absAtTop !== absAtTop;
 
-      if (inputsChanged || noteChanged || dateChanged || orderChanged || sectionOrderChanged || cardioPositionChanged || absPositionChanged) {
+      if (inputsChanged || noteChanged || dateChanged || orderChanged) {
         setHasUnsavedChanges(true);
       }
     }
-  }, [editedInputs, note, editedDate, exerciseOrder, sectionOrder, cardioAtTop, absAtTop, isEditing, workoutData]);
+  }, [editedInputs, note, editedDate, exerciseOrder, isEditing, workoutData]);
 
   // Warn before leaving page with unsaved changes (browser close/refresh)
   useEffect(() => {
@@ -747,9 +554,6 @@ function SavedWorkout() {
         [FIREBASE_FIELDS.SUMMARY]: newSummary,
         [FIREBASE_FIELDS.DATE]: updatedDate,
         exerciseOrder: exerciseOrder, // Save the exercise order
-        sectionOrder: sectionOrder, // Save cardio/abs section order
-        cardioAtTop: cardioAtTop, // Save cardio position
-        absAtTop: absAtTop, // Save abs position
       });
 
       // Refetch data from Firebase to ensure UI is in sync with database
@@ -795,11 +599,6 @@ function SavedWorkout() {
       setExerciseOrder(sorted);
     }
 
-    // Reset section order and positions
-    setSectionOrder(workoutData.sectionOrder || 'abs-first');
-    setCardioAtTop(workoutData.cardioAtTop || false);
-    setAbsAtTop(workoutData.absAtTop || false);
-
     setIsEditing(false);
     setHasUnsavedChanges(false);
   };
@@ -816,20 +615,14 @@ function SavedWorkout() {
   // When editing, use editedInputs to include newly added exercises
   const dataForOrderFilter = isEditing ? editedInputs : exerciseData;
 
-  // Filter out cardio/abs exercises (they're handled by OptionalWorkoutSections)
-  const filterOutCardioAbs = (key) => {
-    const lowerKey = key.toLowerCase();
-    return !lowerKey.includes('cardio') && !lowerKey.includes('abs');
-  };
-
   let displayOrder;
   if (exerciseOrder && exerciseOrder.length > 0) {
-    // Filter to only include exercises that exist in current data AND exclude cardio/abs
-    displayOrder = exerciseOrder.filter((key) => key in dataForOrderFilter && filterOutCardioAbs(key));
+    // Filter to only include exercises that exist in current data
+    displayOrder = exerciseOrder.filter((key) => key in dataForOrderFilter);
   } else {
     // Fallback to hardcoded order for old workouts
     const orderedKeys = categoryOrder[muscleGroup] || [];
-    const inputKeys = Object.keys(dataForOrderFilter).filter(filterOutCardioAbs);
+    const inputKeys = Object.keys(dataForOrderFilter);
     const orderedInputs = orderedKeys.filter((key) => inputKeys.includes(key));
     const remainingInputs = inputKeys.filter((key) => !orderedKeys.includes(key));
     displayOrder = [...orderedInputs, ...remainingInputs];
@@ -913,40 +706,6 @@ function SavedWorkout() {
           </button>
         </div>
 
-        {/* Optional Cardio & Abs Sections at TOP - Always show checkboxes */}
-        <div className="mb-6">
-          <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
-            <OptionalWorkoutSections
-              numberOfSets={workoutData?.numberOfSets || 4}
-              exerciseData={isEditing ? editedInputs : exerciseData}
-              onExerciseDataChange={handleOptionalExerciseChange}
-              onRemoveSet={handleRemoveOptionalSet}
-              position="top"
-              showCardio={showCardio}
-              setShowCardio={setShowCardio}
-              showAbs={showAbs}
-              setShowAbs={setShowAbs}
-              cardioAtTop={cardioAtTop}
-              absAtTop={absAtTop}
-              sectionOrder={sectionOrder}
-              onToggleCardioPosition={handleToggleCardioPosition}
-              onToggleAbsPosition={handleToggleAbsPosition}
-              onCardioMoveUp={handleCardioMoveUp}
-              onCardioMoveDown={handleCardioMoveDown}
-              onAbsMoveUp={handleAbsMoveUp}
-              onAbsMoveDown={handleAbsMoveDown}
-              isEditingSets={isEditing}
-              disableCheckboxes={!isEditing}
-              isSavedWorkoutEditMode={isEditing}
-              previousCustomExercises={previousCustomExercises}
-              expandAll={expandAll}
-              previousWorkoutData={previousWorkoutData}
-              monthlyWorkoutData={monthlyWorkoutData}
-              graphView={graphView}
-            />
-          </div>
-        </div>
-
         {/* Workout Inputs */}
         <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
           <WorkoutInputs
@@ -972,40 +731,6 @@ function SavedWorkout() {
             </div>
           </div>
         )}
-
-        {/* Optional Cardio & Abs Sections at BOTTOM - Always show checkboxes */}
-        <div className="mb-6">
-          <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>
-            <OptionalWorkoutSections
-              numberOfSets={workoutData?.numberOfSets || 4}
-              exerciseData={isEditing ? editedInputs : exerciseData}
-              onExerciseDataChange={handleOptionalExerciseChange}
-              onRemoveSet={handleRemoveOptionalSet}
-              position="bottom"
-              showCardio={showCardio}
-              setShowCardio={setShowCardio}
-              showAbs={showAbs}
-              setShowAbs={setShowAbs}
-              cardioAtTop={cardioAtTop}
-              absAtTop={absAtTop}
-              sectionOrder={sectionOrder}
-              onToggleCardioPosition={handleToggleCardioPosition}
-              onToggleAbsPosition={handleToggleAbsPosition}
-              onCardioMoveUp={handleCardioMoveUp}
-              onCardioMoveDown={handleCardioMoveDown}
-              onAbsMoveUp={handleAbsMoveUp}
-              onAbsMoveDown={handleAbsMoveDown}
-              isEditingSets={isEditing}
-              disableCheckboxes={!isEditing}
-              isSavedWorkoutEditMode={isEditing}
-              previousCustomExercises={previousCustomExercises}
-              expandAll={expandAll}
-              previousWorkoutData={previousWorkoutData}
-              monthlyWorkoutData={monthlyWorkoutData}
-              graphView={graphView}
-            />
-          </div>
-        </div>
 
         {/* Workout Notes */}
         <div className={isSaving ? 'pointer-events-none opacity-50' : ''}>

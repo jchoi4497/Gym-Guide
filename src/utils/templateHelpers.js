@@ -97,12 +97,8 @@ export function templateToExerciseData(template, numberOfSets) {
 
       exerciseData[exercise.category] = exerciseObj;
 
-      // Track order - only add main exercises (not cardio/abs sections)
-      const isCardioOrAbs = exercise.category.toLowerCase().includes('cardio') ||
-                           exercise.category.toLowerCase().includes('abs');
-      if (!isCardioOrAbs) {
-        mainExerciseOrder.push(exercise.category);
-      }
+      // Track order - add ALL exercises including cardio/abs
+      mainExerciseOrder.push(exercise.category);
 
       console.log(`✅ [templateToExerciseData] Added: ${exercise.category} -> ${displayName}`);
     } else {
@@ -130,10 +126,39 @@ export function workoutDataToTemplate(workoutData, userMetadata = {}) {
   console.log('[workoutDataToTemplate] Workout data:', workoutData);
   console.log('[workoutDataToTemplate] User metadata:', userMetadata);
 
-  // Convert exerciseData back to exercises array
-  const exercises = Object.entries(workoutData.exerciseData || {})
-    .filter(([_, exercise]) => exercise.exerciseName?.trim())
-    .map(([categoryKey, exercise]) => {
+  // Convert exerciseData back to exercises array, preserving order
+  const exerciseData = workoutData.exerciseData || {};
+
+  // BACKWARD COMPATIBILITY: Old workouts (before refactor) have:
+  // - exerciseOrder: 7 items (complete, includes cardio/abs sections)
+  // - mainExerciseOrder: 5 items (only main exercises, missing cardio/abs)
+  // This happened because cardio/abs were in separate optional sections.
+  // New workouts have everything in mainExerciseOrder.
+  // Solution: Use whichever array is longer to ensure we get all exercises.
+  const mainOrder = workoutData.mainExerciseOrder || [];
+  const oldOrder = workoutData.exerciseOrder || [];
+  const exerciseOrder = oldOrder.length > mainOrder.length
+    ? oldOrder  // Old workout - use complete exerciseOrder
+    : (mainOrder.length > 0 ? mainOrder : Object.keys(exerciseData)); // New workout or fallback
+
+  console.log('[workoutDataToTemplate] Full exerciseOrder array:', JSON.stringify(exerciseOrder));
+  console.log('[workoutDataToTemplate] exerciseData keys:', Object.keys(exerciseData));
+  console.log('[workoutDataToTemplate] Full exerciseData:', JSON.stringify(exerciseData, null, 2));
+
+  const exercises = exerciseOrder
+    .map(categoryKey => {
+      const exercise = exerciseData[categoryKey];
+      console.log(`[workoutDataToTemplate] Processing categoryKey: "${categoryKey}"`, exercise);
+
+      // Check if exercise has a valid name
+      const hasValidName = exercise?.exerciseName?.trim();
+      console.log(`[workoutDataToTemplate] - Has valid name: ${hasValidName}, exerciseName: "${exercise?.exerciseName}"`);
+
+      if (!hasValidName) {
+        console.warn(`[workoutDataToTemplate] - SKIPPED: No valid exerciseName for category "${categoryKey}"`);
+        return null;
+      }
+
       const ex = {
         category: categoryKey,
         exerciseId: categoryKey,
@@ -143,8 +168,11 @@ export function workoutDataToTemplate(workoutData, userMetadata = {}) {
       if (exercise.detectedCategory) {
         ex.detectedCategory = exercise.detectedCategory;
       }
+
+      console.log(`[workoutDataToTemplate] - INCLUDED:`, ex);
       return ex;
-    });
+    })
+    .filter(ex => ex !== null);
 
   console.log('[workoutDataToTemplate] Converted exercises:', exercises);
 
@@ -159,10 +187,6 @@ export function workoutDataToTemplate(workoutData, userMetadata = {}) {
     customSetCount: workoutData.customSetCount || null,
     customRepCount: workoutData.customRepCount || null,
     exercises: exercises,
-    includeCardio: workoutData.showCardio || false,
-    cardioAtTop: workoutData.cardioAtTop || false,
-    includeAbs: workoutData.showAbs || false,
-    absAtTop: workoutData.absAtTop || false,
     tags: userMetadata.tags || [],
     isFavorite: userMetadata.isFavorite || false,
   };

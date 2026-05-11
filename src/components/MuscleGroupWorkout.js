@@ -55,6 +55,16 @@ function MuscleGroupWorkout({
 
   // Initialize default exercises in exerciseData on first load ONLY
   useEffect(() => {
+    // Skip if exerciseData already has exercises (from template or saved workout)
+    const hasExistingData = Object.keys(exerciseData || {}).some(
+      key => exerciseData[key]?.exerciseName?.trim()
+    );
+
+    if (hasExistingData) {
+      hasInitialized.current = true; // Mark as initialized to prevent overwriting
+      return;
+    }
+
     // Only initialize ONCE per muscle group - prevent re-initialization when exercises array changes
     if (!hasInitialized.current && exercises.length > 0 && numberOfSets) {
       // Collect all exercises that need initialization
@@ -79,7 +89,7 @@ function MuscleGroupWorkout({
 
       hasInitialized.current = true; // Mark as initialized
     }
-  }, [exercises.length, numberOfSets, muscleGroup]);
+  }, [exercises.length, numberOfSets, muscleGroup, exerciseData]);
 
   // Reset initialization flag and rebuild exercises when muscle group ACTUALLY changes (not on first mount)
   useEffect(() => {
@@ -109,18 +119,8 @@ function MuscleGroupWorkout({
   // Sync exercises array with exerciseData (for template loading ONLY)
   // Only rebuild when a template is loaded (exerciseData has MORE keys than current exercises)
   useEffect(() => {
-    // Filter out cardio and abs exercises - they're handled by OptionalWorkoutSections
-    const filterOutCardioAbs = (key) => {
-      const lowerKey = key.toLowerCase();
-      return (
-        !lowerKey.startsWith('cardio') &&
-        !lowerKey.startsWith('abs') &&
-        !lowerKey.startsWith('custom_cardio') &&
-        !lowerKey.startsWith('custom_abs')
-      );
-    };
-
-    const exerciseDataKeys = Object.keys(exerciseData || {}).filter(filterOutCardioAbs);
+    // Get all exercise keys including cardio and abs
+    const exerciseDataKeys = Object.keys(exerciseData || {});
     const currentExerciseCount = exercises.length;
     const currentExerciseIds = new Set(exercises.map((ex) => ex.id));
 

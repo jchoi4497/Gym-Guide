@@ -20,18 +20,9 @@ export function WorkoutProvider({ children, initialData = {} }) {
   // UI state
   const [isEditingSets, setIsEditingSets] = useState(false);
   const [expandAll, setExpandAll] = useState(false);
-  const [absExpanded, setAbsExpanded] = useState(true);
-  const [cardioExpanded, setCardioExpanded] = useState(true);
 
   // Exercise ordering
   const [mainExerciseOrder, setMainExerciseOrder] = useState(initialData.mainExerciseOrder || []);
-
-  // Optional sections state
-  const [showCardio, setShowCardio] = useState(initialData.showCardio || false);
-  const [showAbs, setShowAbs] = useState(initialData.showAbs || false);
-  const [cardioAtTop, setCardioAtTop] = useState(initialData.cardioAtTop || false);
-  const [absAtTop, setAbsAtTop] = useState(initialData.absAtTop || false);
-  const [sectionOrder, setSectionOrder] = useState(initialData.sectionOrder || 'abs-first');
 
   // Callback for adding custom exercises (set by MuscleGroupWorkout)
   const [addCustomExercise, setAddCustomExercise] = useState(() => () => {
@@ -43,35 +34,24 @@ export function WorkoutProvider({ children, initialData = {} }) {
     setExerciseData(prevExerciseData => {
       const updatedExerciseData = { ...prevExerciseData };
 
-      const isCardio = categoryKey.startsWith('cardio') || categoryKey.startsWith('custom_cardio');
-      const isAbs = categoryKey.startsWith('abs') || categoryKey.startsWith('custom_abs');
-      const isCardioOrAbs = isCardio || isAbs;
-
       if (!updatedExerciseData[categoryKey]) {
         const safeSetsCount = numberOfSets && numberOfSets > 0 ? numberOfSets : 4;
-        const setsArray = isCardio ? [] : new Array(safeSetsCount).fill('');
         updatedExerciseData[categoryKey] = {
-          sets: setsArray,
+          sets: new Array(safeSetsCount).fill(''),
           exerciseName: exerciseName,
         };
 
-        if (!isCardioOrAbs) {
-          setMainExerciseOrder(prev => [...prev, categoryKey]);
-        }
+        setMainExerciseOrder(prev => [...prev, categoryKey]);
       }
 
       if (setIndex === -1) {
         updatedExerciseData[categoryKey].exerciseName = exerciseName;
         if (detectedCategory) {
-          if (isCardioOrAbs) {
-            updatedExerciseData[categoryKey].selection = detectedCategory;
-          } else {
-            updatedExerciseData[categoryKey].detectedCategory = detectedCategory;
-          }
+          updatedExerciseData[categoryKey].detectedCategory = detectedCategory;
         }
         if (!updatedExerciseData[categoryKey].sets || updatedExerciseData[categoryKey].sets.length === 0) {
           const safeSetsCount = numberOfSets && numberOfSets > 0 ? numberOfSets : 4;
-          updatedExerciseData[categoryKey].sets = isCardio ? [] : new Array(safeSetsCount).fill('');
+          updatedExerciseData[categoryKey].sets = new Array(safeSetsCount).fill('');
         }
       } else {
         const currentSets = updatedExerciseData[categoryKey].sets;
@@ -121,15 +101,12 @@ export function WorkoutProvider({ children, initialData = {} }) {
     delete updatedExerciseData[categoryKey];
     setExerciseData(updatedExerciseData);
 
-    const isCardioOrAbs = categoryKey.startsWith('cardio') || categoryKey.startsWith('custom_cardio') ||
-                          categoryKey.startsWith('abs') || categoryKey.startsWith('custom_abs');
-    if (!isCardioOrAbs) {
-      setMainExerciseOrder(prev => prev.filter(key => key !== categoryKey));
-    }
+    const updatedOrder = mainExerciseOrder.filter(key => key !== categoryKey);
+    setMainExerciseOrder(updatedOrder);
 
     // Call optional callback for additional cleanup (e.g., Firebase save)
     if (onDelete) {
-      onDelete(updatedExerciseData, isCardioOrAbs ? mainExerciseOrder : mainExerciseOrder.filter(key => key !== categoryKey));
+      onDelete(updatedExerciseData, updatedOrder);
     }
   }, [exerciseData, mainExerciseOrder]);
 
@@ -168,87 +145,6 @@ export function WorkoutProvider({ children, initialData = {} }) {
     }
   }, [favoriteExercises]);
 
-  // Cardio section movement handlers
-  const handleCardioMoveUp = useCallback(() => {
-    if (!cardioAtTop) {
-      if (!absAtTop) {
-        if (sectionOrder === 'abs-first') {
-          setSectionOrder('cardio-first');
-        } else {
-          setCardioAtTop(true);
-        }
-      } else {
-        setCardioAtTop(true);
-      }
-    } else {
-      if (absAtTop) {
-        if (sectionOrder === 'abs-first') {
-          setSectionOrder('cardio-first');
-        }
-      }
-    }
-  }, [cardioAtTop, absAtTop, sectionOrder]);
-
-  const handleCardioMoveDown = useCallback(() => {
-    if (cardioAtTop) {
-      if (absAtTop) {
-        if (sectionOrder === 'cardio-first') {
-          setSectionOrder('abs-first');
-        } else {
-          setCardioAtTop(false);
-        }
-      } else {
-        setCardioAtTop(false);
-      }
-    } else {
-      if (!absAtTop) {
-        if (sectionOrder === 'cardio-first') {
-          setSectionOrder('abs-first');
-        }
-      }
-    }
-  }, [cardioAtTop, absAtTop, sectionOrder]);
-
-  // Abs section movement handlers
-  const handleAbsMoveUp = useCallback(() => {
-    if (!absAtTop) {
-      if (!cardioAtTop) {
-        if (sectionOrder === 'cardio-first') {
-          setSectionOrder('abs-first');
-        } else {
-          setAbsAtTop(true);
-        }
-      } else {
-        setAbsAtTop(true);
-      }
-    } else {
-      if (cardioAtTop) {
-        if (sectionOrder === 'cardio-first') {
-          setSectionOrder('abs-first');
-        }
-      }
-    }
-  }, [absAtTop, cardioAtTop, sectionOrder]);
-
-  const handleAbsMoveDown = useCallback(() => {
-    if (absAtTop) {
-      if (cardioAtTop) {
-        if (sectionOrder === 'abs-first') {
-          setSectionOrder('cardio-first');
-        } else {
-          setAbsAtTop(false);
-        }
-      } else {
-        setAbsAtTop(false);
-      }
-    } else {
-      if (!cardioAtTop) {
-        if (sectionOrder === 'abs-first') {
-          setSectionOrder('cardio-first');
-        }
-      }
-    }
-  }, [absAtTop, cardioAtTop, sectionOrder]);
 
   // Update all state at once (useful for loading from Firebase)
   const updateWorkoutState = useCallback((updates) => {
@@ -261,11 +157,6 @@ export function WorkoutProvider({ children, initialData = {} }) {
     if (updates.previousWorkoutData !== undefined) setPreviousWorkoutData(updates.previousWorkoutData);
     if (updates.previousCustomExercises !== undefined) setPreviousCustomExercises(updates.previousCustomExercises);
     if (updates.mainExerciseOrder !== undefined) setMainExerciseOrder(updates.mainExerciseOrder);
-    if (updates.showCardio !== undefined) setShowCardio(updates.showCardio);
-    if (updates.showAbs !== undefined) setShowAbs(updates.showAbs);
-    if (updates.cardioAtTop !== undefined) setCardioAtTop(updates.cardioAtTop);
-    if (updates.absAtTop !== undefined) setAbsAtTop(updates.absAtTop);
-    if (updates.sectionOrder !== undefined) setSectionOrder(updates.sectionOrder);
   }, []);
 
   const value = {
@@ -290,22 +181,8 @@ export function WorkoutProvider({ children, initialData = {} }) {
     setIsEditingSets,
     expandAll,
     setExpandAll,
-    absExpanded,
-    setAbsExpanded,
-    cardioExpanded,
-    setCardioExpanded,
     mainExerciseOrder,
     setMainExerciseOrder,
-    showCardio,
-    setShowCardio,
-    showAbs,
-    setShowAbs,
-    cardioAtTop,
-    setCardioAtTop,
-    absAtTop,
-    setAbsAtTop,
-    sectionOrder,
-    setSectionOrder,
     addCustomExercise,
     setAddCustomExercise,
 
@@ -316,10 +193,6 @@ export function WorkoutProvider({ children, initialData = {} }) {
     handleRemoveSet,
     handleReorderExercises,
     toggleFavorite,
-    handleCardioMoveUp,
-    handleCardioMoveDown,
-    handleAbsMoveUp,
-    handleAbsMoveDown,
     updateWorkoutState,
   };
 

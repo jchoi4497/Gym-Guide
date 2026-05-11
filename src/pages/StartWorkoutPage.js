@@ -82,8 +82,6 @@ function StartWorkoutPage() {
           setLatestWorkoutData({
             ...workoutData,
             exerciseData: firestoreData.exerciseData || workoutData.exerciseData,
-            showCardio: firestoreData.showCardio ?? workoutData.showCardio,
-            showAbs: firestoreData.showAbs ?? workoutData.showAbs,
           });
         } else {
           console.log('[StartWorkoutPage] Workout not found in Firebase, using navigation state');
@@ -137,13 +135,8 @@ function StartWorkoutPage() {
     const exerciseArray = [];
     const exerciseDataKeys = Object.keys(workoutDataToUse.exerciseData || {});
 
-    // Separate keys into cardio, abs, and main exercises
-    const cardioKeys = exerciseDataKeys.filter(k => k.startsWith('cardio') || k.startsWith('custom_cardio'));
-    const absKeys = exerciseDataKeys.filter(k => k.startsWith('abs') || k.startsWith('custom_abs'));
-    const mainKeys = exerciseDataKeys.filter(k => !cardioKeys.includes(k) && !absKeys.includes(k));
-
     // If exerciseData is empty, generate from muscle group defaults
-    if (mainKeys.length === 0 && workoutDataToUse.selectedMuscleGroup) {
+    if (exerciseDataKeys.length === 0 && workoutDataToUse.selectedMuscleGroup) {
       const defaultExercises = getDefaultExercises(workoutDataToUse.selectedMuscleGroup);
       defaultExercises.forEach(defEx => {
         exerciseArray.push({
@@ -154,8 +147,8 @@ function StartWorkoutPage() {
         });
       });
     } else {
-      // Use existing main exerciseData
-      mainKeys.forEach(key => {
+      // Use existing exerciseData
+      exerciseDataKeys.forEach(key => {
         const exercise = workoutDataToUse.exerciseData[key];
         const exerciseName = exercise.exerciseName || getExerciseName(key);
         const totalSets = workoutDataToUse.numberOfSets || exercise.sets?.length || 4;
@@ -172,70 +165,8 @@ function StartWorkoutPage() {
       });
     }
 
-    // Process cardio exercises if showCardio is true
-    if (workoutDataToUse.showCardio) {
-      if (cardioKeys.length > 0) {
-        // Use existing cardio data
-        cardioKeys.forEach(key => {
-          const exercise = workoutDataToUse.exerciseData[key];
-          const exerciseName = exercise.exerciseName || getExerciseName(key) || 'Cardio';
-
-          exerciseArray.push({
-            key,
-            exerciseName,
-            totalSets: 1, // Cardio has 1 entry with multiple fields
-            completedSets: [],
-          });
-        });
-      } else {
-        // Add default cardio exercise
-        exerciseArray.push({
-          key: 'cardio_section',
-          exerciseName: 'Treadmill',
-          totalSets: 1, // Cardio has 1 entry
-          completedSets: [],
-        });
-      }
-    }
-
-    // Process abs exercises if showAbs is true
-    if (workoutDataToUse.showAbs) {
-      if (absKeys.length > 0) {
-        // Use existing abs data
-        absKeys.forEach(key => {
-          const exercise = workoutDataToUse.exerciseData[key];
-          const exerciseName = exercise.exerciseName || getExerciseName(key) || 'Abs';
-          const totalSets = exercise.sets?.length || workoutDataToUse.numberOfSets || 4;
-
-          exerciseArray.push({
-            key,
-            exerciseName,
-            totalSets,
-            completedSets: [],
-          });
-        });
-      } else {
-        // Add default abs exercise
-        exerciseArray.push({
-          key: 'abs_section',
-          exerciseName: 'Ab Crunch Machine',
-          totalSets: workoutDataToUse.numberOfSets || 4,
-          completedSets: [],
-        });
-      }
-    }
-
-    // Reorder based on cardioAtTop and absAtTop
-    const finalExercises = [];
-    const mainExercises = exerciseArray.filter(e => !e.key.startsWith('cardio') && !e.key.startsWith('abs') && !e.key.startsWith('custom_cardio') && !e.key.startsWith('custom_abs'));
-    const cardioExercises = exerciseArray.filter(e => e.key.startsWith('cardio') || e.key.startsWith('custom_cardio'));
-    const absExercises = exerciseArray.filter(e => e.key.startsWith('abs') || e.key.startsWith('custom_abs'));
-
-    if (workoutDataToUse.cardioAtTop) finalExercises.push(...cardioExercises);
-    if (workoutDataToUse.absAtTop) finalExercises.push(...absExercises);
-    finalExercises.push(...mainExercises);
-    if (!workoutDataToUse.cardioAtTop) finalExercises.push(...cardioExercises);
-    if (!workoutDataToUse.absAtTop) finalExercises.push(...absExercises);
+    // All exercises are now treated equally (no special cardio/abs sections)
+    const finalExercises = exerciseArray;
 
     // Parse completed sets from Firebase exerciseData
     finalExercises.forEach(exercise => {

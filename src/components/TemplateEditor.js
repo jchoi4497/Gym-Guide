@@ -21,10 +21,6 @@ function TemplateEditor({ template, onSave, onCancel }) {
   const [customSetCount, setCustomSetCount] = useState('');
   const [customRepCount, setCustomRepCount] = useState('');
   const [exercises, setExercises] = useState([]);
-  const [includeCardio, setIncludeCardio] = useState(false);
-  const [cardioAtTop, setCardioAtTop] = useState(false);
-  const [includeAbs, setIncludeAbs] = useState(false);
-  const [absAtTop, setAbsAtTop] = useState(false);
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
   const [isFavorite, setIsFavorite] = useState(false);
@@ -41,10 +37,6 @@ function TemplateEditor({ template, onSave, onCancel }) {
       setCustomSetCount(template.customSetCount?.toString() || '');
       setCustomRepCount(template.customRepCount?.toString() || '');
       setExercises(template.exercises || []);
-      setIncludeCardio(template.includeCardio || false);
-      setCardioAtTop(template.cardioAtTop || false);
-      setIncludeAbs(template.includeAbs || false);
-      setAbsAtTop(template.absAtTop || false);
       setTags(template.tags || []);
       setIsFavorite(template.isFavorite || false);
     }
@@ -138,10 +130,6 @@ function TemplateEditor({ template, onSave, onCancel }) {
       customSetCount: customSetCount ? parseInt(customSetCount) : null,
       customRepCount: customRepCount ? parseInt(customRepCount) : null,
       exercises: cleanedExercises,
-      includeCardio: includeCardio || false,
-      cardioAtTop: cardioAtTop || false,
-      includeAbs: includeAbs || false,
-      absAtTop: absAtTop || false,
       tags: tags || [],
       isFavorite: isFavorite || false,
       updatedAt: new Date().toISOString(),
@@ -300,71 +288,6 @@ function TemplateEditor({ template, onSave, onCancel }) {
           />
         </div>
       )}
-
-      {/* Optional Sections Card */}
-      <div className="bg-sky-50 rounded-2xl p-5 shadow-lg">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">Optional Sections</h2>
-
-        <div className="space-y-3">
-          {/* Cardio */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="includeCardio"
-                checked={includeCardio}
-                onChange={(e) => setIncludeCardio(e.target.checked)}
-                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-              />
-              <label htmlFor="includeCardio" className="text-sm font-medium text-gray-700">
-                Include Cardio Section
-              </label>
-            </div>
-            {includeCardio && (
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Position:</label>
-                <select
-                  value={cardioAtTop ? 'top' : 'bottom'}
-                  onChange={(e) => setCardioAtTop(e.target.value === 'top')}
-                  className="px-3 py-1 rounded-md border border-gray-300 text-sm"
-                >
-                  <option value="top">Top</option>
-                  <option value="bottom">Bottom</option>
-                </select>
-              </div>
-            )}
-          </div>
-
-          {/* Abs */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="includeAbs"
-                checked={includeAbs}
-                onChange={(e) => setIncludeAbs(e.target.checked)}
-                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-              />
-              <label htmlFor="includeAbs" className="text-sm font-medium text-gray-700">
-                Include Abs/Core Section
-              </label>
-            </div>
-            {includeAbs && (
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Position:</label>
-                <select
-                  value={absAtTop ? 'top' : 'bottom'}
-                  onChange={(e) => setAbsAtTop(e.target.value === 'top')}
-                  className="px-3 py-1 rounded-md border border-gray-300 text-sm"
-                >
-                  <option value="top">Top</option>
-                  <option value="bottom">Bottom</option>
-                </select>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Tags Card */}
       <div className="bg-sky-50 rounded-2xl p-5 shadow-lg">

@@ -4,7 +4,6 @@ import { collection, addDoc, doc, getDoc, updateDoc, query, where, orderBy, limi
 import { auth } from '../config/firebase';
 import db from '../config/firebase';
 import MuscleGroupWorkout from '../components/MuscleGroupWorkout';
-import OptionalWorkoutSections from '../components/OptionalWorkoutSections';
 import Navbar from '../components/Navbar';
 import WorkoutNotesInput from '../components/WorkoutNotesInput';
 import { generateSummary } from '../utils/summaryUtil';
@@ -33,22 +32,8 @@ function WorkoutPageContent() {
     setIsEditingSets,
     expandAll,
     setExpandAll,
-    absExpanded,
-    setAbsExpanded,
-    cardioExpanded,
-    setCardioExpanded,
     mainExerciseOrder,
     setMainExerciseOrder,
-    showCardio,
-    setShowCardio,
-    showAbs,
-    setShowAbs,
-    cardioAtTop,
-    setCardioAtTop,
-    absAtTop,
-    setAbsAtTop,
-    sectionOrder,
-    setSectionOrder,
     handleExerciseDataChange,
     batchInitializeExercises,
     handleRemoveExercise,
@@ -120,11 +105,6 @@ function WorkoutPageContent() {
             exerciseData: workoutData.exerciseData || {},
             muscleGroup: workoutData.muscleGroup || '',
             templateId: workoutData.templateId || null,
-            showCardio: workoutData.showCardio || false,
-            showAbs: workoutData.showAbs || false,
-            cardioAtTop: workoutData.cardioAtTop || false,
-            absAtTop: workoutData.absAtTop || false,
-            sectionOrder: workoutData.sectionOrder || 'abs-first',
             mainExerciseOrder: workoutData.mainExerciseOrder || [],
           });
         } else {
@@ -367,11 +347,6 @@ function WorkoutPageContent() {
         await updateDoc(workoutRef, {
           exerciseData: exerciseData,
           note: note,
-          showCardio: showCardio,
-          showAbs: showAbs,
-          cardioAtTop: cardioAtTop,
-          absAtTop: absAtTop,
-          sectionOrder: sectionOrder,
           mainExerciseOrder: mainExerciseOrder,
           lastModified: serverTimestamp()
         });
@@ -386,7 +361,7 @@ function WorkoutPageContent() {
     }, 500); // Save 500ms after last change
 
     return () => clearTimeout(timeoutId);
-  }, [exerciseData, note, showCardio, showAbs, cardioAtTop, absAtTop, sectionOrder, mainExerciseOrder, workoutId, loading]);
+  }, [exerciseData, note, mainExerciseOrder, workoutId, loading]);
 
   // Force re-render when returning from app switch to ensure UI reflects current state
   useEffect(() => {
@@ -468,11 +443,6 @@ function WorkoutPageContent() {
       muscleGroup: actualMuscleGroup,
       numberOfSets: actualNumberOfSets,
       exerciseData: exerciseData,
-      showCardio: showCardio,
-      showAbs: showAbs,
-      cardioAtTop: cardioAtTop,
-      absAtTop: absAtTop,
-      sectionOrder: sectionOrder,
       mainExerciseOrder: mainExerciseOrder,
       workoutId: workoutId, // Pass the workout ID so we can save back to it
     };
@@ -520,50 +490,10 @@ function WorkoutPageContent() {
       const prevWorkout = await fetchPreviousWorkout(selectedDate, actualMuscleGroup);
       const prevExerciseData = prevWorkout?.exerciseData || prevWorkout?.inputs;
 
-      // Create exercise order
-      const allKeys = Object.keys(validatedExerciseData);
-      const cardioKeys = allKeys.filter(k => k.startsWith('cardio') || k.startsWith('custom_cardio'));
-      const absKeys = allKeys.filter(k => k.startsWith('abs') || k.startsWith('custom_abs'));
-
-      let mainKeys = mainExerciseOrder.filter(k => k in validatedExerciseData);
-      if (mainKeys.length === 0 && allKeys.length > 0) {
-        mainKeys = allKeys.filter(k =>
-          !k.startsWith('cardio') &&
-          !k.startsWith('custom_cardio') &&
-          !k.startsWith('abs') &&
-          !k.startsWith('custom_abs')
-        );
-      }
-
-      const topSections = [];
-      if (cardioAtTop && absAtTop) {
-        if (sectionOrder === 'abs-first') {
-          if (showAbs) topSections.push(...absKeys);
-          if (showCardio) topSections.push(...cardioKeys);
-        } else {
-          if (showCardio) topSections.push(...cardioKeys);
-          if (showAbs) topSections.push(...absKeys);
-        }
-      } else {
-        if (cardioAtTop && showCardio) topSections.push(...cardioKeys);
-        if (absAtTop && showAbs) topSections.push(...absKeys);
-      }
-
-      const bottomSections = [];
-      if (!cardioAtTop && !absAtTop) {
-        if (sectionOrder === 'abs-first') {
-          if (showAbs) bottomSections.push(...absKeys);
-          if (showCardio) bottomSections.push(...cardioKeys);
-        } else {
-          if (showCardio) bottomSections.push(...cardioKeys);
-          if (showAbs) bottomSections.push(...absKeys);
-        }
-      } else {
-        if (!cardioAtTop && showCardio) bottomSections.push(...cardioKeys);
-        if (!absAtTop && showAbs) bottomSections.push(...absKeys);
-      }
-
-      const exerciseOrder = [...topSections, ...mainKeys, ...bottomSections];
+      // Use mainExerciseOrder directly (includes all exercises including cardio/abs)
+      const exerciseOrder = mainExerciseOrder.length > 0
+        ? mainExerciseOrder.filter(key => key in validatedExerciseData)
+        : Object.keys(validatedExerciseData);
 
       // Generate summary
       setIsGeneratingSummary(true);
@@ -776,16 +706,6 @@ function WorkoutPageContent() {
           )}
         </div>
 
-        {/* Optional sections at top */}
-        {isWorkoutConfigured && (cardioAtTop || absAtTop) && (
-          <div className={`mb-10 ${isSaving ? 'pointer-events-none opacity-50' : ''}`}>
-            <OptionalWorkoutSections
-              numberOfSets={actualNumberOfSets}
-              position="top"
-            />
-          </div>
-        )}
-
         {/* Main workout section */}
         <div className={`mb-10 ${isSaving ? 'pointer-events-none opacity-50' : ''}`}>
           {isWorkoutConfigured && (
@@ -799,16 +719,6 @@ function WorkoutPageContent() {
             />
           )}
         </div>
-
-        {/* Optional sections at bottom */}
-        {isWorkoutConfigured && (!cardioAtTop || !absAtTop) && (
-          <div className={`mb-10 ${isSaving ? 'pointer-events-none opacity-50' : ''}`}>
-            <OptionalWorkoutSections
-              numberOfSets={actualNumberOfSets}
-              position="bottom"
-            />
-          </div>
-        )}
 
         {/* Workout Notes */}
         {isWorkoutConfigured && (
