@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import DropDown from './DropDown';
 import ExerciseAutocomplete from './ExerciseAutocomplete';
-import { getPlaceholderForExercise } from '../config/exerciseConfig';
+import { getPlaceholderForExercise, isCardioExercise, getCardioFields } from '../config/exerciseConfig';
 import WeightRepsPicker from './WeightRepsPicker';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { parseSet, combineSet, getPreviousSet, countFilledSets } from '../utils/setHelpers';
@@ -100,13 +100,41 @@ function TableRow({
   };
 
   const recordInputCells = () => {
+    // Check if this is a cardio exercise - if so, render custom fields instead of sets
+    const isCardioEx = isCardioExercise(rowId, value);
+
+    if (isCardioEx) {
+      const cardioFields = getCardioFields(value);
+      return cardioFields.map((label, idx) => {
+        const fieldValue = (setInputs && setInputs[idx]) || '';
+        return (
+          <div key={idx + rowId} className="relative mb-2 sm:mb-0 flex-shrink-0">
+            <div className="relative flex items-center gap-1">
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder={label}
+                value={fieldValue}
+                onChange={(e) => {
+                  if (parseFloat(e.target.value) >= 0 || e.target.value === '') {
+                    cellInput(idx, e.target.value);
+                  }
+                }}
+                className="px-2 py-2 w-24 sm:w-28 rounded-md bg-gradient-to-r from-blue-50 to-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-400 transition-colors duration-300 text-gray-900 text-center text-sm"
+              />
+            </div>
+          </div>
+        );
+      });
+    }
+
+    // Regular exercise sets
     const cellElements = [];
-    // Get dynamic placeholder based on exercise type
     const placeholder = getPlaceholderForExercise(value);
-    const isCardio = placeholder.includes('min') || placeholder.includes('mi');
     const isBodyweight = placeholder === 'Reps';
     const isTimed = placeholder.includes('Duration') || placeholder.includes('sec');
-    const showWeightInput = !isBodyweight && !isTimed && !isCardio;
+    const showWeightInput = !isBodyweight && !isTimed;
 
     for (let i = 0; i < currentSetCount; i++) {
       const currentSet = parseSet((setInputs && setInputs[i]) || '');
@@ -276,7 +304,8 @@ function TableRow({
             <div className="flex flex-col sm:flex-row sm:flex-wrap sm:gap-2 items-center">
               {recordInputCells()}
 
-              {isEditingSets && (
+              {/* Only show Add/Remove buttons for non-cardio exercises */}
+              {isEditingSets && !isCardioExercise(rowId, value) && (
                 <div className="ml-2 flex-shrink-0 flex flex-row gap-1 sm:gap-2 mt-2 sm:mt-0">
                   <button
                     onClick={handleAddSet}

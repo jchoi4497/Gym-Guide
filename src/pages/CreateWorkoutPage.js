@@ -49,6 +49,7 @@ function CreateWorkoutPage() {
   // Templates state
   const [recentTemplates, setRecentTemplates] = useState([]);
   const [loadedTemplate, setLoadedTemplate] = useState(null);
+  const [selectedDropdownValue, setSelectedDropdownValue] = useState('');
 
   // Scheduled workouts state
   const [todayScheduledWorkouts, setTodayScheduledWorkouts] = useState([]);
@@ -115,6 +116,7 @@ function CreateWorkoutPage() {
         setCustomSetCount(templateToLoad.customSetCount?.toString() || '');
         setCustomRepCount(templateToLoad.customRepCount?.toString() || '');
         setLoadedTemplate(templateToLoad);
+        setSelectedDropdownValue(templateToLoad.id || ''); // Show template in dropdown
         setCurrentStep(3); // Auto-advance to date selection
       }
     };
@@ -174,7 +176,7 @@ function CreateWorkoutPage() {
           const favorites = templatesArray.filter(t => t.isFavorite);
           const nonFavorites = templatesArray.filter(t => !t.isFavorite);
 
-          // Sort non-favorites by lastUsed
+          // Sort non-favorites by lastUsed (most recent first)
           const sortedNonFavorites = nonFavorites.sort((a, b) => {
             // Handle both Firestore Timestamp and ISO string
             const aTime = a.lastUsed
@@ -186,8 +188,8 @@ function CreateWorkoutPage() {
             return bTime - aTime;
           });
 
-          // Combine: all favorites first, then recent non-favorites to fill up to 5 total
-          const combined = [...favorites, ...sortedNonFavorites].slice(0, 5);
+          // Show ALL templates: favorites first, then sorted by most recent use
+          const combined = [...favorites, ...sortedNonFavorites];
 
           console.log('Templates to show:', combined.length, '(Favorites:', favorites.length, ')');
           setRecentTemplates(combined);
@@ -256,6 +258,7 @@ function CreateWorkoutPage() {
     setCustomSetCount(template.customSetCount?.toString() || '');
     setCustomRepCount(template.customRepCount?.toString() || '');
     setLoadedTemplate(template); // Save the template so we can access exercises later
+    setSelectedDropdownValue(template.id || ''); // Show template in dropdown
     // Auto-advance to step 3 (date selection) when template is loaded
     setCurrentStep(3);
   };
@@ -291,6 +294,8 @@ function CreateWorkoutPage() {
       setLoadedTemplate(null);
     }
 
+    setSelectedDropdownValue(workout.id ? `scheduled-${workout.id}` : ''); // Show scheduled workout in dropdown
+
     // Auto-advance to step 3 (date selection)
     setCurrentStep(3);
   };
@@ -298,6 +303,7 @@ function CreateWorkoutPage() {
   const handleMuscleGroupSelect = (option) => {
     setSelectedMuscleGroup(option);
     setLoadedTemplate(null); // Clear loaded template when manually changing selection
+    setSelectedDropdownValue(''); // Clear dropdown selection
     // Clear custom name if switching away from custom
     if (option !== 'custom') {
       setCustomMuscleGroupName('');
@@ -309,6 +315,7 @@ function CreateWorkoutPage() {
   const handleSetCountSelect = (option) => {
     setNumberOfSets(option);
     setLoadedTemplate(null); // Clear loaded template when manually changing selection
+    setSelectedDropdownValue(''); // Clear dropdown selection
     // Clear custom values if switching away from custom
     if (option !== 'custom') {
       setCustomSetCount('');
@@ -350,9 +357,14 @@ function CreateWorkoutPage() {
 
       // Convert template exercises to exerciseData format if template was loaded
       let exerciseData = {};
+      let mainExerciseOrder = [];
+
       if (loadedTemplate && loadedTemplate.exercises) {
-        exerciseData = templateToExerciseData(loadedTemplate, actualNumberOfSets);
+        const templateResult = templateToExerciseData(loadedTemplate, actualNumberOfSets);
+        exerciseData = templateResult.exerciseData;
+        mainExerciseOrder = templateResult.mainExerciseOrder;
         console.log('✅ Loaded exercises from template:', Object.keys(exerciseData).length);
+        console.log('✅ Exercise order:', mainExerciseOrder);
       }
 
       // Create draft workout directly in workoutLogs
@@ -371,16 +383,23 @@ function CreateWorkoutPage() {
         lastModified: serverTimestamp(),
         note: '',
         summary: '',
-        showCardio: false,
-        showAbs: false,
-        cardioAtTop: false,
-        absAtTop: false,
-        sectionOrder: 'abs-first',
-        mainExerciseOrder: [],
+        templateId: loadedTemplate?.id || null,
+        mainExerciseOrder: mainExerciseOrder,
         exerciseOrder: []
       });
 
       console.log('✅ Created draft workout in workoutLogs:', workoutRef.id);
+
+      // Update template's lastUsed timestamp if workout was created from template
+      if (loadedTemplate?.id) {
+        try {
+          const { updateTemplateLastUsed } = await import('../utils/templateHelpers');
+          await updateTemplateLastUsed(auth.currentUser.uid, loadedTemplate.id);
+          console.log('✅ Updated template lastUsed timestamp');
+        } catch (error) {
+          console.error('Error updating template lastUsed:', error);
+        }
+      }
 
       // Navigate to workout page with the new ID
       navigate(`/workout/${workoutRef.id}`);
@@ -465,6 +484,7 @@ function CreateWorkoutPage() {
               </Link>
             </div>
             <select
+              value={selectedDropdownValue}
               onChange={(e) => {
                 const value = e.target.value;
                 if (!value) return;
