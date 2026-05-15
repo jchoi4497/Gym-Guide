@@ -4,6 +4,8 @@ import WeightRepsPicker from '../components/WeightRepsPicker';
 import WorkoutProgress from '../components/WorkoutProgress';
 import WorkoutSummary from '../components/WorkoutSummary';
 import Navbar from '../components/Navbar';
+import AddExerciseButton from '../components/AddExerciseButton';
+import ExerciseAutocomplete from '../components/ExerciseAutocomplete';
 import { WORKOUT_SETTINGS, formatDuration, formatTime } from '../config/workoutSettings';
 import { getExerciseName, getPlaceholderForExercise, getDefaultExercises } from '../config/exerciseConfig';
 import { getFirestore, collection, addDoc, doc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
@@ -37,6 +39,8 @@ function StartWorkoutPage() {
   const [lastSetCompletedTime, setLastSetCompletedTime] = useState(null); // Track when last set was completed
   const [restTimeElapsed, setRestTimeElapsed] = useState(0); // Current rest time
   const [editingFromTable, setEditingFromTable] = useState(null); // {exerciseIndex, setNumber} when editing from table
+  const [isEditingExerciseName, setIsEditingExerciseName] = useState(false); // Track if user is editing exercise name
+  const [showFinishPrompt, setShowFinishPrompt] = useState(false); // Show "add more or finish" prompt after last set
 
   // Check auth state
   useEffect(() => {
@@ -50,6 +54,7 @@ function StartWorkoutPage() {
     });
     return () => unsubscribe();
   }, [navigate]);
+
 
   const workoutStartRef = useRef(workoutStartTime);
 
@@ -315,8 +320,8 @@ function StartWorkoutPage() {
     }
   };
 
-  // Complete the current set
-  const handleCompleteSet = async () => {
+  // Move to next set (completing current set)
+  const handleNextSet = async () => {
     if (!currentExercise || (!currentSetData.weight && !currentSetData.reps)) return;
 
     const completedSet = {
@@ -358,8 +363,8 @@ function StartWorkoutPage() {
       setCurrentSetIndex(currentSetIndex + 1);
       loadSetData(currentSetIndex + 1);
     } else {
-      // Workout complete!
-      setShowSummary(true);
+      // Last set completed - show finish prompt
+      setShowFinishPrompt(true);
     }
   };
 
@@ -393,9 +398,19 @@ function StartWorkoutPage() {
     const existingSet = exercise?.completedSets?.find(s => s.setNumber === setNum);
 
     if (existingSet) {
+      // Load existing set data
       setCurrentSetData({ weight: existingSet.weight, reps: existingSet.reps });
     } else {
-      setCurrentSetData({ weight: '', reps: '' });
+      // No existing set - copy from most recent completed set of this exercise
+      const lastCompletedSet = exercise?.completedSets?.length > 0
+        ? exercise.completedSets[exercise.completedSets.length - 1]
+        : null;
+
+      if (lastCompletedSet) {
+        setCurrentSetData({ weight: lastCompletedSet.weight, reps: lastCompletedSet.reps });
+      } else {
+        setCurrentSetData({ weight: '', reps: '' });
+      }
     }
   };
 
@@ -427,7 +442,13 @@ function StartWorkoutPage() {
       const completedExerciseData = {};
 
       // Add completed sets to exerciseData, preserving original sets structure
+      // Only include exercises that have a name
       exercises.forEach(exercise => {
+        // Skip exercises without names
+        if (!exercise.exerciseName || exercise.exerciseName.trim() === '') {
+          return;
+        }
+
         // Create an array with the correct total number of sets
         const setsArray = new Array(exercise.totalSets).fill('');
 
@@ -485,6 +506,15 @@ function StartWorkoutPage() {
     loadSetData(currentSetIndex);
   }, [currentSetIndex, exercises]);
 
+  // Automatically enter edit mode if current exercise has no name or is temporary
+  useEffect(() => {
+    if (currentExercise && (!currentExercise.exerciseName || currentExercise.key?.startsWith('temp_'))) {
+      setIsEditingExerciseName(true);
+    } else if (currentExercise && currentExercise.exerciseName) {
+      setIsEditingExerciseName(false);
+    }
+  }, [currentExerciseIndex, currentExercise?.key]);
+
   // Open picker from expanded table
   const handleOpenPickerFromTable = (exerciseIndex, setNumber, field, currentWeight, currentReps) => {
     setEditingFromTable({ exerciseIndex, setNumber });
@@ -502,6 +532,69 @@ function StartWorkoutPage() {
       [newExercises[index], newExercises[index + 1]] = [newExercises[index + 1], newExercises[index]];
     }
     setExercises(newExercises);
+  };
+
+  // Add exercise on the fly
+  const handleAddExercise = async () => {
+    const tempId = `temp_${Date.now()}`;
+    const newExercise = {
+      key: tempId,
+      exerciseName: '',
+      totalSets: workoutData?.numberOfSets || 4,
+      completedSets: [],
+    };
+
+    const updatedExercises = [...exercises, newExercise];
+    setExercises(updatedExercises);
+
+    // Mark as editing so the input stays visible
+    setIsEditingExerciseName(true);
+
+    // Close finish prompt if it was open
+    if (showFinishPrompt) {
+      setShowFinishPrompt(false);
+      // Move to the first set of the new exercise
+      setCurrentSetIndex(totalSets); // This will be the first set of the new exercise
+      setCurrentSetData({ weight: '', reps: '' });
+    }
+
+    // Auto-save the new exercise to Firebase
+    await saveProgressToFirebase(updatedExercises);
+
+    // Scroll to top to show the flash card
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  };
+
+  // Handle finish workout from prompt
+  const handleFinishWorkout = () => {
+    setShowFinishPrompt(false);
+    setShowSummary(true);
+  };
+
+  // Update exercise name (just update state, don't save yet)
+  const handleUpdateExerciseName = (exerciseIndex, newName) => {
+    const updatedExercises = [...exercises];
+    updatedExercises[exerciseIndex].exerciseName = newName;
+    setExercises(updatedExercises);
+  };
+
+  // Handle exercise selection from autocomplete (immediate save)
+  const handleExerciseSelect = async (exerciseIndex, exercise) => {
+    const updatedExercises = [...exercises];
+
+    // Update exercise name and key
+    updatedExercises[exerciseIndex].exerciseName = exercise.name;
+    updatedExercises[exerciseIndex].key = exercise.id;
+
+    setExercises(updatedExercises);
+
+    // Mark editing as complete
+    setIsEditingExerciseName(false);
+
+    // Save immediately when user selects from dropdown
+    await saveProgressToFirebase(updatedExercises);
   };
 
   // Handle updates from expanded table view in WorkoutProgress
@@ -550,36 +643,10 @@ function StartWorkoutPage() {
   else if (placeholder === 'Reps') exerciseType = 'bodyweight';
 
   // Show loading state while fetching workout data
-  if (!latestWorkoutData || exercises.length === 0) {
+  if (!latestWorkoutData) {
     return (
       <div className={`min-h-screen ${theme.pageBg} flex items-center justify-center p-4`}>
         <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-slate-600"></div>
-      </div>
-    );
-  }
-
-  // Show error state if no current exercise after loading
-  if (!currentExercise) {
-    return (
-      <div className={`min-h-screen ${theme.pageBg} flex items-center justify-center p-4`}>
-        <div className={`${theme.cardBg} rounded-xl p-8 max-w-md`}>
-          <h2 className={`text-2xl font-bold ${theme.headerText} mb-4 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>⚠️ No Workout Data</h2>
-          <p className={`${theme.cardTextSecondary} mb-6`}>
-            No exercises found in this workout. Please create a workout with exercises first.
-          </p>
-          <div className={`${theme.cardBgSecondary} rounded p-3 mb-6 text-xs text-left`}>
-            <p className={`font-semibold mb-1 ${theme.cardText}`}>Debug Info:</p>
-            <p className={theme.cardTextSecondary}>Workout Name: {workoutName || 'N/A'}</p>
-            <p className={theme.cardTextSecondary}>Total Exercises: {exercises.length}</p>
-            <p className={theme.cardTextSecondary}>Exercise Data Keys: {workoutData ? Object.keys(workoutData.exerciseData || {}).length : 0}</p>
-          </div>
-          <button
-            onClick={() => navigate('/')}
-            className={`px-6 py-3 ${theme.btnPrimary} ${theme.btnPrimaryText} rounded-lg font-semibold w-full`}
-          >
-            Go Home
-          </button>
-        </div>
       </div>
     );
   }
@@ -650,21 +717,36 @@ function StartWorkoutPage() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* Progress Bar at Top */}
-        <div className={`mb-6 ${theme.cardBg} rounded-xl p-4`}>
-          <p className={`text-lg font-semibold ${theme.cardText} mb-2 text-center`}>
-            Progress: {completedSetsCount}/{totalSets} sets completed
-          </p>
-          <div className={`w-full ${theme.cardBgSecondary} rounded-full h-3`}>
-            <div
-              className="bg-green-600 h-3 rounded-full transition-all duration-500 shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)]"
-              style={{ width: `${(completedSetsCount / totalSets) * 100}%` }}
-            />
+        {/* Progress Bar at Top - only show if there are exercises */}
+        {exercises.length > 0 && (
+          <div className={`mb-6 ${theme.cardBg} rounded-xl p-4`}>
+            <p className={`text-lg font-semibold ${theme.cardText} mb-2 text-center`}>
+              Progress: {completedSetsCount}/{totalSets} sets completed
+            </p>
+            <div className={`w-full ${theme.cardBgSecondary} rounded-full h-3`}>
+              <div
+                className="bg-green-600 h-3 rounded-full transition-all duration-500 shadow-[inset_0_1px_2px_rgba(0,0,0,0.2)]"
+                style={{ width: `${(completedSetsCount / totalSets) * 100}%` }}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Flash Card */}
-        <div className={`${theme.cardBg} rounded-xl p-8 mb-6 relative`}>
+        {/* Empty State - show when no exercises */}
+        {exercises.length === 0 ? (
+          <div className={`${theme.cardBg} rounded-xl p-8 mb-6 text-center`}>
+            <h2 className={`text-2xl font-bold ${theme.headerText} mb-4 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>
+              Ready to Start!
+            </h2>
+            <p className={`${theme.cardTextSecondary} mb-6`}>
+              Add exercises to begin your workout.
+            </p>
+            <AddExerciseButton onClick={handleAddExercise} />
+          </div>
+        ) : (
+          <>
+            {/* Flash Card */}
+            <div className={`${theme.cardBg} rounded-xl p-8 mb-6 relative`}>
           {/* Rest Timer - Top Right */}
           {lastSetCompletedTime && (
             <div className="absolute top-4 right-4 flex items-center gap-2">
@@ -689,9 +771,29 @@ function StartWorkoutPage() {
 
           {/* Exercise Name */}
           <div className="text-center mb-6">
-            <h2 className={`text-3xl font-bold ${theme.headerText} mb-2 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>
-              {currentExercise.exerciseName}
-            </h2>
+            {!currentExercise.exerciseName || isEditingExerciseName ? (
+              <div className="mb-2">
+                <label className={`text-sm ${theme.cardTextSecondary} font-medium mb-2 block`}>
+                  Exercise Name
+                </label>
+                <ExerciseAutocomplete
+                  value={currentExercise.exerciseName || ''}
+                  onChange={(value) => handleUpdateExerciseName(currentExerciseIndex, value)}
+                  onSelect={(exercise) => handleExerciseSelect(currentExerciseIndex, exercise)}
+                  placeholder="Enter exercise name..."
+                  className={`w-full px-4 py-3 rounded-xl text-2xl font-bold text-center border-2 ${theme.inputBorder} focus:border-slate-500 focus:outline-none transition-all ${theme.inputBg}`}
+                  autoFocus
+                />
+              </div>
+            ) : (
+              <h2
+                onClick={() => setIsEditingExerciseName(true)}
+                className={`text-3xl font-bold ${theme.headerText} mb-2 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)] cursor-pointer hover:opacity-75 transition-opacity`}
+                title="Tap to edit exercise name"
+              >
+                {currentExercise.exerciseName}
+              </h2>
+            )}
             {!isCardioExercise && (
               <p className={`text-lg ${theme.cardTextSecondary}`}>
                 Set {currentSetNumber} of {currentExercise.totalSets}
@@ -756,18 +858,18 @@ function StartWorkoutPage() {
             </div>
           </div>
 
-          {/* Complete Set Button */}
+          {/* Next Set Button */}
           <button
             onClick={() => {
               if (currentSetData.weight || currentSetData.reps) {
-                handleCompleteSet();
+                handleNextSet();
               } else {
                 handleOpenPicker(isCardio ? 'reps' : 'weight');
               }
             }}
             className="w-full py-4 rounded-xl font-bold text-lg bg-green-700 hover:bg-green-800 text-white shadow-[0_4px_12px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.2)] border-t border-l border-green-600 border-b-2 border-r-2 border-b-green-900 border-r-green-900 active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] active:translate-y-0.5 transition-all"
           >
-            ✓ Complete Set
+            ✓ Next Set
           </button>
 
           {/* Navigation Button */}
@@ -785,6 +887,15 @@ function StartWorkoutPage() {
             </button>
           </div>
         </div>
+
+        {/* Add Exercise Button - show when exercises exist */}
+        {exercises.length > 0 && (
+          <div className="mb-6">
+            <AddExerciseButton onClick={handleAddExercise} />
+          </div>
+        )}
+        </>
+        )}
       </div>
 
       {/* Weight/Reps Picker Modal */}
@@ -800,6 +911,41 @@ function StartWorkoutPage() {
         exerciseType={exerciseType}
         initialField={initialField}
       />
+
+      {/* Finish Prompt - Add More or Complete */}
+      {showFinishPrompt && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className={`${theme.cardBg} rounded-2xl p-8 max-w-md w-full shadow-2xl`}>
+            <div className="text-center mb-8">
+              <div className="text-6xl mb-4">🎉</div>
+              <h2 className={`text-3xl font-bold ${theme.headerText} mb-2 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>
+                Great Job!
+              </h2>
+              <p className={`text-lg ${theme.cardText} mb-2`}>
+                You've completed all sets for your current exercises.
+              </p>
+              <p className={`${theme.cardTextSecondary}`}>
+                What would you like to do next?
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={handleAddExercise}
+                className={`w-full py-4 rounded-xl font-bold text-lg ${theme.btnPrimary} ${theme.btnPrimaryText} shadow-lg transition-all active:scale-95`}
+              >
+                + Add Another Exercise
+              </button>
+              <button
+                onClick={handleFinishWorkout}
+                className="w-full py-4 rounded-xl font-bold text-lg bg-green-600 hover:bg-green-700 text-white shadow-lg transition-all active:scale-95"
+              >
+                ✓ Finish Workout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Workout Summary */}
       {showSummary && (
