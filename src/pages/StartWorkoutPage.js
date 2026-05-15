@@ -506,9 +506,9 @@ function StartWorkoutPage() {
     loadSetData(currentSetIndex);
   }, [currentSetIndex, exercises]);
 
-  // Automatically enter edit mode if current exercise has no name
+  // Automatically enter edit mode if current exercise has no name or is temporary
   useEffect(() => {
-    if (currentExercise && !currentExercise.exerciseName) {
+    if (currentExercise && (!currentExercise.exerciseName || currentExercise.key?.startsWith('temp_'))) {
       setIsEditingExerciseName(true);
     } else if (currentExercise && currentExercise.exerciseName) {
       setIsEditingExerciseName(false);
@@ -536,9 +536,9 @@ function StartWorkoutPage() {
 
   // Add exercise on the fly
   const handleAddExercise = async () => {
-    const customId = `custom_${Date.now()}`;
+    const tempId = `temp_${Date.now()}`;
     const newExercise = {
-      key: customId,
+      key: tempId,
       exerciseName: '',
       totalSets: workoutData?.numberOfSets || 4,
       completedSets: [],
@@ -583,8 +583,11 @@ function StartWorkoutPage() {
   // Handle exercise selection from autocomplete (immediate save)
   const handleExerciseSelect = async (exerciseIndex, exercise) => {
     const updatedExercises = [...exercises];
+
+    // Update exercise name and key
     updatedExercises[exerciseIndex].exerciseName = exercise.name;
-    updatedExercises[exerciseIndex].key = exercise.id || updatedExercises[exerciseIndex].key;
+    updatedExercises[exerciseIndex].key = exercise.id;
+
     setExercises(updatedExercises);
 
     // Mark editing as complete
@@ -783,7 +786,11 @@ function StartWorkoutPage() {
                 />
               </div>
             ) : (
-              <h2 className={`text-3xl font-bold ${theme.headerText} mb-2 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)]`}>
+              <h2
+                onClick={() => setIsEditingExerciseName(true)}
+                className={`text-3xl font-bold ${theme.headerText} mb-2 drop-shadow-[0_2px_3px_rgba(0,0,0,0.3)] cursor-pointer hover:opacity-75 transition-opacity`}
+                title="Tap to edit exercise name"
+              >
                 {currentExercise.exerciseName}
               </h2>
             )}
@@ -881,24 +888,11 @@ function StartWorkoutPage() {
           </div>
         </div>
 
-        {/* Workout Progress - show all exercises when exercises exist */}
+        {/* Add Exercise Button - show when exercises exist */}
         {exercises.length > 0 && (
-          <>
-            <WorkoutProgress
-              exercises={exercises}
-              currentSetIndex={currentSetIndex}
-              onUpdateSet={handleUpdateSetFromTable}
-              onOpenPicker={handleOpenPickerFromTable}
-              onReorderExercise={handleReorderExercise}
-              onUpdateExerciseName={handleUpdateExerciseName}
-              onExerciseSelect={handleExerciseSelect}
-            />
-
-            {/* Add Exercise Button - show when exercises exist */}
-            <div className="mb-6">
-              <AddExerciseButton onClick={handleAddExercise} />
-            </div>
-          </>
+          <div className="mb-6">
+            <AddExerciseButton onClick={handleAddExercise} />
+          </div>
         )}
         </>
         )}
